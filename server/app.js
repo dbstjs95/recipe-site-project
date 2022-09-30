@@ -16,7 +16,7 @@ app.post("/auth", (req, res) => {
 
   if (!id_token) return res.status(400).send("failed to get id_token");
 
-  const CLIENT_ID = process.env.CLIENT_ID;
+  const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
   const client = new OAuth2Client(CLIENT_ID);
 
   async function verify() {
@@ -41,6 +41,24 @@ app.post("/auth", (req, res) => {
       message: "fail",
     });
   });
+});
+
+app.post("/naver", async (req, res) => {
+  const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
+  const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
+  const OUR_SERVER_URI = process.env.OUR_SERVER_URI;
+
+  const { code, state } = req.body;
+
+  if (!code || !state) return res.status(400).send("fail");
+
+  const url = `https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${NAVER_CLIENT_ID}&client_secret=${NAVER_CLIENT_SECRET}&redirect_uri=${OUR_SERVER_URI}&code=${code}&state=${state}`;
+
+  const result = await axios.get(url);
+  const { access_token, refresh_token, expires_in } = result.data;
+
+  if (!access_token) return res.status(400).send("fail");
+  return res.status(200).json({ access_token, refresh_token });
 });
 
 app.listen(PORT, () => {

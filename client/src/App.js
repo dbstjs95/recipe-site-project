@@ -5,14 +5,14 @@ import axios from "axios";
 const ENV = process.env;
 
 function App() {
-  const [Tokens, setTokens] = useState({
+  const [GoogleTokens, setGoogleTokens] = useState({
     access_token: "",
     id_token: "",
   });
 
-  const googleOAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?scope=email profile&response_type=code&redirect_uri=${ENV.REACT_APP_REDIRECT_URI}&client_id=${ENV.REACT_APP_CLIENT_ID}`;
+  const googleOAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?scope=email profile&response_type=code&redirect_uri=${ENV.REACT_APP_OUR_CLIENT_URI}&client_id=${ENV.REACT_APP_GOOGLE_CLIENT_ID}`;
 
-  const naverOAuthURL = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${ENV.REACT_APP_NAVER_CLIENT_ID}&redirect_uri=${ENV.REACT_APP_REDIRECT_URI}&state=${ENV.REACT_APP_NAVER_STATE}`;
+  const naverOAuthURL = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${ENV.REACT_APP_NAVER_CLIENT_ID}&redirect_uri=${ENV.REACT_APP_OUR_CLIENT_URI}&state=${ENV.REACT_APP_NAVER_STATE}`;
 
   const oAuthHandler = (url) => {
     window.location.assign(url);
@@ -23,47 +23,25 @@ function App() {
     const authorizationCode = url.searchParams.get("code");
     const authorizationState = url.searchParams.get("state");
 
-    //check
-    console.log(
-      "authorizationCode: ",
-      authorizationCode,
-      "/ authorizationState: ",
-      authorizationState
-    );
+    if (!authorizationCode) return;
 
-    if (authorizationCode && authorizationState) {
-      console.log("naver");
-      const accessTokenRequestBody = {
-        grant_type: "authorization_code",
-        client_id: ENV.REACT_APP_NAVER_CLIENT_ID,
-        client_secret: ENV.REACT_APP_NAVER_CLIENT_SECRET,
-        code: authorizationCode,
-        redirect_uri: encodeURI(ENV.REACT_APP_REDIRECT_URI),
-        state: authorizationState,
-      };
-
-      let redirectUrl = encodeURI(ENV.REACT_APP_REDIRECT_URI);
-
+    if (authorizationState) {
+      //네이버
       axios
-        .get(
-          `https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${ENV.REACT_APP_NAVER_CLIENT_ID}&client_secret=${ENV.REACT_APP_NAVER_CLIENT_SECRET}&redirect_uri=${ENV.REACT_APP_REDIRECT_URI}&code=${authorizationCode}&state=${authorizationState}`,
-          {
-            headers: {
-              "X-Naver-Client-Id": ENV.REACT_APP_NAVER_CLIENT_ID,
-              "X-Naver-Client-Secret": ENV.REACT_APP_NAVER_CLIENT_SECRET,
-            },
-          }
-        )
-        // .post("https://nid.naver.com/oauth2.0/token", accessTokenRequestBody)
+        .post(`${ENV.REACT_APP_OUR_SERVER_URI}/naver`, {
+          code: authorizationCode,
+          state: authorizationState,
+        })
         .then((res) => {
-          console.log(res.data);
+          console.log("서버로부터 온 네이버 토큰", res.data);
         });
-    } else if (authorizationCode) {
+    } else {
+      //구글
       const accessTokenRequestBody = {
         code: authorizationCode,
-        client_id: ENV.REACT_APP_CLIENT_ID,
-        client_secret: ENV.REACT_APP_CLIENT_SECRET,
-        redirect_uri: ENV.REACT_APP_REDIRECT_URI,
+        client_id: ENV.REACT_APP_GOOGLE_CLIENT_ID,
+        client_secret: ENV.REACT_APP_GOOGLE_CLIENT_SECRET,
+        redirect_uri: ENV.REACT_APP_OUR_CLIENT_URI,
         grant_type: "authorization_code",
       };
 
@@ -72,10 +50,8 @@ function App() {
         .then((result) => {
           const { access_token, id_token } = result.data;
 
-          console.log("access_token", access_token, "id_token", id_token);
-
           if (access_token) {
-            setTokens({
+            setGoogleTokens({
               access_token,
               id_token,
             });
@@ -85,11 +61,11 @@ function App() {
         })
         .then((id_token) => {
           axios
-            .post(`${ENV.REACT_APP_SERVER_URI}/auth`, {
+            .post(`${ENV.REACT_APP_OUR_SERVER_URI}/auth`, {
               id_token,
             })
             .then((res) => {
-              console.log(res.data);
+              console.log("서버로부터 온 구글 유저 정보", res.data);
             });
         });
     }
