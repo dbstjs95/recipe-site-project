@@ -9,7 +9,14 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 
 app.use(express.json());
-app.use(cors({ origin: true }));
+
+// 만일 credentail: true로 인증된 요청을 사용할 경우, Access-Control-Allow-Origin 값이 '*' 일 경우 에러가 발생.
+app.use(
+  cors({
+    origin: [process.env.OUR_CLIENT_URI, "https://nid.naver.com"], // 출처 허용 옵션
+    credential: "true", // 사용자 인증이 필요한 리소스(쿠키 ..등) 접근
+  })
+);
 
 app.post("/auth", (req, res) => {
   const { id_token } = req.body;

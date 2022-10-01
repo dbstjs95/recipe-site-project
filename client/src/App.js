@@ -5,6 +5,8 @@ import axios from "axios";
 const ENV = process.env;
 
 function App() {
+  axios.defaults.withCredentials = true;
+
   const [GoogleTokens, setGoogleTokens] = useState({
     access_token: "",
     id_token: "",
