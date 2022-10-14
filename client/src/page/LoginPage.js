@@ -1,11 +1,10 @@
-import "./App.css";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
 const ENV = process.env;
 
-function App() {
-  axios.defaults.withCredentials = true;
+function LoginPage() {
+  // axios.defaults.withCredentials = true;
 
   const [GoogleTokens, setGoogleTokens] = useState({
     access_token: "",
@@ -74,7 +73,7 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
+    <div>
       <button id="oAuthBtn" onClick={() => oAuthHandler(googleOAuthURL)}>
         <div id="comment">구글 OAuth</div>
       </button>
@@ -85,4 +84,4 @@ function App() {
   );
 }
 
-export default App;
+export default LoginPage;

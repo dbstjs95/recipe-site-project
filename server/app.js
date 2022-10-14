@@ -13,7 +13,11 @@ app.use(express.json());
 // 만일 credentail: true로 인증된 요청을 사용할 경우, Access-Control-Allow-Origin 값이 '*' 일 경우 에러가 발생.
 app.use(
   cors({
-    origin: [process.env.OUR_CLIENT_URI, "https://nid.naver.com"], // 출처 허용 옵션
+    origin: [
+      process.env.OUR_CLIENT_URI,
+      "https://nid.naver.com",
+      "https://openapi.naver.com",
+    ], // 출처 허용 옵션
     credential: "true", // 사용자 인증이 필요한 리소스(쿠키 ..등) 접근
   })
 );
@@ -65,7 +69,14 @@ app.post("/naver", async (req, res) => {
   const { access_token, refresh_token, expires_in } = result.data;
 
   if (!access_token) return res.status(400).send("fail");
-  return res.status(200).json({ access_token, refresh_token });
+
+  const {
+    data: { response: userInfo },
+  } = await axios.get("https://openapi.naver.com/v1/nid/me", {
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+
+  return res.status(200).json({ access_token, refresh_token, userInfo });
 });
 
 app.listen(PORT, () => {
