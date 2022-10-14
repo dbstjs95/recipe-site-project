@@ -6,6 +6,7 @@ import {
   faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import SettingModal from "./SettingModal";
+import { colors } from "../css";
 
 const Container = styled.form`
   display: flex;
@@ -33,7 +34,7 @@ const SubmitBtn = styled.button`
   padding: 10.5px;
   color: #fff;
   cursor: pointer;
-  background-color: #48ad23;
+  background-color: ${colors.main};
   border-radius: 0 5px 5px 0;
   border: none;
   outline: none;

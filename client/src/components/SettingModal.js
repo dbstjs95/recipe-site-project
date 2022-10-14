@@ -10,12 +10,10 @@ const MenuModal = styled.ul`
   border: 1px solid #ebebeb;
   box-shadow: 5px 5px 10px 0 rgb(0 0 0 / 5%);
   border-radius: 5px 0 5px 5px;
-  width: 120px;
+  /* width: 120px; */
   z-index: 1;
   li {
-    text-align: center;
-    line-height: 100%;
-    padding: 5px;
+    padding: 10px;
     &:not(:last-child) {
       border-bottom: 1px solid rgb(0 0 0 / 5%);
     }
@@ -23,16 +21,19 @@ const MenuModal = styled.ul`
       box-shadow: inset 0 0 50px rgb(0 0 0 / 5%);
     }
     a {
-      text-decoration: none;
+      display: block;
       font-size: 13px;
-      &:focus,
+      text-align: center;
+      color: #222;
+      white-space: nowrap;
+      /* &:focus,
       &:hover,
       &:visited,
       &:link,
       &:active {
         text-decoration: none;
         color: #222;
-      }
+      } */
     }
   }
 `;

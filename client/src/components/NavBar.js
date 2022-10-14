@@ -4,6 +4,7 @@ import styled from "styled-components";
 import logoImg from "../assets/logo_img/logo3.png";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
+import { colors } from "../css";
 
 const Nav = styled.nav`
   background-color: #fff;
@@ -38,7 +39,7 @@ const MainContainer = styled.div`
 `;
 
 const SubContainer = styled.div`
-  background-color: #549949;
+  background-color: ${colors.main};
   box-shadow: 5px 5px 10px 0 rgb(0, 0, 0, 30%);
   ul {
     display: flex;
