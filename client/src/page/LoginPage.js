@@ -156,12 +156,12 @@ const Container = styled.div`
   }
 
   @media screen and (max-width: 480px) {
-    height: 30%;
+    height: 31%;
     h1 {
       font-size: 1.7rem;
     }
     > div {
-      height: 145px;
+      height: 137px;
       button {
         width: 230px;
         height: 55px;
