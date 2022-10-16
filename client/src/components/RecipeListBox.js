@@ -68,36 +68,71 @@ const BestSection = styled.section`
           margin-left: 5px;
         }
       }
-      p.view {
+      p.detail {
+        display: flex;
         width: 100%;
+        /* justify-content: space-between; */
+        justify-content: flex-end;
+        padding: 15px 5px 5px;
+        span {
+          font-size: 13px;
+          color: #a8a8a8;
+          &.like {
+            em {
+              color: #fc3d4d;
+            }
+          }
+        }
+      }
+      /* p.detail_list {
         display: flex;
         justify-content: flex-end;
-        font-size: 13px;
-        color: #a8a8a8;
-        padding-right: 5px;
+        width: 100%;
+      } */
+    }
+  }
+`;
+
+const DetailStyle = styled.p`
+  display: flex;
+  width: 100%;
+  justify-content: ${({ best }) => (best ? `flex-end` : `space-between`)};
+  padding: ${({ best }) => (best ? `0 5px 5px 0` : `12px 5px 3px`)};
+  span {
+    font-size: 13px;
+    color: #a8a8a8;
+    &.like {
+      display: ${({ best }) => best && `none`};
+      em {
+        color: #f05663;
       }
     }
   }
 `;
 
-function BestRecipeBox({ children }) {
+function BestRecipeBox({ children, data = recipeList, use }) {
   return (
     <BestSection>
       {children}
       <ul>
-        {recipeList.map((item, idx) => {
-          const { order, src, title, userInfo, view } = item;
+        {data.map((item, idx) => {
+          const { order, src, title, userInfo, view, like } = item;
           let simpleView = (Number(view) / 10000).toFixed(1);
           return (
             <li key={idx}>
-              <span className="order">{order}</span>
+              {use === "best" && <span className="order">{order}</span>}
               <img src={src} className="food" />
               <p className="title">{title}</p>
               <p className="user">
                 <img src={userInfo[0]} />
                 <span>{userInfo[1]}</span>
               </p>
-              <p className="view">조회수 {simpleView}만</p>
+              <DetailStyle best={use === "best"}>
+                <span className="like">
+                  <em>&hearts;</em> {like}
+                </span>
+                <span className="view">조회수 {simpleView}만</span>
+              </DetailStyle>
             </li>
           );
         })}

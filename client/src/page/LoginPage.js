@@ -112,7 +112,7 @@ const Background = styled.div`
 
 const Container = styled.div`
   ${FlexCommonStyle}
-  height: 35%;
+  height: 270px;
   h1 {
     font-size: 2rem;
     font-weight: 800;
@@ -156,12 +156,12 @@ const Container = styled.div`
   }
 
   @media screen and (max-width: 480px) {
-    height: 31%;
+    height: 220px;
     h1 {
       font-size: 1.7rem;
     }
     > div {
-      height: 137px;
+      height: 135px;
       button {
         width: 230px;
         height: 55px;

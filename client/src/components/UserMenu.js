@@ -66,7 +66,7 @@ const StyledSpan = styled.span`
 
 function UserMenu() {
   const [IsOpen, setIsOpen] = useState(false);
-  const [IsLogin, setIsLogin] = useState(false);
+  const [IsLogin, setIsLogin] = useState(true);
 
   useEffect(() => {
     if (!IsOpen) return;

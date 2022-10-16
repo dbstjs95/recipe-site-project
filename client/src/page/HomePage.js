@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import EventBox from "../components/EventBox";
 import ClassifyBox from "../components/ClassifyBox";
-import BestRecipeBox from "../components/BestRecipeBox";
+import RecipeListBox from "../components/RecipeListBox";
 import ClassesBox from "../components/ClassesBox";
+import { LayoutSize } from "../css";
+import recipeList from "../mockData/recipe_list";
 
 //헤더 디자인~
 const HeaderStyle = styled.h1`
@@ -40,7 +42,7 @@ const ClassesBoxHeader = styled(BestHeader)``;
 //~헤더 디자인
 
 const Container = styled.div`
-  width: 80vw;
+  ${LayoutSize}
   margin: 0 auto;
   padding: 30px 0 10px 0;
   > section {
@@ -58,12 +60,12 @@ function HomePage() {
       <ClassifyBox>
         <ClassifyHeader>레시피 분류</ClassifyHeader>
       </ClassifyBox>
-      <BestRecipeBox>
+      <RecipeListBox data={recipeList} use="best">
         <BestHeader>
           베스트 레시피
           <Link to="/recipes">더보기</Link>
         </BestHeader>
-      </BestRecipeBox>
+      </RecipeListBox>
       <ClassesBox>
         <ClassesBoxHeader>
           요리 클래스

@@ -17,6 +17,7 @@ const recipeList = [
     title: "오징어 볶음, 향과 맛이 일품! 백종원 오징어 볶음",
     userInfo: [user, "hancy002"],
     view: 328000,
+    like: 1234,
   },
   {
     order: 2,
@@ -24,6 +25,7 @@ const recipeList = [
     title: "참치두부조림",
     userInfo: [user, "예예"],
     view: 312600,
+    like: 1234,
   },
   {
     order: 3,
@@ -31,6 +33,7 @@ const recipeList = [
     title: "밑반찬 무조림",
     userInfo: [user, "돌하우스"],
     view: 257500,
+    like: 1234,
   },
   {
     order: 4,
@@ -38,6 +41,7 @@ const recipeList = [
     title: "밥 한그릇 뚝딱! 맵지 않은 아이반찬 고등어간장무조림",
     userInfo: [user, "로사테이블"],
     view: 200000,
+    like: 1234,
   },
   {
     order: 5,
@@ -45,6 +49,7 @@ const recipeList = [
     title: "프랑스식 에그타르트 키슈(키쉬) 만들기",
     userInfo: [user, "잇라밸"],
     view: 195000,
+    like: 1234,
   },
   {
     order: 6,
@@ -52,6 +57,7 @@ const recipeList = [
     title: "전자렌지 계란찜, 시간없을때 후다닥~!!",
     userInfo: [user, "엘린84"],
     view: 187000,
+    like: 1234,
   },
   {
     order: 7,
@@ -59,6 +65,7 @@ const recipeList = [
     title: "눈물나게 맛있는 김밥 만들기",
     userInfo: [user, "쿠킹숙"],
     view: 163200,
+    like: 1234,
   },
   {
     order: 8,
@@ -66,6 +73,7 @@ const recipeList = [
     title: "입안을 가득채우는 부드러운 마스카포네크림, 딸기마스카포네크림빵",
     userInfo: [user, "오늘의레시피"],
     view: 102000,
+    like: 1234,
   },
   {
     order: 9,
@@ -73,6 +81,7 @@ const recipeList = [
     title: "남은 잡채로 만든 간식/잡채 계란말이",
     userInfo: [user, "쿡따라"],
     view: 100311,
+    like: 1234,
   },
   {
     order: 10,
@@ -80,6 +89,7 @@ const recipeList = [
     title: "하이볼 만드는법 위스키 하이볼 만들기",
     userInfo: [user, "반이짝이"],
     view: 97563,
+    like: 1234,
   },
 ];
 
