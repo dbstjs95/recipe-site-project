@@ -42,7 +42,7 @@ const BestSection = styled.section`
       }
       p.title {
         width: 100%;
-        padding-top: 8px;
+        padding-top: 5px;
         word-break: break-all;
         overflow: hidden;
         display: -webkit-box;
@@ -58,7 +58,7 @@ const BestSection = styled.section`
         justify-content: start;
         align-items: center;
         color: #787775;
-        padding-top: 8px;
+        padding: 7px 0 5px;
         img {
           width: 30px;
           height: 30px;
@@ -68,27 +68,6 @@ const BestSection = styled.section`
           margin-left: 5px;
         }
       }
-      p.detail {
-        display: flex;
-        width: 100%;
-        /* justify-content: space-between; */
-        justify-content: flex-end;
-        padding: 15px 5px 5px;
-        span {
-          font-size: 13px;
-          color: #a8a8a8;
-          &.like {
-            em {
-              color: #fc3d4d;
-            }
-          }
-        }
-      }
-      /* p.detail_list {
-        display: flex;
-        justify-content: flex-end;
-        width: 100%;
-      } */
     }
   }
 `;
@@ -97,7 +76,7 @@ const DetailStyle = styled.p`
   display: flex;
   width: 100%;
   justify-content: ${({ best }) => (best ? `flex-end` : `space-between`)};
-  padding: ${({ best }) => (best ? `0 5px 5px 0` : `12px 5px 3px`)};
+  padding: 0 5px 3px 0;
   span {
     font-size: 13px;
     color: #a8a8a8;
@@ -110,7 +89,7 @@ const DetailStyle = styled.p`
   }
 `;
 
-function BestRecipeBox({ children, data = recipeList, use }) {
+function RecipeListBox({ children, data = recipeList, use }) {
   return (
     <BestSection>
       {children}
@@ -141,4 +120,4 @@ function BestRecipeBox({ children, data = recipeList, use }) {
   );
 }
 
-export default BestRecipeBox;
+export default RecipeListBox;

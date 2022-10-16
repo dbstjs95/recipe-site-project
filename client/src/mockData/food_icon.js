@@ -19,6 +19,10 @@ import tteok from "../assets/food_icons/tteok.png";
 import vegetable from "../assets/food_icons/vegetable.png";
 import wheat from "../assets/food_icons/wheat.png";
 import soju from "../assets/food_icons/soju.png";
+import dumpling from "../assets/food_icons/dumpling.png";
+import sushi from "../assets/food_icons/sushi.png";
+import theRest from "../assets/food_icons/theRest.png";
+import all from "../assets/food_icons/all.png";
 
 export const foodImgs = [
   { name: "반찬", src: banchan },
@@ -42,4 +46,14 @@ export const foodImgs = [
   { name: "계란/유제품", src: milk },
   { name: "버섯류", src: mushroom },
   { name: "곡류", src: wheat },
+];
+
+export const classMenuIcons = [
+  { name: "전체", src: all },
+  { name: "한식", src: daily },
+  { name: "중식", src: dumpling },
+  { name: "일식", src: sushi },
+  { name: "양식", src: pasta },
+  { name: "베이킹", src: dessert },
+  { name: "기타", src: theRest },
 ];

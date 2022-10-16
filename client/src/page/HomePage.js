@@ -44,9 +44,11 @@ const ClassesBoxHeader = styled(BestHeader)``;
 const Container = styled.div`
   ${LayoutSize}
   margin: 0 auto;
-  padding: 30px 0 10px 0;
+  padding: 10px 0;
   > section {
-    margin-bottom: 30px;
+    &:not(:last-of-type) {
+      margin-bottom: 30px;
+    }
     background-color: white;
     box-shadow: 0 0 3px rgb(0 0 1/50%);
     border-radius: 5px;

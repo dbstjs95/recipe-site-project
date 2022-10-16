@@ -13,3 +13,9 @@ export const LayoutSize = css`
     width: 100vw;
   }
 `;
+
+export const ContainerStyle = css`
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 5px;
+`;

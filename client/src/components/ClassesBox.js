@@ -1,6 +1,46 @@
 import React, { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { classes } from "../mockData/class_list";
+
+export const LiStyleForClass = css`
+  > div {
+    width: 80%;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 7px;
+  }
+  img {
+    width: 100%;
+  }
+  p.title {
+    word-break: break-all;
+    font-weight: bold;
+    padding: 10px 0;
+  }
+  p.details {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0 5% 5px;
+    span {
+      &.price {
+        font-size: 18px;
+        font-weight: bolder;
+        color: crimson;
+      }
+      &.sales {
+        font-size: 12px;
+        color: gray;
+      }
+    }
+  }
+`;
 
 const ClassSection = styled.section`
   div.hide-box {
@@ -40,62 +80,50 @@ const ClassSection = styled.section`
         right: -80px;
       }
     }
-    ul.list {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      transform: translateX(0%);
-      padding-top: 1%;
-      li {
-        min-width: 33.333%;
-        min-height: 100%;
-        @media screen and (max-width: 960px) {
-          min-width: 50%;
-        }
-        @media screen and (max-width: 600px) {
-          min-width: 100%;
-        }
-        > div {
-          width: 80%;
-          height: 100%;
-          margin: 0 auto;
-          padding: 8px 0;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          align-items: center;
-        }
-        img {
-          width: 100%;
-          border-radius: 7px;
-        }
-        p.title {
-          word-break: break-all;
-          font-weight: bold;
-          padding: 10px 0;
-        }
-        p.details {
-          display: flex;
-          width: 100%;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0 0 5% 5px;
-          span {
-            &.price {
-              font-size: 18px;
-              font-weight: bolder;
-              color: crimson;
-            }
-            &.sales {
-              font-size: 12px;
-              color: gray;
-            }
-          }
-        }
-      }
-    }
   }
 `;
+
+const UlContainer = styled.ul`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  transform: translateX(0%);
+  padding-top: 1%;
+  li {
+    min-width: 33.333%;
+    min-height: 100%;
+    @media screen and (max-width: 960px) {
+      min-width: 50%;
+    }
+    @media screen and (max-width: 600px) {
+      min-width: 100%;
+    }
+
+    ${LiStyleForClass};
+  }
+`;
+
+export function ClassesInnerBox() {
+  return (
+    <>
+      {classes.map((item, idx) => {
+        let refinedPrice = Number(item.price).toLocaleString("ko-KR");
+        return (
+          <li key={idx}>
+            <div>
+              <img src={item.src} alt="클래스" />
+              <p className="title">{item.title}</p>
+              <p className="details">
+                <span className="price">{refinedPrice}원</span>
+                <span className="sales">{item.sales}명 신청</span>
+              </p>
+            </div>
+          </li>
+        );
+      })}
+    </>
+  );
+}
 
 function ClassesBox({ children }) {
   const totalSlide = classes.length;
@@ -165,23 +193,9 @@ function ClassesBox({ children }) {
         >
           &gt;
         </button>
-        <ul className="list" ref={classRef}>
-          {classes.map((item, idx) => {
-            let refinedPrice = Number(item.price).toLocaleString("ko-KR");
-            return (
-              <li key={idx}>
-                <div>
-                  <img src={item.src} alt="클래스" />
-                  <p className="title">{item.title}</p>
-                  <p className="details">
-                    <span className="price">{refinedPrice}원</span>
-                    <span className="sales">{item.sales}명 신청</span>
-                  </p>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <UlContainer ref={classRef}>
+          <ClassesInnerBox />
+        </UlContainer>
       </div>
     </ClassSection>
   );

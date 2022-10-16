@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import CategoryBox from "../../components/CategoryBox";
-import { LayoutSize } from "../../css";
+import { LayoutSize, ContainerStyle } from "../../css";
 import recipeList from "../../mockData/recipe_list";
 import RecipeListBox from "../../components/RecipeListBox";
 import Pagination from "../../components/Pagination";
 
 const Container = styled.div`
   ${LayoutSize}
-  margin: 0 auto;
-  background-color: white;
+  ${ContainerStyle}
   padding: 10px 0 30px;
   > div {
     &.category {

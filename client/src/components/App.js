@@ -6,6 +6,7 @@ import styled from "styled-components";
 
 const Container = styled.div`
   background-color: whitesmoke;
+  padding: 20px 0;
 `;
 
 function App() {

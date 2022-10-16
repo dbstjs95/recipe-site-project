@@ -1,5 +1,5 @@
-import React from "react";
-import { Link, NavLink } from "react-router-dom";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import logoImg from "../assets/logo_img/logo3.png";
 import SearchBar from "./SearchBar";
@@ -57,9 +57,14 @@ const SubContainer = styled.div`
         box-shadow: inset 0 0 100px rgb(0, 0, 0, 0.2);
       }
       a {
+        display: block;
         color: #fff;
         font-weight: bold;
         font-size: 20px;
+        cursor: pointer;
+      }
+      &.active {
+        background-color: #2d6b2c;
       }
     }
     @media screen and (max-width: 580px) {
@@ -76,6 +81,10 @@ const SubContainer = styled.div`
 `;
 
 function NavBar() {
+  const [Visited, setVisited] = useState("메인");
+
+  const handleMenuVisit = (key) => setVisited(key);
+
   return (
     <Nav>
       <MainContainer>
@@ -90,17 +99,23 @@ function NavBar() {
 
       <SubContainer>
         <ul>
-          <li>
-            <NavLink>메인</NavLink>
+          <li className={Visited === "메인" && "active"}>
+            <Link to="/" onClick={() => handleMenuVisit("메인")}>
+              메인
+            </Link>
+          </li>
+          <li className={Visited === "분류" && "active"}>
+            <Link to="/recipes" onClick={() => handleMenuVisit("분류")}>
+              분류
+            </Link>
+          </li>
+          <li className={Visited === "클래스" && "active"}>
+            <Link to="/classes" onClick={() => handleMenuVisit("클래스")}>
+              클래스
+            </Link>
           </li>
           <li>
-            <NavLink>분류</NavLink>
-          </li>
-          <li>
-            <NavLink>클래스</NavLink>
-          </li>
-          <li>
-            <NavLink>더보기</NavLink>
+            <a>더보기</a>
           </li>
         </ul>
       </SubContainer>
