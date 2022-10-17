@@ -13,6 +13,7 @@ export const typeData = [
   "음료",
   "기타",
 ];
+
 export const circumstanceData = [
   "전체",
   "일상",
@@ -34,3 +35,26 @@ export const ingredientData = [
   "곡류",
   "기타",
 ];
+
+export const dataForRegisterPage = {
+  type: ["종류별", ...typeData.slice(1)],
+  circumstance: ["상황별", ...circumstanceData.slice(1)],
+  ingredient: ["재료별", ...ingredientData.slice(1)],
+  servings: ["인원", "1인분", "2인분", "3인분", "4인분", "5인분", "6인분 이상"],
+  time: [
+    "시간",
+    "5분이내",
+    "10분이내",
+    "15분이내",
+    "20분이내",
+    "30분이내",
+    "60분이내",
+    "90분이내",
+    "2시간이내",
+    "2시간이상",
+  ],
+  level: ["난이도", "아무나", "초급", "중급", "고급"],
+};
+
+export const dataKeys1 = ["type", "circumstance", "ingredient"];
+export const dataKeys2 = ["servings", "time", "level"];
