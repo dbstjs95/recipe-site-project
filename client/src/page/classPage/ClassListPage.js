@@ -3,10 +3,15 @@ import styled from "styled-components";
 import { classMenuIcons } from "../../mockData/food_icon";
 import { LayoutSize, ContainerStyle } from "../../css";
 import { LiStyleForClass, ClassesInnerBox } from "../../components/ClassesBox";
+import Pagination from "../../components/Pagination";
 
 const Container = styled.div`
   ${LayoutSize};
   ${ContainerStyle};
+  div#paginationLayout {
+    text-align: center;
+    padding: 30px 0;
+  }
 `;
 
 const MenuContainer = styled.ul`
@@ -116,7 +121,7 @@ function ClassListPage() {
         {classMenuIcons.map((item, idx) => (
           <li
             key={idx}
-            className={Selected === item.name && "selected"}
+            className={Selected === item.name ? "selected" : ""}
             onClick={() => handleMenuClick(item.name)}
           >
             <img src={item.src} alt={item.name} />
@@ -129,6 +134,9 @@ function ClassListPage() {
           <ClassesInnerBox />
         </ul>
       </ListContainer>
+      <div id="paginationLayout">
+        <Pagination totalPage={100} />
+      </div>
     </Container>
   );
 }

@@ -29,9 +29,10 @@ const ArrowBtn = styled.button`
   cursor: pointer;
   font-size: 20px;
   font-weight: bold;
-  /* color: #545352; */
   color: ${colors.main};
   &:disabled {
+    cursor: default;
+    opacity: 0;
     color: lightgray;
   }
   &.prev {
@@ -40,7 +41,7 @@ const ArrowBtn = styled.button`
   }
 `;
 
-function Pagination({ totalPage }) {
+function Pagination({ totalPage = 0 }) {
   const [Offset, setOffset] = useState(0);
   const [Selected, setSelected] = useState(1);
   const DATA_LIMIT = 20;
