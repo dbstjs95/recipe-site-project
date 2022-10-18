@@ -8,9 +8,21 @@ import {
 } from "../mockData/category_data";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBowlFood } from "@fortawesome/free-solid-svg-icons";
+import IngredientInputBox from "../components/IngredientInputBox";
+import OrderInputBox from "../components/OrderInputBox";
 
 // border: 1px solid red;
 const titleColor = "#5e5e5e";
+const inputColor = "#b8b8b8";
+
+/* 화면 너비 0 ~ 1220px */
+/* 화면 너비 0 ~ 1024px */
+/* 화면 너비 0 ~ 960px */
+/* 화면 너비 0 ~ 768px */
+/* 화면 너비 0 ~ 600px */
+/* 화면 너비 0 ~ 480px */
+/* 화면 너비 0 ~ 320px */
+
 const Container = styled.div`
   ${LayoutSize}
   ${ContainerStyle}
@@ -35,7 +47,7 @@ const Container = styled.div`
   }
 `;
 
-const InputBox1 = styled.form`
+const InputBox = styled.form`
   padding: 30px 0 40px;
   > div,
   > p {
@@ -184,6 +196,7 @@ const IntroContainer = styled.div`
       span {
         &.icon {
           font-size: 2em;
+          margin-bottom: 5px;
         }
         &.desc {
           color: gray;
@@ -213,17 +226,11 @@ const IntroContainer = styled.div`
       display: none;
     }
   }
-  /* 화면 너비 0 ~ 1220px */
-  /* 화면 너비 0 ~ 1024px */
-  /* 화면 너비 0 ~ 960px */
-  /* 화면 너비 0 ~ 768px */
-  /* 화면 너비 0 ~ 600px */
-  /* 화면 너비 0 ~ 480px */
-  /* 화면 너비 0 ~ 320px */
 `;
 
 const IngredientContainer = styled.div`
-  min-height: 200px;
+  /* min-height: 200px; */
+  padding: 30px 0 10px;
 `;
 const OrderContainer = styled.div`
   min-height: 400px;
@@ -249,12 +256,15 @@ function RegisterRecipePage() {
   return (
     <Container>
       <h1>레시피 등록</h1>
-      <InputBox1>
+      <InputBox>
         <IntroContainer>
           <ul id="input_info">
             <li>
               <h2>레시피 제목</h2>
-              <input type="text" />
+              <input
+                type="text"
+                placeholder="예) 매콤 달달 부산 떡볶이 만들기"
+              />
             </li>
             <li>
               <h2>요리 간단소개</h2>
@@ -265,7 +275,7 @@ function RegisterRecipePage() {
               {dataKeys1.map((prop, idx) => (
                 <select key={idx}>
                   {data[prop].map((item, idx) => (
-                    <option value={item} key={idx} selected={idx === 0}>
+                    <option value={item} key={idx}>
                       {item}
                     </option>
                   ))}
@@ -277,7 +287,7 @@ function RegisterRecipePage() {
               {dataKeys2.map((prop, idx) => (
                 <select key={idx}>
                   {data[prop].map((item, idx) => (
-                    <option value={item} key={idx} selected={idx === 0}>
+                    <option value={item} key={idx}>
                       {item}
                     </option>
                   ))}
@@ -290,7 +300,7 @@ function RegisterRecipePage() {
               <span className="icon">
                 <FontAwesomeIcon icon={faBowlFood} />
               </span>
-              <span className="desc">음식 대표 사진 입력</span>
+              <span className="desc">음식 대표 사진 넣기</span>
             </label>
             <input
               id="select_img"
@@ -301,14 +311,18 @@ function RegisterRecipePage() {
             />
           </div>
         </IntroContainer>
-        <IngredientContainer></IngredientContainer>
-        <OrderContainer></OrderContainer>
-        <BtnContainer>
+        <IngredientContainer>
+          <IngredientInputBox />
+        </IngredientContainer>
+        {/* <OrderContainer>
+          <OrderInputBox />
+        </OrderContainer> */}
+        {/* <BtnContainer>
           <button className="save">저장</button>
           <button className="release">저장 후 공개하기</button>
           <button className="cancel">취소</button>
-        </BtnContainer>
-      </InputBox1>
+        </BtnContainer> */}
+      </InputBox>
     </Container>
   );
 }
