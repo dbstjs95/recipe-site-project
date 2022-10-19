@@ -229,11 +229,10 @@ const IntroContainer = styled.div`
 `;
 
 const IngredientContainer = styled.div`
-  /* min-height: 200px; */
   padding: 30px 0 10px;
 `;
 const OrderContainer = styled.div`
-  min-height: 400px;
+  /* min-height: 400px; */
 `;
 const BtnContainer = styled.p`
   border: 1px solid blue;
@@ -314,9 +313,9 @@ function RegisterRecipePage() {
         <IngredientContainer>
           <IngredientInputBox />
         </IngredientContainer>
-        {/* <OrderContainer>
+        <OrderContainer>
           <OrderInputBox />
-        </OrderContainer> */}
+        </OrderContainer>
         {/* <BtnContainer>
           <button className="save">저장</button>
           <button className="release">저장 후 공개하기</button>
