@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBowlFood } from "@fortawesome/free-solid-svg-icons";
 import IngredientInputBox from "../components/IngredientInputBox";
 import OrderInputBox from "../components/OrderInputBox";
+import RegisterBtn from "../components/RegisterBtn";
 
 // border: 1px solid red;
 const titleColor = "#5e5e5e";
@@ -234,18 +235,7 @@ const IngredientContainer = styled.div`
 const OrderContainer = styled.div`
   /* min-height: 400px; */
 `;
-const BtnContainer = styled.p`
-  border: 1px solid blue;
-  min-height: 100px;
-  button {
-    &.save {
-    }
-    &.release {
-    }
-    &.cancel {
-    }
-  }
-`;
+const BtnContainer = styled.div``;
 
 function RegisterRecipePage() {
   const preventEvent = (e) => {
@@ -316,11 +306,9 @@ function RegisterRecipePage() {
         <OrderContainer>
           <OrderInputBox />
         </OrderContainer>
-        {/* <BtnContainer>
-          <button className="save">저장</button>
-          <button className="release">저장 후 공개하기</button>
-          <button className="cancel">취소</button>
-        </BtnContainer> */}
+        <BtnContainer>
+          <RegisterBtn />
+        </BtnContainer>
       </InputBox>
     </Container>
   );
