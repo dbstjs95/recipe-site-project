@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import recipeList from "../mockData/recipe_list";
 
@@ -101,7 +102,9 @@ function RecipeListBox({ children, data = recipeList, use }) {
             <li key={idx}>
               {use === "best" && <span className="order">{order}</span>}
               <img src={src} className="food" />
-              <p className="title">{title}</p>
+              <p className="title">
+                <Link to="/recipes/1">{title}</Link>
+              </p>
               <p className="user">
                 <img src={userInfo[0]} />
                 <span>{userInfo[1]}</span>

@@ -232,9 +232,7 @@ const IntroContainer = styled.div`
 const IngredientContainer = styled.div`
   padding: 30px 0 10px;
 `;
-const OrderContainer = styled.div`
-  /* min-height: 400px; */
-`;
+const OrderContainer = styled.div``;
 const BtnContainer = styled.div``;
 
 function RegisterRecipePage() {
