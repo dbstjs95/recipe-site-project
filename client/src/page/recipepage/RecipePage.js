@@ -14,18 +14,6 @@ const Container = styled.div`
     ${LayoutSize}
     ${ContainerStyle}
     margin-bottom: 25px;
-    min-height: 200px;
-    border: 1px solid black;
-    &.intro {
-    }
-    &.ingredients {
-    }
-    &.steps {
-    }
-    &.writerInfo {
-    }
-    &.comments {
-    }
   }
 `;
 
@@ -40,13 +28,13 @@ function RecipePage() {
         <RecipeDetailIngr data={recipe_info} />
       </div>
       <div className="steps">
-        <RecipeDetailSteps />
+        <RecipeDetailSteps data={recipe_info} />
       </div>
       <div className="writerInfo">
-        <RecipeDetailWriter />
+        <RecipeDetailWriter data={recipe_info.userInfo} />
       </div>
       <div className="comments">
-        <RecipeDetailComments />
+        <RecipeDetailComments data={recipe_info.commentsData} />
       </div>
     </Container>
   );

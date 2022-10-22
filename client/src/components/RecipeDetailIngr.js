@@ -1,16 +1,35 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+
+export const H2Style = css`
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  @media screen and (max-width: 600px) {
+    font-size: 20px;
+  }
+  @media screen and (max-width: 480px) {
+    font-size: 18px;
+  }
+`;
 
 const Container = styled.div`
+  width: 80%;
+  margin: 0 auto;
+  padding: 20px 15px;
+  @media screen and (max-width: 960px) {
+    width: 90%;
+  }
+  @media screen and (max-width: 768px) {
+    width: 100%;
+  }
+  @media screen and (max-width: 480px) {
+    padding: 20px 15px 10px;
+  }
   > h2 {
-    font-size: 22px;
-    font-weight: bold;
-    padding: 15px 10px;
-    margin-left: 10px;
+    ${H2Style};
   }
   > ul {
-    width: 90%;
-    margin: 0 auto 20px;
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
@@ -18,15 +37,32 @@ const Container = styled.div`
 `;
 
 const ListContainer = styled.li`
-  /* border: 1px solid orange; */
   width: 45%;
-  padding: 10px 20px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   h3 {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 10px;
     color: #454443;
+  }
+
+  @media screen and (max-width: 600px) {
+    width: 47%;
+    h3 {
+      font-size: 16px;
+    }
+    li {
+      font-size: 15px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    h3 {
+      font-size: 15px;
+    }
+    li {
+      font-size: 13px;
+    }
   }
 
   ${({ isOdd }) =>
@@ -42,6 +78,9 @@ const ListContainer = styled.li`
         align-content: space-between;
         li{
           width: 45%;
+          @media screen and (max-width: 600px) {
+            width: 47%;
+          }
         }
       }
     }

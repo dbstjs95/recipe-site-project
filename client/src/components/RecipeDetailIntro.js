@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled, { css } from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -11,19 +11,29 @@ import {
 import { faHeart, faComment } from "@fortawesome/free-regular-svg-icons";
 
 const Container = styled.div`
-  /* border: 1px solid red; */
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 600px;
   margin: 0 auto;
+  padding: 20px 0;
+  @media screen and (max-width: 768px) {
+    width: 500px;
+  }
+  @media screen and (max-width: 600px) {
+    width: 450px;
+  }
+  @media screen and (max-width: 480px) {
+    width: 100%;
+  }
 `;
 
 const MainImgBox = styled.div`
   background: ${(props) => `url(${props.main}) no-repeat center center`};
   background-size: cover;
   width: 100%;
-  height: 400px;
+  height: 0px;
+  padding-bottom: 66.66%;
   position: relative;
   margin-bottom: 120px;
   span.view_icon {
@@ -38,7 +48,7 @@ const MainImgBox = styled.div`
   figure {
     position: absolute;
     background: ${(props) => `url(${props.writer}) no-repeat center center`};
-    background-size: 110px;
+    background-size: cover;
     width: 110px;
     height: 110px;
     border-radius: 50%;
@@ -53,6 +63,36 @@ const MainImgBox = styled.div`
       left: 50%;
     }
   }
+  @media screen and (max-width: 768px) {
+    margin-bottom: 110px;
+    span.view_icon {
+      font-size: 0.9em;
+    }
+    figure {
+      width: 95px;
+      height: 95px;
+    }
+  }
+  @media screen and (max-width: 600px) {
+    margin-bottom: 100px;
+    span.view_icon {
+      font-size: 0.8em;
+    }
+    figure {
+      width: 85px;
+      height: 85px;
+      span.nickname {
+        font-size: 15px;
+      }
+    }
+  }
+  @media screen and (max-width: 400px) {
+    margin-bottom: 95px;
+    figure {
+      width: 80px;
+      height: 80px;
+    }
+  }
 `;
 
 const IntroBox = styled.div`
@@ -64,11 +104,39 @@ const IntroBox = styled.div`
   pre.desc {
     color: #898c8a;
     font-size: 17px;
+    padding: 20px 10px;
+    white-space: pre-line;
+  }
+  @media screen and (max-width: 768px) {
+    h1.title {
+      font-size: 28px;
+    }
+  }
+  @media screen and (max-width: 600px) {
+    h1.title {
+      font-size: 25px;
+    }
+    pre.desc {
+      font-size: 16px;
+    }
+  }
+  @media screen and (max-width: 480px) {
+    h1.title {
+      padding: 0 10px;
+      font-size: 23px;
+    }
+  }
+  @media screen and (max-width: 380px) {
+    h1.title {
+      font-size: 21px;
+    }
+    pre.desc {
+      font-size: 15px;
+    }
   }
 `;
 
 const DetailBox1 = styled.ul`
-  /* border: 1px solid black; */
   display: flex;
   width: 100%;
   justify-content: space-around;
@@ -87,11 +155,10 @@ const DetailBox1 = styled.ul`
 `;
 
 const DetailBox2 = styled.ul`
-  /* border: 1px solid black; */
   display: flex;
   width: 60%;
   justify-content: space-between;
-  padding: 20px 0 40px;
+  padding: 20px 0 25px;
   li {
     display: flex;
     justify-content: center;
@@ -113,6 +180,21 @@ const DetailBox2 = styled.ul`
 `;
 
 function RecipeDetailIntro({ data }) {
+  const [IsLiked, setIsLiked] = useState(data.isLiked);
+  const [LikeNum, setLikeNum] = useState(data.like);
+
+  const handleClickLike = () => {
+    setIsLiked((prev) => {
+      let newState = !prev;
+      if (newState) {
+        setLikeNum((prev) => prev + 1);
+      } else {
+        setLikeNum((prev) => prev - 1);
+      }
+      return newState;
+    });
+  };
+
   return (
     <Container>
       <MainImgBox main={data.mainSrc} writer={data?.userInfo?.src}>
@@ -142,8 +224,11 @@ function RecipeDetailIntro({ data }) {
       </DetailBox1>
       <DetailBox2>
         <li>
-          <FontAwesomeIcon icon={faHeart} />
-          <span>{Number(data?.like).toLocaleString()}</span>
+          <FontAwesomeIcon
+            onClick={handleClickLike}
+            icon={IsLiked ? like : faHeart}
+          />
+          <span>{Number(LikeNum).toLocaleString()}</span>
         </li>
         <li>
           <FontAwesomeIcon icon={faComment} />
