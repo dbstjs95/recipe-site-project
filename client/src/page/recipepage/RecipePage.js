@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { recipe_info } from "../../mockData/recipe_detail";
 import { LayoutSize, ContainerStyle } from "../../css";
 import RecipeDetailIntro from "../../components/RecipeDetailIntro";
@@ -9,11 +9,15 @@ import RecipeDetailSteps from "../../components/RecipeDetailSteps";
 import RecipeDetailWriter from "../../components/RecipeDetailWriter";
 import RecipeDetailComments from "../../components/RecipeDetailComments";
 
-const Container = styled.div`
-  > div {
-    ${LayoutSize}
-    ${ContainerStyle}
+export const DetailPageLayout = css`
+  ${LayoutSize}
+  ${ContainerStyle}
     margin-bottom: 25px;
+`;
+
+export const Container = styled.div`
+  > div {
+    ${DetailPageLayout};
   }
 `;
 

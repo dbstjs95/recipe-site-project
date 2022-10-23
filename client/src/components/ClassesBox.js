@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
 import { classes } from "../mockData/class_list";
+import { Link } from "react-router-dom";
 
 export const LiStyleForClass = css`
   > div {
@@ -111,12 +112,14 @@ export function ClassesInnerBox() {
         return (
           <li key={idx}>
             <div>
-              <img src={item.src} alt="클래스" />
-              <p className="title">{item.title}</p>
-              <p className="details">
-                <span className="price">{refinedPrice}원</span>
-                <span className="sales">{item.sales}명 신청</span>
-              </p>
+              <Link to="/classes/1">
+                <img src={item.src} alt="클래스" />
+                <p className="title">{item.title}</p>
+                <p className="details">
+                  <span className="price">{refinedPrice}원</span>
+                  <span className="sales">{item.sales}명 신청</span>
+                </p>
+              </Link>
             </div>
           </li>
         );
