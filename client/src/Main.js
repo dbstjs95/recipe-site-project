@@ -13,6 +13,8 @@ import RegisterRecipePage from "./page/RegisterRecipePage";
 import MyRecipePage from "./page/mypage/MyRecipePage";
 import ModifyUserInfoPage from "./page/ModifyUserInfoPage";
 import PurchasedClassPage from "./page/mypage/PurchasedClassPage";
+import MyLikePage from "./page/mypage/MyLikePage";
+import Profile from "./components/Profile";
 import SimpleOuter from "./components/SimpleOuter";
 import "./reset.css";
 
@@ -31,8 +33,9 @@ function Main() {
             <Route index element={<ClassListPage />} />
             <Route path=":classId" element={<ClassPage />} />
           </Route>
-          <Route path="mypage">
+          <Route path="mypage" element={<Profile />}>
             <Route path="recipe" element={<MyRecipePage />} />
+            <Route path="like" element={<MyLikePage />} />
             <Route path="class" element={<PurchasedClassPage />} />
           </Route>
           <Route path="pay" element={<PurchasePage />} />

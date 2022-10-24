@@ -16,17 +16,16 @@ import {
   ClassSubIntro,
   HostIntro,
 } from "../../components/ClassIntroBox";
+import RecipeDetailComments from "../../components/RecipeDetailComments";
 
 const Container = styled.div`
   > div {
     ${DetailPageLayout};
-    min-height: 100px;
     &.additionalInfo ul {
       li {
         display: flex;
         align-items: flex-start;
         padding: 8px 5px;
-        /* border: 1px solid red; */
         span {
           font-size: 1.3em;
           display: flex;
@@ -61,8 +60,7 @@ const Container = styled.div`
       width: 800px;
       margin: 0 auto;
       padding: 30px;
-      border: 1px solid lightgray;
-      @media screen and (max-width: 800px) {
+      @media screen and (max-width: 900px) {
         width: 100%;
       }
       @media screen and (max-width: 700px) {
@@ -112,7 +110,9 @@ function ClassPage() {
       <div className="profile">
         <HostIntro data={class_info.HostDesc} />
       </div>
-      <div className="comments"></div>
+      <div className="comments">
+        <RecipeDetailComments data={class_info.commentsData} />
+      </div>
     </Container>
   );
 }

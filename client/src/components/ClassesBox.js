@@ -4,7 +4,7 @@ import { classes } from "../mockData/class_list";
 import { Link } from "react-router-dom";
 
 export const LiStyleForClass = css`
-  > div {
+  > div.container {
     width: 80%;
     height: 100%;
     margin: 0 auto;
@@ -14,6 +14,10 @@ export const LiStyleForClass = css`
     align-items: center;
     overflow: hidden;
     border-radius: 7px;
+  }
+  a {
+    width: 100%;
+    height: 100%;
   }
   img {
     width: 100%;
@@ -104,6 +108,19 @@ const UlContainer = styled.ul`
   }
 `;
 
+//test
+const ImgBox = styled.div`
+  background: ${({ imgSrc }) => `url(${imgSrc}) no-repeat center center`};
+  width: 100%;
+  height: 0px;
+  padding-bottom: 55%;
+  background-size: 100%;
+  transition: background-size 0.5s;
+  &:hover {
+    background-size: 110%;
+  }
+`;
+
 export function ClassesInnerBox() {
   return (
     <>
@@ -111,9 +128,10 @@ export function ClassesInnerBox() {
         let refinedPrice = Number(item.price).toLocaleString("ko-KR");
         return (
           <li key={idx}>
-            <div>
+            <div className="container">
               <Link to="/classes/1">
-                <img src={item.src} alt="클래스" />
+                {/* <img src={item.src} alt="클래스" /> */}
+                <ImgBox imgSrc={item.src} />
                 <p className="title">{item.title}</p>
                 <p className="details">
                   <span className="price">{refinedPrice}원</span>

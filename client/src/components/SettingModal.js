@@ -47,10 +47,10 @@ function SettingModal({ isLogin }) {
             <Link to="/mypage/recipe">나의 레시피</Link>
           </li>
           <li>
-            <Link>좋아요 리스트</Link>
+            <Link to="/mypage/like">좋아요 리스트</Link>
           </li>
           <li>
-            <Link>구매한 클래스</Link>
+            <Link to="/mypage/class">구매한 클래스</Link>
           </li>
           <li>
             <Link to="/user/update">회원정보수정</Link>

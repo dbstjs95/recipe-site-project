@@ -35,12 +35,6 @@ const BestSection = styled.section`
         border: 1px solid #cfcfcf;
         border-radius: 5px;
       }
-      img.food {
-        width: 230px;
-        height: 230px;
-        border-radius: 5px 5px 0 0;
-        object-fit: cover;
-      }
       p.title {
         width: 100%;
         padding-top: 5px;
@@ -73,6 +67,18 @@ const BestSection = styled.section`
   }
 `;
 
+const ImgBox = styled.div`
+  width: 230px;
+  height: 200px;
+  background: ${({ imgSrc }) => `url(${imgSrc}) no-repeat center center`};
+  background-size: 100%;
+  border-radius: 5px 5px 0 0;
+  transition: background-size 0.5s;
+  &:hover {
+    background-size: 110%;
+  }
+`;
+
 const DetailStyle = styled.p`
   display: flex;
   width: 100%;
@@ -101,7 +107,7 @@ function RecipeListBox({ children, data = recipeList, use }) {
           return (
             <li key={idx}>
               {use === "best" && <span className="order">{order}</span>}
-              <img src={src} className="food" />
+              <ImgBox imgSrc={src} />
               <p className="title">
                 <Link to="/recipes/1">{title}</Link>
               </p>
