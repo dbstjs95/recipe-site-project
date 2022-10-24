@@ -31,9 +31,17 @@ const Bar = styled.ul`
     }
     a {
       display: block;
-      padding: 20px 25px;
-      font-size: 20px;
+      padding: 15px 20px;
+      font-size: 18px;
       cursor: pointer;
+      @media screen and (max-width: 500px) {
+        font-size: 17px;
+        padding: 12px 15px;
+      }
+      @media screen and (max-width: 400px) {
+        font-size: 15px;
+        padding: 10px 13px;
+      }
       &:hover {
         color: black;
         box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
@@ -46,7 +54,7 @@ const Bar = styled.ul`
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding-right: 10px;
+    padding-right: 20px;
     span {
       padding: 5px;
       font-size: 16px;
@@ -64,8 +72,42 @@ const Bar = styled.ul`
           position: absolute;
           transform: translateY(-50%);
           top: 50%;
-          left: -9px;
+          left: -7px;
           color: green;
+          opacity: 0.8;
+        }
+      }
+    }
+    @media screen and (max-width: 500px) {
+      padding-right: 15px;
+      span {
+        font-size: 13px;
+        &:nth-child(2) {
+          margin: 0 10px;
+        }
+      }
+    }
+    @media screen and (max-width: 400px) {
+      padding-right: 8px;
+      span {
+        font-size: 12px;
+        &:nth-child(2) {
+          margin: 0 8px;
+        }
+      }
+    }
+    @media screen and (max-width: 350px) {
+      padding-right: 5px;
+      span {
+        padding: 3px;
+        &:nth-child(2) {
+          margin: 0px;
+        }
+        &.active {
+          font-weight: bold;
+          em {
+            display: none;
+          }
         }
       }
     }
@@ -84,6 +126,20 @@ const ContentPrivate = styled.ul`
       height: 150px;
       object-fit: cover;
       margin-right: 30px;
+      border-radius: 5px;
+      @media screen and (max-width: 500px) {
+        width: 135px;
+        height: 135px;
+        margin-right: 20px;
+      }
+    }
+    @media screen and (max-width: 400px) {
+      padding: 10px;
+      img {
+        width: 120px;
+        height: 120px;
+        margin-right: 10px;
+      }
     }
     > div {
       display: flex;
@@ -95,11 +151,16 @@ const ContentPrivate = styled.ul`
         font-weight: bold;
         word-break: break-all;
         color: #5d5f61;
-        border: 1px solid red;
-        /* width: 100%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis; */
+        margin-bottom: 15px;
+        @media screen and (max-width: 600px) {
+          font-size: 17px;
+        }
+        @media screen and (max-width: 500px) {
+          font-size: 16px;
+        }
+        @media screen and (max-width: 400px) {
+          font-size: 15px;
+        }
         &:hover {
           text-decoration: underline;
         }
@@ -114,6 +175,12 @@ export const ContentPublic = styled(ContentPrivate)`
     flex-direction: column;
     span {
       font-size: 14px;
+      @media screen and (max-width: 500px) {
+        font-size: 13px;
+      }
+      @media screen and (max-width: 400px) {
+        font-size: 12px;
+      }
     }
   }
 `;

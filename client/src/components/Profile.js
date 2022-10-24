@@ -7,11 +7,25 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import UserInfoModal from "./UserInfoModal";
 
+/* 화면 너비 0 ~ 1220px */
+/* 화면 너비 0 ~ 1024px */
+/* 화면 너비 0 ~ 960px */
+/* 화면 너비 0 ~ 768px */
+/* 화면 너비 0 ~ 600px */
+/* 화면 너비 0 ~ 480px */
+/* 화면 너비 0 ~ 320px */
+
 const Container = styled.div`
   width: 80%;
   min-height: 50vh;
   display: flex;
   margin: 0 auto;
+  @media screen and (max-width: 1220px) {
+    width: 90%;
+  }
+  @media screen and (max-width: 1024px) {
+    width: 100%;
+  }
   > div.container {
     background-color: white;
     flex: 1;
@@ -19,6 +33,9 @@ const Container = styled.div`
 `;
 const ProfileBox = styled.div`
   padding-left: 10px;
+  @media screen and (max-width: 960px) {
+    display: none;
+  }
   > div {
     width: 300px;
     min-height: 290px;

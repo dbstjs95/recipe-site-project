@@ -12,7 +12,7 @@ const ListContainer = styled(ContentPublic)``;
 const WriterInfo = styled.p`
   display: flex;
   align-items: center;
-  margin: 10px 0;
+  margin-bottom: 10px;
   figure {
     background: ${({ imgSrc }) => `url(${imgSrc}) no-repeat center center`};
     width: 35px;
@@ -25,6 +25,24 @@ const WriterInfo = styled.p`
   span {
     font-size: 14px;
     color: #8a068a;
+  }
+  @media screen and (max-width: 500px) {
+    figure {
+      width: 20px;
+      height: 20px;
+    }
+    span {
+      font-size: 12px;
+    }
+  }
+  @media screen and (max-width: 400px) {
+    margin-top: -5px;
+    figure {
+      margin-right: 7px;
+    }
+  }
+  @media screen and (max-width: 300px) {
+    display: none;
   }
 `;
 
