@@ -1,27 +1,28 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
 import profileImg from "../assets/profile_bg.jpg";
 import { user_info as data } from "../mockData/user_data";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
+import UserInfoModal from "./UserInfoModal";
 
 const Container = styled.div`
   width: 80%;
   min-height: 50vh;
   display: flex;
-  background-color: beige;
   margin: 0 auto;
   > div.container {
-    background-color: lightcoral;
+    background-color: white;
     flex: 1;
   }
 `;
 const ProfileBox = styled.div`
+  padding-left: 10px;
   > div {
     width: 300px;
     min-height: 290px;
-    background-color: #fcf7f7;
+    background-color: white;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
     input[type="file"] {
       display: none;
@@ -68,8 +69,22 @@ const BackgroundImg = styled.div`
 `;
 
 function Profile() {
+  const [IsOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!IsOpen) return;
+
+    const handleClickOutside = () => setIsOpen(false);
+    window.addEventListener("click", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, [IsOpen]);
+
   return (
     <Container>
+      {IsOpen && <UserInfoModal handleClick={setIsOpen} />}
       <div className="container">
         <Outlet />
       </div>
@@ -91,7 +106,14 @@ function Profile() {
             {data.desc === "" ? (
               <>
                 <FontAwesomeIcon icon={faPen} />
-                <em>자기소개를 등록하세요.</em>
+                <em
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(true);
+                  }}
+                >
+                  자기소개를 등록하세요.
+                </em>
               </>
             ) : (
               data.desc

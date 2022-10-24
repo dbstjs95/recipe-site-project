@@ -135,7 +135,7 @@ function ClassListPage() {
         </ul>
       </ListContainer>
       <div id="paginationLayout">
-        <Pagination totalPage={100} />
+        <Pagination totalData={100} />
       </div>
     </Container>
   );

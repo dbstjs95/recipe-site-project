@@ -41,16 +41,16 @@ const ArrowBtn = styled.button`
   }
 `;
 
-function Pagination({ totalPage = 0 }) {
+function Pagination({ totalData = 0, dataLimit = 20, pageLimit = 10 }) {
   const [Offset, setOffset] = useState(0);
   const [Selected, setSelected] = useState(1);
-  const DATA_LIMIT = 20;
-  const PAGE_LIMIT = 10;
-  const TOTAL_PAGE_NUM = Math.ceil(Number(totalPage) / DATA_LIMIT);
+  const DATA_LIMIT = dataLimit;
+  const PAGE_LIMIT = pageLimit;
+  const TOTAL_PAGE = Math.ceil(Number(totalData) / DATA_LIMIT);
   const LAST_PAGE =
-    (Math.ceil(Number(TOTAL_PAGE_NUM) / PAGE_LIMIT) - 1) * PAGE_LIMIT;
+    (Math.ceil(Number(TOTAL_PAGE) / PAGE_LIMIT) - 1) * PAGE_LIMIT;
 
-  const num_list = Array(TOTAL_PAGE_NUM)
+  const num_list = Array(TOTAL_PAGE)
     .fill(0)
     .map((_, i) => i + 1);
 

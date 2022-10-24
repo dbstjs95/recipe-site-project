@@ -74,7 +74,7 @@ function RecipeListPage() {
           <RecipeListBox data={recipeList} use="list" />
         </ul>
         <div id="pagination">
-          <Pagination totalPage={523} />
+          <Pagination totalData={523} />
         </div>
       </div>
     </Container>
