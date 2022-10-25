@@ -114,7 +114,7 @@ const Bar = styled.ul`
   }
 `;
 
-const ContentPrivate = styled.ul`
+export const ContentPrivate = styled.ul`
   padding: 20px;
   li {
     display: flex;
@@ -145,7 +145,7 @@ const ContentPrivate = styled.ul`
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      h1 {
+      h2 {
         display: block;
         font-size: 18px;
         font-weight: bold;
@@ -226,7 +226,7 @@ function MyRecipePage() {
                 <img src={item.src} />
                 <div>
                   <Link>
-                    <h1>{item.title}</h1>
+                    <h2>{item.title}</h2>
                   </Link>
                   <p className="detail">
                     <span>조회수 {LocaleStringfn(item.view)}</span>
@@ -246,7 +246,7 @@ function MyRecipePage() {
                 <img src={item.src} />
                 <div>
                   <Link>
-                    <h1>{item.title}</h1>
+                    <h2>{item.title}</h2>
                   </Link>
                 </div>
               </li>
