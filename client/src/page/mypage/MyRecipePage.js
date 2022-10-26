@@ -245,7 +245,7 @@ function MyRecipePage() {
               <li key={idx}>
                 <img src={item.src} />
                 <div>
-                  <Link>
+                  <Link to="/modify/1">
                     <h2>{item.title}</h2>
                   </Link>
                 </div>

@@ -1,5 +1,5 @@
-import React from "react";
-import styled from "styled-components";
+import React, { useEffect, useRef, useState } from "react";
+import styled, { css } from "styled-components";
 import { LayoutSize, ContainerStyle } from "../css";
 import {
   dataForRegisterPage as data,
@@ -33,8 +33,10 @@ const Container = styled.div`
     font-size: 25px;
     font-weight: bold;
     padding: 10px 15px;
-    background-color: rgba(7, 115, 61, 0.7);
-    color: #fff;
+    background-color: white;
+    border-top: 10px double rgba(7, 115, 61, 0.7);
+    border-bottom: 10px double rgba(7, 115, 61, 0.7);
+    color: #3d5c46;
     @media screen and (max-width: 960px) {
       font-size: 23px;
     }
@@ -99,7 +101,6 @@ const IntroContainer = styled.div`
     }
   }
   > ul#input_info {
-    /* background-color: skyblue; */
     li {
       display: flex;
       padding: 20px 15px;
@@ -107,7 +108,7 @@ const IntroContainer = styled.div`
         align-items: center;
       }
       h2 {
-        font-size: 22px;
+        font-size: 21px;
         font-weight: bold;
         width: 30%;
         color: ${titleColor};
@@ -119,6 +120,7 @@ const IntroContainer = styled.div`
         font-size: 16px;
       }
       textarea {
+        padding: 10px;
         height: 120px;
         width: 70%;
         resize: none;
@@ -159,7 +161,10 @@ const IntroContainer = styled.div`
         }
         input[type="text"] {
           height: 36px;
-          font-size: 14px;
+        }
+        input[type="text"],
+        textarea {
+          font-size: 15px;
         }
         h2,
         input[type="text"],
@@ -182,19 +187,31 @@ const IntroContainer = styled.div`
     }
   }
   > div#upload_file {
-    /* background-color: yellow; */
-    label {
+    div.main_img {
       /* display: block; */
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      ${({ mainSrc }) =>
+        mainSrc
+          ? css`
+              background: url(${mainSrc}) no-repeat center center;
+              background-size: cover;
+            `
+          : css`
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              background-color: rgba(0, 0, 0, 0.05);
+            `}
       width: 200px;
       height: 200px;
       border: 1px solid lightgray;
-      background-color: rgba(0, 0, 0, 0.05);
       margin: 0 auto;
       span {
+        ${({ mainSrc }) =>
+          mainSrc &&
+          css`
+            display: none;
+          `}
         &.icon {
           font-size: 2em;
           margin-bottom: 5px;
@@ -235,32 +252,64 @@ const IngredientContainer = styled.div`
 const OrderContainer = styled.div``;
 const BtnContainer = styled.div``;
 
-function RegisterRecipePage() {
+function RegisterRecipePage({ myRecipeData, modifyMode }) {
+  let emptyData = {
+    mainSrc: "",
+    intro: "",
+    category: ["", "", ""],
+    recipeInfo: ["", "", ""],
+    ingredients: [
+      {
+        name: "",
+        contents: [
+          ["", ""],
+          ["", ""],
+          ["", ""],
+        ],
+      },
+    ],
+    steps: [["", ""]],
+  };
+  const [InputData, setInputData] = useState(
+    modifyMode ? { ...myRecipeData } : { ...emptyData }
+  );
+  const mainImgRef = useRef(null);
+
   const preventEvent = (e) => {
     e.preventDefault();
     console.log("클릭");
   };
+
+  const handleFileClick = () => mainImgRef.current.click();
+
+  // useEffect(() => {
+  //   if (!modifyMode) return;
+  //   setInputData((prev) => ({ ...myRecipeData }));
+  // }, []);
+
   return (
     <Container>
       <h1>레시피 등록</h1>
       <InputBox>
-        <IntroContainer>
+        <IntroContainer mainSrc={InputData.mainSrc}>
           <ul id="input_info">
             <li>
               <h2>레시피 제목</h2>
               <input
                 type="text"
                 placeholder="예) 매콤 달달 부산 떡볶이 만들기"
+                defaultValue={InputData.title}
+                // onChange={}
               />
             </li>
             <li>
               <h2>요리 간단소개</h2>
-              <textarea />
+              <textarea defaultValue={InputData.intro} />
             </li>
             <li>
               <h2>카테고리</h2>
               {dataKeys1.map((prop, idx) => (
-                <select key={idx}>
+                <select key={idx} defaultValue={InputData.category[idx]}>
                   {data[prop].map((item, idx) => (
                     <option value={item} key={idx}>
                       {item}
@@ -272,7 +321,7 @@ function RegisterRecipePage() {
             <li>
               <h2>요리정보</h2>
               {dataKeys2.map((prop, idx) => (
-                <select key={idx}>
+                <select key={idx} defaultValue={InputData.recipeInfo[idx]}>
                   {data[prop].map((item, idx) => (
                     <option value={item} key={idx}>
                       {item}
@@ -283,14 +332,14 @@ function RegisterRecipePage() {
             </li>
           </ul>
           <div id="upload_file">
-            <label htmlFor="select_img">
+            <div className="main_img" onClick={handleFileClick}>
               <span className="icon">
                 <FontAwesomeIcon icon={faBowlFood} />
               </span>
               <span className="desc">음식 대표 사진 넣기</span>
-            </label>
+            </div>
             <input
-              id="select_img"
+              ref={mainImgRef}
               type="file"
               accept="image/jpg, image/png, image/jpeg"
               onClick={preventEvent}
@@ -299,13 +348,21 @@ function RegisterRecipePage() {
           </div>
         </IntroContainer>
         <IngredientContainer>
-          <IngredientInputBox />
+          <IngredientInputBox
+            modifyMode={modifyMode}
+            InputData={InputData}
+            setInputData={setInputData}
+          />
         </IngredientContainer>
         <OrderContainer>
-          <OrderInputBox />
+          <OrderInputBox
+            modifyMode={modifyMode}
+            InputData={InputData}
+            setInputData={setInputData}
+          />
         </OrderContainer>
         <BtnContainer>
-          <RegisterBtn />
+          <RegisterBtn modifyMode={modifyMode} />
         </BtnContainer>
       </InputBox>
     </Container>

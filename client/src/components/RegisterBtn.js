@@ -6,9 +6,9 @@ const Container = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 50%;
+  width: 700px;
   margin: 0 auto;
-  padding: 30px 0;
+  padding: 30px 10px;
   button {
     padding: 10px 20px;
     font-size: 20px;
@@ -22,39 +22,46 @@ const Container = styled.div`
     &.release {
       background-color: #a3314a;
     }
-    &.cancel {
+    &.cancel,
+    &.delete {
       border: 1px solid gray;
       color: #555;
       background-color: #fff;
     }
-    @media screen and (max-width: 700px) {
+    &.delete {
+    }
+  }
+  @media screen and (max-width: 850px) {
+    width: 100%;
+  }
+  @media screen and (max-width: 700px) {
+    button {
+      padding: 8px 15px;
       font-size: 18px;
     }
   }
-  @media screen and (max-width: 900px) {
-    width: 70%;
-  }
-  @media screen and (max-width: 600px) {
-    width: 80%;
-  }
-  @media screen and (max-width: 480px) {
-    width: 90%;
+  @media screen and (max-width: 500px) {
+    padding: 30px 6px;
     button {
+      padding: 7px 10px;
       font-size: 16px;
-      padding: 7px 15px;
     }
   }
-  @media screen and (max-width: 350px) {
-    width: 95%;
+  @media screen and (max-width: 400px) {
+    button {
+      padding: 7px 10px;
+      font-size: 14px;
+    }
   }
 `;
 
-function RegisterBtn() {
+function RegisterBtn({ modifyMode }) {
   return (
     <Container>
       <button className="save">저장</button>
       <button className="release">저장 후 공개하기</button>
       <button className="cancel">취소</button>
+      {modifyMode && <button className="delete">삭제</button>}
     </Container>
   );
 }

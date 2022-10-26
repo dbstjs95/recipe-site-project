@@ -15,6 +15,7 @@ import ModifyUserInfoPage from "./page/ModifyUserInfoPage";
 import PurchasedClassPage from "./page/mypage/PurchasedClassPage";
 import MyLikePage from "./page/mypage/MyLikePage";
 import Profile from "./components/Profile";
+import ModifyRecipePage from "./page/ModifyRecipePage";
 import SimpleOuter from "./components/SimpleOuter";
 import "./reset.css";
 
@@ -40,6 +41,7 @@ function Main() {
           </Route>
           <Route path="pay" element={<PurchasePage />} />
           <Route path="register/recipe" element={<RegisterRecipePage />} />
+          <Route path="modify/:recipeId" element={<ModifyRecipePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
         <Route path="/user" element={<SimpleOuter />}>

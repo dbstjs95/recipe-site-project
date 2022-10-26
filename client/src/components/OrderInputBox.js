@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import styled from "styled-components";
+import React, { useRef, useState } from "react";
+import styled, { css } from "styled-components";
 import uuid from "react-uuid";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -27,6 +27,32 @@ const Container = styled.div`
     }
   }
 `;
+
+const OrderImgBox = styled.div`
+  ${({ imgSrc }) =>
+    imgSrc
+      ? css`
+          background: url(${imgSrc}) no-repeat center center;
+          background-size: cover;
+        `
+      : css`
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: rgba(0, 0, 0, 0.07);
+        `}
+  border: 1px solid gainsboro;
+  width: 170px;
+  height: 170px;
+  span {
+    ${({ imgSrc }) =>
+      imgSrc &&
+      css`
+        display: none;
+      `}
+  }
+`;
+
 const InputContainer = styled.ul`
   li {
     display: flex;
@@ -46,23 +72,15 @@ const InputContainer = styled.ul`
     > div {
       display: flex;
       width: 90%;
-      textarea,
-      label {
+      textarea {
         background-color: rgba(0, 0, 0, 0.07);
         border: 1px solid gainsboro;
-      }
-      textarea {
         flex: 1;
         margin-right: 3px;
         resize: none;
         padding: 10px;
       }
-      label {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 170px;
-        height: 170px;
+      .order_img span {
         font-size: 3rem;
         color: gray;
       }
@@ -92,10 +110,12 @@ const InputContainer = styled.ul`
         width: 13%;
       }
       > div {
-        label {
+        .order_img {
           width: 150px;
           height: 150px;
-          font-size: 2rem;
+          span {
+            font-size: 2rem;
+          }
         }
       }
       p {
@@ -113,7 +133,7 @@ const InputContainer = styled.ul`
           margin-right: 0;
           margin-bottom: 15px;
         }
-        label {
+        .order_img {
           width: 170px;
           height: 170px;
         }
@@ -126,7 +146,7 @@ const InputContainer = styled.ul`
       flex-direction: column;
       width: 90%;
       margin: 0 auto;
-      padding: 10px 0 0;
+      padding: 10px 0 20px;
       h3 {
         width: 100%;
         margin: 0 0 7px;
@@ -144,25 +164,53 @@ const InputContainer = styled.ul`
   }
 `;
 
-function OrderInputBox() {
-  const [ItemArrState, setItemArrState] = useState([uuid()]);
+function OrderInputBox({ modifyMode, InputData, setInputData }) {
+  const orderImgRef = useRef(null);
 
-  const handleSelectFile = (e) => {
-    e.preventDefault();
+  //register: 주어진 초기 데이터로 만들면 됨.(문제없음)
+  //modify: 1) steps: [["sdsd", "sdsds"], ...] (문제없음)
+  //        2) steps: [] (안에 내용물이 없음...) (문제있음)
+  //        3) steps: undefined인 경우 (문제있음)
+
+  let { steps = [["", ""]] } = InputData;
+  steps = steps.length === 0 ? [["", ""]] : steps;
+
+  let temp = Array(modifyMode ? steps.length : 1)
+    .fill(0)
+    .map((_) => uuid());
+
+  const [ItemArrState, setItemArrState] = useState([...temp]);
+  const [StepsData, setStepsData] = useState([...steps]);
+
+  const handleSelectFile = () => {
+    orderImgRef.current.click();
   };
 
-  const handlePlusBtn = (targetIdx) =>
+  const handlePlusBtn = (targetIdx) => {
     setItemArrState((prev) => {
       let newArr = [...prev];
       newArr.splice(targetIdx + 1, 0, uuid());
       return newArr;
     });
+    setStepsData((prev) => {
+      let newState = [...prev];
+      newState.splice(targetIdx + 1, 0, ["", ""]);
+      return newState;
+    });
+  };
 
-  const handleDeleteBtn = (targetId) => {
+  //1개면 삭제 X
+  const handleDeleteBtn = (targetId, index) => {
     if (ItemArrState.length <= 1) return;
+
     setItemArrState((prev) => {
       let newArr = prev.filter((id) => id !== targetId);
       return newArr;
+    });
+    setStepsData((prev) => {
+      let newState = [...prev];
+      newState.splice(index, 1);
+      return newState;
     });
   };
 
@@ -175,11 +223,24 @@ function OrderInputBox() {
             <li key={id}>
               <h3>{`Step${idx + 1}`}</h3>
               <div>
-                <textarea />
-                <label htmlFor="img_file" onClick={handleSelectFile}>
-                  <FontAwesomeIcon icon={faPlus} />
-                </label>
-                <input id="img_file" type="file" style={{ display: "none" }} />
+                <textarea defaultValue={StepsData[idx][0]} />
+                <OrderImgBox
+                  className="order_img"
+                  onClick={handleSelectFile}
+                  imgSrc={StepsData[idx][1]}
+                >
+                  <span>
+                    <FontAwesomeIcon icon={faPlus} />
+                  </span>
+                </OrderImgBox>
+                <input
+                  ref={orderImgRef}
+                  type="file"
+                  style={{ display: "none" }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                  }}
+                />
               </div>
               <p>
                 <FontAwesomeIcon
@@ -188,7 +249,7 @@ function OrderInputBox() {
                 />
                 <FontAwesomeIcon
                   icon={faSquareXmark}
-                  onClick={() => handleDeleteBtn(id)}
+                  onClick={() => handleDeleteBtn(id, idx)}
                 />
               </p>
             </li>

@@ -13,16 +13,16 @@ const Container = styled.ul`
   li {
     display: flex;
     margin-bottom: 60px;
-    &:hover {
-      > div.title span {
-        display: block;
-      }
-    }
     > div.title {
       display: flex;
       flex-direction: column;
       width: 30%;
       align-items: center;
+      &:hover {
+        span {
+          display: block;
+        }
+      }
       input,
       span {
         width: 75%;
@@ -165,7 +165,7 @@ const PlusButton = styled.span`
   }
 `;
 
-function IngredientInnerBox({ handleDeleteList }) {
+function IngredientInnerBox({ handleDeleteList, isFirst, data }) {
   const example = [
     ["예) 돼지고기", "예) 300g"],
     ["예) 양배추", "예) 1/2개"],
@@ -173,23 +173,46 @@ function IngredientInnerBox({ handleDeleteList }) {
     ["예) 소금", "예) 2t"],
     ["예) 고추가루 약간", "예)"],
   ];
-  const [ItemArrState, setItemArrState] = useState([uuid(), uuid(), uuid()]);
+
+  let initialState = [
+    ["", ""],
+    ["", ""],
+    ["", ""],
+  ];
+  const { name: ingrName = "", contents: ingrContents = initialState } = data;
+
+  let numForCreate = isFirst ? 3 : 2;
+  let temp = Array(
+    ingrContents.length >= numForCreate ? ingrContents.length : numForCreate
+  )
+    .fill(0)
+    .map((_) => uuid());
+
+  const [ItemArrState, setItemArrState] = useState([...temp]);
+
+  const [ContentsState, setContentsState] = useState([...ingrContents]);
 
   const handlePlusItem = () => {
     setItemArrState((prev) => [...prev, uuid()]);
+    setContentsState((prev) => [...prev, ["", ""]]);
   };
 
-  const handleDeleteItem = (targetId) => {
+  const handleDeleteItem = (targetId, index) => {
     setItemArrState((prev) => {
       let newArr = prev.filter((id) => id !== targetId);
       return newArr;
+    });
+    setContentsState((prev) => {
+      let newState = [...prev];
+      newState.splice(index, 1);
+      return newState;
     });
   };
 
   return (
     <>
       <div className="title">
-        <input type="text" placeholder="재료" />
+        <input type="text" placeholder="재료" defaultValue={ingrName} />
         <span onClick={handleDeleteList}>
           재료단위{" "}
           <em>
@@ -201,9 +224,20 @@ function IngredientInnerBox({ handleDeleteList }) {
         {ItemArrState.map((id, idx) => (
           <li key={id}>
             <p>
-              <input type="text" placeholder={example[idx % 5][0]} />
-              <input type="text" placeholder={example[idx % 5][1]} />
-              <span className="delete" onClick={() => handleDeleteItem(id)}>
+              <input
+                type="text"
+                placeholder={example[idx % 5][0]}
+                defaultValue={ContentsState[idx][0]}
+              />
+              <input
+                type="text"
+                placeholder={example[idx % 5][1]}
+                defaultValue={ContentsState[idx][1]}
+              />
+              <span
+                className="delete"
+                onClick={() => handleDeleteItem(id, idx)}
+              >
                 <FontAwesomeIcon icon={faSquareMinus} />
               </span>
             </p>
@@ -257,26 +291,64 @@ const SubContainer = styled.div`
   }
 `;
 
-function IngredientInputBox() {
-  const [ListArrState, setListArrState] = useState([uuid()]);
+function IngredientInputBox({ modifyMode, InputData, setInputData }) {
+  let initialState = [
+    {
+      name: "",
+      contents: [
+        ["", ""],
+        ["", ""],
+        ["", ""],
+      ],
+    },
+  ];
+  const { ingredients = initialState } = InputData;
 
-  const handlePlusList = () => setListArrState((prev) => [...prev, uuid()]);
+  let temp = Array(modifyMode ? ingredients.length : 1)
+    .fill(0)
+    .map((_) => uuid());
 
-  const handleDeleteList = (id) => {
+  const [ListArrState, setListArrState] = useState([...temp]);
+  const [IngrDataState, setIngrDataState] = useState([...ingredients]);
+
+  const handlePlusList = () => {
+    setListArrState((prev) => [...prev, uuid()]);
+    setIngrDataState((prev) => [
+      ...prev,
+      {
+        name: "",
+        contents: [
+          ["", ""],
+          ["", ""],
+        ],
+      },
+    ]);
+  };
+
+  const handleDeleteList = (targetId, index) => {
     // 1개 이하면 초기화 시키기
     if (ListArrState.length <= 1) return;
     setListArrState((prev) => {
-      let newArr = prev.filter((el) => el !== id);
+      let newArr = prev.filter((id) => id !== targetId);
       return newArr;
+    });
+    setIngrDataState((prev) => {
+      let newState = [...prev];
+      newState.splice(index, 1);
+      return newState;
     });
   };
 
   return (
     <>
       <Container>
-        {ListArrState.map((id) => (
+        {ListArrState.map((id, idx) => (
           <li key={id}>
-            <IngredientInnerBox handleDeleteList={() => handleDeleteList(id)} />
+            <IngredientInnerBox
+              isFirst={idx === 0}
+              data={IngrDataState[idx]}
+              handleDeleteList={() => handleDeleteList(id, idx)}
+            />
           </li>
         ))}
       </Container>
