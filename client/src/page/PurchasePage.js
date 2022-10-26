@@ -50,10 +50,18 @@ const Container = styled.div`
       font-size: 1.3rem;
     }
   }
+  @media screen and (max-width: 380px) {
+    h1 {
+      text-align: center;
+    }
+  }
 `;
 
 const InnerContainer = styled.ul`
   margin: 50px 0;
+  @media screen and (max-width: 700px) {
+    margin: 30px 0 50px;
+  }
   li {
     &:not(:last-child) {
       margin-bottom: 40px;
@@ -93,7 +101,6 @@ const InnerContainer = styled.ul`
             font-size: 1.1rem;
             margin-bottom: 10px;
             word-break: break-all;
-            border: 1px solid red;
           }
           span {
             display: flex;
