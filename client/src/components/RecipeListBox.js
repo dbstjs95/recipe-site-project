@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import recipeList from "../mockData/recipe_list";
 
@@ -22,6 +22,7 @@ const BestSection = styled.section`
       box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
       border-radius: 5px;
       margin-bottom: 2rem;
+      cursor: pointer;
       span.order {
         position: absolute;
         top: -3px;
@@ -97,6 +98,9 @@ const DetailStyle = styled.p`
 `;
 
 function RecipeListBox({ children, data = recipeList, use }) {
+  const navigate = useNavigate();
+  const handleMovePage = () => navigate("/recipes/1");
+
   return (
     <BestSection>
       {children}
@@ -105,12 +109,10 @@ function RecipeListBox({ children, data = recipeList, use }) {
           const { order, src, title, userInfo, view, like } = item;
           let simpleView = (Number(view) / 10000).toFixed(1);
           return (
-            <li key={idx}>
+            <li key={idx} onClick={handleMovePage}>
               {use === "best" && <span className="order">{order}</span>}
               <ImgBox imgSrc={src} />
-              <p className="title">
-                <Link to="/recipes/1">{title}</Link>
-              </p>
+              <p className="title">{title}</p>
               <p className="user">
                 <img src={userInfo[0]} />
                 <span>{userInfo[1]}</span>

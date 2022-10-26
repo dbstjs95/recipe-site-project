@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -133,6 +134,10 @@ const RegisterBtn = styled.button`
 `;
 
 function ClassImgBox({ data }) {
+  const navigate = useNavigate();
+
+  const handleMovePay = () => navigate("pay");
+
   let price = Number(data?.price).toLocaleString();
   return (
     <Container>
@@ -164,7 +169,7 @@ function ClassImgBox({ data }) {
           <em>{data.details[2]}</em>명 신청
         </li>
       </DetailBox>
-      <RegisterBtn>{price}원 신청</RegisterBtn>
+      <RegisterBtn onClick={handleMovePay}>{price}원 신청</RegisterBtn>
     </Container>
   );
 }

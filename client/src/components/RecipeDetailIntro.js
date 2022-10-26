@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -7,6 +8,7 @@ import {
   faClock,
   faStar,
   faHeart as like,
+  faGear,
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart, faComment } from "@fortawesome/free-regular-svg-icons";
 
@@ -61,6 +63,27 @@ const MainImgBox = styled.div`
       transform: translate(-50%, 100%);
       bottom: -10px;
       left: 50%;
+      span.setting {
+        position: absolute;
+        top: 50%;
+        right: -10px;
+        transform: translate(100%, -50%);
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        &:hover em {
+          display: block;
+        }
+        em {
+          display: none;
+          font-size: 13px;
+          margin-left: 5px;
+          color: crimson;
+          font-weight: bold;
+        }
+      }
     }
   }
   @media screen and (max-width: 768px) {
@@ -163,7 +186,7 @@ const DetailBox2 = styled.ul`
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 3px solid rgba(207, 136, 4, 0.6);
+    box-shadow: 0 0 5px rgba(2, 95, 176, 1);
     border-radius: 50%;
     font-size: 1.5rem;
     padding: 1rem;
@@ -176,10 +199,24 @@ const DetailBox2 = styled.ul`
       bottom: -5px;
       left: 50%;
     }
+    @media screen and (max-width: 800px) {
+      font-size: 1.3rem;
+    }
+    @media screen and (max-width: 600px) {
+      font-size: 1.2rem;
+    }
+    @media screen and (max-width: 400px) {
+      font-size: 1.1rem;
+      span {
+        font-size: 13px;
+      }
+    }
   }
 `;
 
 function RecipeDetailIntro({ data }) {
+  const navigate = useNavigate();
+
   const [IsLiked, setIsLiked] = useState(data.isLiked);
   const [LikeNum, setLikeNum] = useState(data.like);
 
@@ -195,6 +232,8 @@ function RecipeDetailIntro({ data }) {
     });
   };
 
+  const handleModify = () => navigate("/modify/1");
+
   return (
     <Container>
       <MainImgBox main={data.mainSrc} writer={data?.userInfo?.src}>
@@ -202,7 +241,13 @@ function RecipeDetailIntro({ data }) {
           <FontAwesomeIcon icon={faEye} /> {Number(data?.view).toLocaleString()}
         </span>
         <figure>
-          <span className="nickname">{data.userInfo.nickname}</span>
+          <span className="nickname">
+            {data.userInfo.nickname}
+            <span className="setting" onClick={handleModify}>
+              <FontAwesomeIcon icon={faGear} />
+              <em>수정</em>
+            </span>
+          </span>
         </figure>
       </MainImgBox>
       <IntroBox>

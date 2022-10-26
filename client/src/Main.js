@@ -32,14 +32,16 @@ function Main() {
           </Route>
           <Route path="classes">
             <Route index element={<ClassListPage />} />
-            <Route path=":classId" element={<ClassPage />} />
+            <Route path=":classId">
+              <Route index element={<ClassPage />} />
+              <Route path="pay" element={<PurchasePage />} />
+            </Route>
           </Route>
           <Route path="mypage" element={<Profile />}>
             <Route path="recipe" element={<MyRecipePage />} />
             <Route path="like" element={<MyLikePage />} />
             <Route path="class" element={<PurchasedClassPage />} />
           </Route>
-          <Route path="pay" element={<PurchasePage />} />
           <Route path="register/recipe" element={<RegisterRecipePage />} />
           <Route path="modify/:recipeId" element={<ModifyRecipePage />} />
           <Route path="*" element={<NotFoundPage />} />
