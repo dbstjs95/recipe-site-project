@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import EventBox from "../components/EventBox";
@@ -7,6 +8,9 @@ import RecipeListBox from "../components/RecipeListBox";
 import ClassesBox from "../components/ClassesBox";
 import { LayoutSize } from "../css";
 import recipeList from "../mockData/recipe_list";
+import { useQueryClient } from "react-query";
+
+const ENV = process.env;
 
 //헤더 디자인~
 const HeaderStyle = styled.h1`
@@ -56,6 +60,14 @@ const Container = styled.div`
 `;
 
 function HomePage() {
+  const queryClient = useQueryClient();
+  // const testData = queryClient.getQueryData("login", {
+  //   initialData: initialUserData,
+  // });
+
+  // if (testResult.isLoading) return <div>loading...</div>;
+  // if (testResult.isError) return <div>error...</div>;
+
   return (
     <Container>
       <EventBox />

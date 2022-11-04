@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
 import SimpleNav from "./SimpleNav";
+import { AuthProvider } from "../contexts/AuthContext";
 
 const EntireContainer = styled.div`
   background-color: mintcream;
@@ -11,12 +12,14 @@ const EntireContainer = styled.div`
 
 function SimpleOuter() {
   return (
-    <EntireContainer>
-      <SimpleNav />
-      {/* <EntireContainer> */}
-      <Outlet />
-      {/* </EntireContainer> */}
-    </EntireContainer>
+    <AuthProvider defaultValue={false}>
+      <EntireContainer>
+        <SimpleNav />
+        {/* <EntireContainer> */}
+        <Outlet />
+        {/* </EntireContainer> */}
+      </EntireContainer>
+    </AuthProvider>
   );
 }
 

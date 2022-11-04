@@ -1,92 +1,100 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styled, { css } from "styled-components";
 import google from "../assets/oauth_site_logo/google.png";
 import naver from "../assets/oauth_site_logo/naver.png";
+import { useQuery } from "react-query";
 
 const ENV = process.env;
 
 function LoginPage() {
+  const navigate = useNavigate();
   // axios.defaults.withCredentials = true;
+  // const testData = queryClient.getQueryData("test");
+  const googleOAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?scope=email profile&response_type=code&redirect_uri=${ENV.REACT_APP_CLIENT_REDIRECT_URI}&client_id=${ENV.REACT_APP_GOOGLE_CLIENT_ID}`;
 
-  const [GoogleTokens, setGoogleTokens] = useState({
-    access_token: "",
-    id_token: "",
-  });
-
-  const googleOAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?scope=email profile&response_type=code&redirect_uri=${ENV.REACT_APP_OUR_CLIENT_URI}&client_id=${ENV.REACT_APP_GOOGLE_CLIENT_ID}`;
-
-  const naverOAuthURL = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${ENV.REACT_APP_NAVER_CLIENT_ID}&redirect_uri=${ENV.REACT_APP_OUR_CLIENT_URI}&state=${ENV.REACT_APP_NAVER_STATE}`;
+  const naverOAuthURL = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${ENV.REACT_APP_NAVER_CLIENT_ID}&redirect_uri=${ENV.REACT_APP_CLIENT_REDIRECT_URI}&state=${ENV.REACT_APP_NAVER_STATE}`;
 
   const oAuthHandler = (url) => {
     window.location.assign(url);
   };
 
-  useEffect(() => {
+  const clickLogin = async () => {
     const url = new URL(window.location.href);
-    const authorizationCode = url.searchParams.get("code");
-    const authorizationState = url.searchParams.get("state");
+    const authCode = url.searchParams.get("code");
+    const authState = url.searchParams.get("state");
 
-    if (!authorizationCode) return;
+    if (!authCode) return;
 
-    if (authorizationState) {
+    if (authState) {
       //네이버
-      axios
-        .post(`${ENV.REACT_APP_OUR_SERVER_URI}/naver`, {
-          code: authorizationCode,
-          state: authorizationState,
+      let result = await axios
+        .post(`${ENV.REACT_APP_OUR_SERVER_URI}/login/naver`, {
+          code: authCode,
+          state: authState,
         })
         .then((res) => {
-          console.log("서버로부터 온 네이버 토큰", res.data);
-        });
+          if (res.status === 200) return res.data;
+          return null;
+        })
+        .catch((err) => null);
+
+      if (result) {
+        navigate("/");
+        return { ...result, isLogin: true };
+      }
+      return null;
     } else {
       //구글
       const accessTokenRequestBody = {
-        code: authorizationCode,
+        code: authCode,
         client_id: ENV.REACT_APP_GOOGLE_CLIENT_ID,
         client_secret: ENV.REACT_APP_GOOGLE_CLIENT_SECRET,
-        redirect_uri: ENV.REACT_APP_OUR_CLIENT_URI,
+        redirect_uri: ENV.REACT_APP_CLIENT_REDIRECT_URI,
         grant_type: "authorization_code",
       };
 
-      axios
-        .post("https://oauth2.googleapis.com/token", accessTokenRequestBody)
-        .then((result) => {
-          const { access_token, id_token } = result.data;
+      let response = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        accessTokenRequestBody
+      );
 
-          if (access_token) {
-            setGoogleTokens({
-              access_token,
-              id_token,
-            });
+      let { id_token } = response.data;
 
-            return id_token;
-          }
+      if (!id_token) return;
+
+      let result = await axios
+        .post(`${ENV.REACT_APP_OUR_SERVER_URI}/login/google`, { id_token })
+        .then((res) => {
+          if (res.status === 200) return res.data;
+          return null;
         })
-        .then((id_token) => {
-          axios
-            .post(`${ENV.REACT_APP_OUR_SERVER_URI}/auth`, {
-              id_token,
-            })
-            .then((res) => {
-              console.log("서버로부터 온 구글 유저 정보", res.data);
-            });
-        });
+        .catch((err) => null);
+
+      if (result) {
+        navigate("/");
+        return { ...result, token: id_token, isLogin: true };
+      }
+      return null;
     }
-  }, []);
+  };
+
+  const userData = useQuery("login", clickLogin, {
+    refetchOnWindowFocus: false,
+    // suspense: true,
+  });
 
   return (
     <Background>
       <Container>
         <h1>로그인 / 회원가입</h1>
         <div>
-          {/* <button id="google" onClick={() => oAuthHandler(googleOAuthURL)}> */}
-          <button id="google">
+          <button id="google" onClick={() => oAuthHandler(googleOAuthURL)}>
             <img src={google} alt="구글 아이콘" />
             <p>구글로 간편 시작</p>
           </button>
-          {/* <button id="naver" onClick={() => oAuthHandler(naverOAuthURL)}> */}
-          <button id="naver">
+          <button id="naver" onClick={() => oAuthHandler(naverOAuthURL)}>
             <img src={naver} alt="네이버 아이콘" />
             <p>네이버로 간편 시작</p>
           </button>

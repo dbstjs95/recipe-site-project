@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { useLocation, useNavigate } from "react-router-dom";
 import kakaoPay from "../assets/kakaoPay.png";
 import { ContainerStyle } from "../css";
 import { class_info } from "../mockData/class_detail";
@@ -90,7 +91,7 @@ const InnerContainer = styled.ul`
           width: 150px;
           object-fit: cover;
         }
-        p {
+        > div {
           flex: 1;
           padding: 10px;
           width: 500px;
@@ -196,11 +197,19 @@ const PayButton = styled.div`
 `;
 
 function PurchasePage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  let purpose = location.state?.use;
+
   const convertString = (num) => Number(num).toLocaleString();
+
+  const handlePay = () => {
+    navigate("", { state: { use: "afterPay" } });
+  };
 
   return (
     <Container>
-      <h1>클래스 신청</h1>
+      <h1>{`클래스 신청 ${purpose === "afterPay" ? "완료" : ""}`}</h1>
       <InnerContainer>
         <li>
           <h2>
@@ -208,38 +217,89 @@ function PurchasePage() {
           </h2>
           <div className="class">
             <img src={class_info.mainSrc} alt="클래스 이미지" />
-            <p>
+            <div>
               <h3>{class_info.title}</h3>
               <span>
                 <em>{convertString(class_info.price)}</em>원
               </span>
-            </p>
+            </div>
           </div>
         </li>
-        <li>
-          <h2>
-            <em>주문자</em> 정보
-          </h2>
-          <div className="orderer">
-            {/* <input type="tel" placeholder="핸드폰 번호" /> */}
-            <input
-              type="email"
-              placeholder="이메일"
-              defaultValue={user_info.email}
-            />
-          </div>
-        </li>
-        <li>
-          <h2>
-            <em>결제</em> 방식
-          </h2>
-          <div className="pay">
-            <img src={kakaoPay} alt="카카오페이" />
-          </div>
-        </li>
+        {purpose === "pay" ? (
+          <>
+            <li>
+              <h2>
+                <em>주문자</em> 정보
+              </h2>
+              <div className="orderer">
+                <input type="tel" placeholder="핸드폰 번호" />
+                <input
+                  type="email"
+                  placeholder="이메일"
+                  defaultValue={user_info.email}
+                />
+              </div>
+            </li>
+            <li>
+              <h2>
+                <em>결제</em> 방식
+              </h2>
+              <div className="pay">
+                <img src={kakaoPay} alt="카카오페이" />
+              </div>
+            </li>
+          </>
+        ) : purpose === "afterPay" ? (
+          <AfterPay />
+        ) : (
+          ""
+        )}
       </InnerContainer>
-      <PayButton>결제하기</PayButton>
+      {purpose === "pay" && <PayButton onClick={handlePay}>결제하기</PayButton>}
     </Container>
+  );
+}
+
+const AfterContainer = styled.li`
+  border: 1px dashed lightgray;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 0;
+  p {
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+    @media screen and (max-width: 500px) {
+      font-size: 1.2rem;
+    }
+    @media screen and (max-width: 400px) {
+      font-size: 1.15rem;
+    }
+  }
+  span {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+  button {
+    background-color: white;
+    border: 1px solid lightgray;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
+    &:hover {
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
+    }
+  }
+`;
+function AfterPay() {
+  let dateData = "2022-10-27 00:22";
+  return (
+    <AfterContainer>
+      <p>구매가 완료되었습니다.</p>
+      <span>{dateData}</span>
+      <button>구매 취소</button>
+    </AfterContainer>
   );
 }
 

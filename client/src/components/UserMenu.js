@@ -8,6 +8,8 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
 import SettingModal from "./SettingModal";
+import { useQueryClient } from "react-query";
+import { useAuth, useSetAuth } from "../contexts/AuthContext";
 
 const UserMenuIconStyle = css`
   font-size: 2.5em;
@@ -65,8 +67,19 @@ const StyledSpan = styled.span`
 `;
 
 function UserMenu() {
+  const IsAuth = useAuth();
+
+  const queryClient = useQueryClient();
+  const loginData = queryClient.getQueryData("login");
+
   const [IsOpen, setIsOpen] = useState(false);
-  const [IsLogin, setIsLogin] = useState(true);
+
+  // useEffect(() => {
+  //   console.log("IsLogin: ", IsLogin);
+  //   const authData = queryClient.getQueryData("auth");
+  //   if (!authData) return;
+  //   setIsLogin(authData?.isAuth || false);
+  // });
 
   useEffect(() => {
     if (!IsOpen) return;
@@ -87,7 +100,7 @@ function UserMenu() {
   return (
     <Container>
       <li>
-        {IsLogin ? (
+        {IsAuth ? (
           <StyledSpan onClick={handleClick} active={IsOpen}>
             <FontAwesomeIcon icon={faCircleUser} />
             {IsOpen && <SettingModal isLogin={true} />}

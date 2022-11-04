@@ -136,7 +136,7 @@ const RegisterBtn = styled.button`
 function ClassImgBox({ data }) {
   const navigate = useNavigate();
 
-  const handleMovePay = () => navigate("pay");
+  const handleMovePay = () => navigate("pay", { state: { use: "pay" } });
 
   let price = Number(data?.price).toLocaleString();
   return (
