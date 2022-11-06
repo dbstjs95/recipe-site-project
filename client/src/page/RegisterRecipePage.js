@@ -11,18 +11,11 @@ import { faBowlFood } from "@fortawesome/free-solid-svg-icons";
 import IngredientInputBox from "../components/IngredientInputBox";
 import OrderInputBox from "../components/OrderInputBox";
 import RegisterBtn from "../components/RegisterBtn";
+import { useQuery, useQueryClient } from "react-query";
+import { useNavigate, useLocation } from "react-router-dom";
 
-// border: 1px solid red;
 const titleColor = "#5e5e5e";
 const inputColor = "#b8b8b8";
-
-/* 화면 너비 0 ~ 1220px */
-/* 화면 너비 0 ~ 1024px */
-/* 화면 너비 0 ~ 960px */
-/* 화면 너비 0 ~ 768px */
-/* 화면 너비 0 ~ 600px */
-/* 화면 너비 0 ~ 480px */
-/* 화면 너비 0 ~ 320px */
 
 const Container = styled.div`
   ${LayoutSize}
@@ -253,7 +246,12 @@ const OrderContainer = styled.div``;
 const BtnContainer = styled.div``;
 
 function RegisterRecipePage({ myRecipeData, modifyMode }) {
+  // const queryClient = useQueryClient();
+  // const navigate = useNavigate();
+  // const location = useLocation();
+
   let emptyData = {
+    title: "",
     mainSrc: "",
     intro: "",
     category: ["", "", ""],
@@ -270,9 +268,11 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
     ],
     steps: [["", ""]],
   };
+
   const [InputData, setInputData] = useState(
     modifyMode ? { ...myRecipeData } : { ...emptyData }
   );
+
   const mainImgRef = useRef(null);
 
   const preventEvent = (e) => {

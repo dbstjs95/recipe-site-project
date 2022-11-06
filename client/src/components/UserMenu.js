@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import styled, { css } from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPenToSquare,
@@ -9,7 +9,7 @@ import {
 import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
 import SettingModal from "./SettingModal";
 import { useQueryClient } from "react-query";
-import { useAuth, useSetAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const UserMenuIconStyle = css`
   font-size: 2.5em;
@@ -67,6 +67,9 @@ const StyledSpan = styled.span`
 `;
 
 function UserMenu() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const IsAuth = useAuth();
 
   const queryClient = useQueryClient();
@@ -97,18 +100,24 @@ function UserMenu() {
     setIsOpen((nextIsOpen) => !nextIsOpen);
   }, []);
 
+  const handleGoLogin = () => {
+    console.log("???");
+    let current = location.pathname;
+    navigate("/user/login", { state: current });
+  };
+
   return (
     <Container>
       <li>
         {IsAuth ? (
           <StyledSpan onClick={handleClick} active={IsOpen}>
             <FontAwesomeIcon icon={faCircleUser} />
-            {IsOpen && <SettingModal isLogin={true} />}
+            {IsOpen && <SettingModal />}
           </StyledSpan>
         ) : (
-          <Link to="/user/login" className="userIcon">
+          <a className="userIcon" onClick={handleGoLogin}>
             <FontAwesomeIcon icon={faUserCircle} />
-          </Link>
+          </a>
         )}
       </li>
       <li>

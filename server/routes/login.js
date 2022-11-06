@@ -6,7 +6,8 @@ const userDB = require("../db/user");
 
 router.post("/google", (req, res) => {
   const { id_token } = req.body;
-  if (!id_token) return res.status(400).send("failed to get id_token");
+  if (!id_token)
+    return res.status(400).json({ message: "failed to get id_token" });
 
   const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
   const client = new OAuth2Client(CLIENT_ID);
@@ -19,12 +20,12 @@ router.post("/google", (req, res) => {
 
     const { sub, email, email_verified, name, picture } = ticket.getPayload();
 
-    if (!sub) return res.status(400).send("fail to get userInfo");
+    if (!sub)
+      return res.status(400).json({ message: "fail to get external_id" });
 
     let isUser = await userDB.findUserById("google", sub);
 
     let userInfo;
-
     if (isUser) {
       //이미 회원인 경우 --> 로그인
       userInfo = isUser;
@@ -39,15 +40,16 @@ router.post("/google", (req, res) => {
       });
     }
 
-    if (!userInfo) throw new Error("회원가입 실패");
+    if (!userInfo)
+      return res.status(500).json({ message: "fail to get userInfo from DB" });
 
-    return res.status(200).json({ userInfo });
+    return res.status(200).json({ message: "success", userInfo });
   }
 
   verify().catch((err) => {
     console.error(err);
     return res.status(500).json({
-      message: "error fail",
+      message: "server error fail",
     });
   });
 });
@@ -59,7 +61,8 @@ router.post("/naver", async (req, res) => {
 
     const { code, state } = req.body;
 
-    if (!code || !state) return res.status(400).send("fail");
+    if (!code || !state)
+      return res.status(400).json({ message: "fail to find code or state" });
 
     const url = `https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${NAVER_CLIENT_ID}&client_secret=${NAVER_CLIENT_SECRET}&code=${code}&state=${state}`;
 
@@ -67,7 +70,8 @@ router.post("/naver", async (req, res) => {
     //네이버 expires_in는 초단위임 --> 3600초 --> 1시간
     const { access_token, refresh_token, expires_in } = result.data;
 
-    if (!access_token) return res.status(400).send("fail to get access_token");
+    if (!access_token)
+      return res.status(400).json({ message: "fail to get access_token" });
 
     const {
       data: { response },
@@ -75,13 +79,16 @@ router.post("/naver", async (req, res) => {
       headers: { Authorization: `Bearer ${access_token}` },
     });
 
+    if (!response)
+      return res.status(400).json({ message: "fail to verify naver token" });
+
     const { id, nickname, email } = response;
 
-    if (!id) return res.status(400).send("fail to get userInfo");
+    if (!id) return res.status(400).json("fail to get external_id");
 
     let isUser = await userDB.findUserById("naver", id);
-    let userInfo;
 
+    let userInfo;
     if (isUser) {
       //이미 회원인 경우 --> 로그인
       userInfo = isUser;
@@ -95,15 +102,17 @@ router.post("/naver", async (req, res) => {
       });
     }
 
-    if (!userInfo) throw new Error("회원가입 실패");
+    if (!userInfo)
+      return res.status(500).json({ message: "fail to get userInfo from DB" });
 
     res.setHeader("Set-Cookie", `token=${refresh_token}`);
-
-    return res.status(200).json({ token: access_token, userInfo });
+    return res
+      .status(200)
+      .json({ message: "success", token: access_token, userInfo });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
-      message: "error fail",
+      message: "server error fail",
     });
   }
 });

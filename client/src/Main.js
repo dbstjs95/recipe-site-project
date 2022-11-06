@@ -17,11 +17,10 @@ import MyLikePage from "./page/mypage/MyLikePage";
 import Profile from "./components/Profile";
 import ModifyRecipePage from "./page/ModifyRecipePage";
 import SimpleOuter from "./components/SimpleOuter";
+import Auth from "./hoc/Auth";
 import "./reset.css";
-import Auth from "./hoc/auth";
 
 const AuthHomePage = Auth(HomePage, null);
-// const AuthLoginPage = Auth(LoginPage, false);
 const AuthRecipeListPage = Auth(RecipeListPage, null);
 const AuthRecipePage = Auth(RecipePage, null);
 const AuthClassListPage = Auth(ClassListPage, null);

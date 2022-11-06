@@ -1,6 +1,7 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import { useAuth } from "../contexts/AuthContext";
 
 const MenuModal = styled.ul`
   position: absolute;
@@ -38,10 +39,20 @@ const MenuModal = styled.ul`
   }
 `;
 
-function SettingModal({ isLogin }) {
+function SettingModal() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const IsAuth = useAuth();
+
+  const handleGoLogin = () => {
+    console.log("???");
+    let current = location.pathname;
+    navigate("/user/login", { state: current });
+  };
+
   return (
     <>
-      {isLogin ? (
+      {IsAuth ? (
         <MenuModal className="modal">
           <li>
             <Link to="/mypage/recipe">나의 레시피</Link>
@@ -62,7 +73,7 @@ function SettingModal({ isLogin }) {
       ) : (
         <MenuModal className="modal">
           <li>
-            <Link to="/user/login">로그인/회원가입</Link>
+            <a onClick={handleGoLogin}>로그인/회원가입</a>
           </li>
         </MenuModal>
       )}

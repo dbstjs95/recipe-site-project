@@ -52,7 +52,6 @@ const SettingIcon = styled.span`
 `;
 
 function SearchBar() {
-  const [IsLogin, setIsLogin] = useState(false);
   const [IsOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -79,7 +78,7 @@ function SearchBar() {
       </SubmitBtn>
       <SettingIcon>
         <FontAwesomeIcon icon={faEllipsisVertical} onClick={handleClick} />
-        {IsOpen && <SettingModal isLogin={IsLogin} />}
+        {IsOpen && <SettingModal />}
       </SettingIcon>
     </Container>
   );

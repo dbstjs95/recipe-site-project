@@ -13,7 +13,10 @@ function LoginPage() {
   const location = useLocation();
 
   let savedPage = localStorage.getItem("path");
+  console.log("savedPage: ", savedPage);
 
+  // axios.defaults.withCredentials = true;
+  // const testData = queryClient.getQueryData("test");
   const googleOAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?scope=email profile&response_type=code&redirect_uri=${ENV.REACT_APP_CLIENT_REDIRECT_URI}&client_id=${ENV.REACT_APP_GOOGLE_CLIENT_ID}`;
 
   const naverOAuthURL = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${ENV.REACT_APP_NAVER_CLIENT_ID}&redirect_uri=${ENV.REACT_APP_CLIENT_REDIRECT_URI}&state=${ENV.REACT_APP_NAVER_STATE}`;
@@ -87,14 +90,27 @@ function LoginPage() {
     // suspense: true,
   });
 
+  // option === true(회원전용) : ex) /register/recipe
+  // 해당주소를 local storage의 path 값으로 저장해놓음.
+  // nextPage:/register/recipe, savedPage: /register/recipe
+  // 새로고침 후에도 값은 유지됨. 하지만...
+  // nextPage:null, savedPage: /register/recipe
+  // 로그인 성공후 savedPage 경로로 이동?
+
+  // option === null(비회원도 가능) : ex) /homepage
+  // nextPage:null, savedPage: /register/recipe(기존에 저장된 주소)
+  //
+
   useEffect(() => {
     let nextPage = location.state;
+    console.log("nextPage: ", nextPage);
+
     if (nextPage) localStorage.setItem("path", nextPage);
 
     if (userData?.data?.isLogin) {
+      console.log("isLogin === true");
       if (savedPage) {
         navigate(savedPage);
-        localStorage.removeItem("path");
       } else {
         navigate("/");
       }

@@ -61,12 +61,6 @@ const Container = styled.div`
 
 function HomePage() {
   const queryClient = useQueryClient();
-  // const testData = queryClient.getQueryData("login", {
-  //   initialData: initialUserData,
-  // });
-
-  // if (testResult.isLoading) return <div>loading...</div>;
-  // if (testResult.isError) return <div>error...</div>;
 
   return (
     <Container>

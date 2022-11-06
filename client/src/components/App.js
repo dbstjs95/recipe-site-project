@@ -5,7 +5,6 @@ import Footer from "./Footer";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons";
-import { AuthProvider } from "../contexts/AuthContext";
 
 const Container = styled.div`
   background-color: whitesmoke;
@@ -56,14 +55,14 @@ const Container = styled.div`
 
 function App() {
   return (
-    <AuthProvider defaultValue={false}>
+    <>
       <NavBar />
       <Container>
         <Outlet />
         <TopBtn />
       </Container>
       <Footer />
-    </AuthProvider>
+    </>
   );
 }
 
