@@ -11,6 +11,7 @@ import { faBowlFood } from "@fortawesome/free-solid-svg-icons";
 import IngredientInputBox from "../components/IngredientInputBox";
 import OrderInputBox from "../components/OrderInputBox";
 import RegisterBtn from "../components/RegisterBtn";
+import { FileFirst } from "../api/fileUpload";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -269,23 +270,71 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
     steps: [["", ""]],
   };
 
+  //steps: { uuid: file, uuid: file, .. }
+  let initialFiles = {
+    main: "",
+    steps: {},
+    stepIdArr: [],
+  };
+
   const [InputData, setInputData] = useState(
     modifyMode ? { ...myRecipeData } : { ...emptyData }
   );
 
+  const [Files, setFiles] = useState(initialFiles);
+  const [BeforeDelete, setBeforeDelete] = useState([]);
+
   const mainImgRef = useRef(null);
 
-  const preventEvent = (e) => {
-    e.preventDefault();
-    console.log("클릭");
+  const handleClickFile = () => mainImgRef.current.click();
+
+  const encodeFileToBase64 = (fileBlob, callback) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(fileBlob);
+    return new Promise((resolve) => {
+      reader.onload = () => {
+        callback(reader.result);
+        resolve();
+      };
+    });
   };
 
-  const handleFileClick = () => mainImgRef.current.click();
+  const handleChangeFile = (e) => {
+    if (modifyMode) {
+      let mainKey = InputData?.mainSrc;
+      if (mainKey && mainKey.startsWith(FileFirst)) {
+        setBeforeDelete((prev) => [mainKey, ...prev]);
+      }
+    }
 
+    let file = e.target.files[0];
+    setFiles((prev) => ({ ...prev, main: file }));
+
+    let updateImgSrc = (imgSrc = "") =>
+      setInputData((prev) => {
+        return { ...prev, mainSrc: imgSrc };
+      });
+
+    encodeFileToBase64(file, updateImgSrc);
+  };
+
+  const handleInputChange = (e, idx = null) => {
+    setInputData((prev) => {
+      if (idx !== null) {
+        let name = e.target.name;
+        let temp = prev[name].slice();
+        temp.splice(idx, 1, e.target.value);
+        return { ...prev, [name]: temp };
+      } else {
+        return { ...prev, [e.target.name]: e.target.value };
+      }
+    });
+  };
+
+  //확인용(나중에 삭제)
   // useEffect(() => {
-  //   if (!modifyMode) return;
-  //   setInputData((prev) => ({ ...myRecipeData }));
-  // }, []);
+  //   console.log("InputData: ", InputData?.steps);
+  // }, [InputData]);
 
   return (
     <Container>
@@ -297,19 +346,29 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
               <h2>레시피 제목</h2>
               <input
                 type="text"
+                name="title"
                 placeholder="예) 매콤 달달 부산 떡볶이 만들기"
                 defaultValue={InputData.title}
-                // onChange={}
+                onChange={handleInputChange}
               />
             </li>
             <li>
               <h2>요리 간단소개</h2>
-              <textarea defaultValue={InputData.intro} />
+              <textarea
+                name="intro"
+                defaultValue={InputData.intro}
+                onChange={handleInputChange}
+              />
             </li>
             <li>
               <h2>카테고리</h2>
               {dataKeys1.map((prop, idx) => (
-                <select key={idx} defaultValue={InputData.category[idx]}>
+                <select
+                  key={idx}
+                  name="category"
+                  defaultValue={InputData.category[idx]}
+                  onChange={(e) => handleInputChange(e, idx)}
+                >
                   {data[prop].map((item, idx) => (
                     <option value={item} key={idx}>
                       {item}
@@ -321,7 +380,12 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
             <li>
               <h2>요리정보</h2>
               {dataKeys2.map((prop, idx) => (
-                <select key={idx} defaultValue={InputData.recipeInfo[idx]}>
+                <select
+                  key={idx}
+                  name="recipeInfo"
+                  defaultValue={InputData.recipeInfo[idx]}
+                  onChange={(e) => handleInputChange(e, idx)}
+                >
                   {data[prop].map((item, idx) => (
                     <option value={item} key={idx}>
                       {item}
@@ -332,7 +396,7 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
             </li>
           </ul>
           <div id="upload_file">
-            <div className="main_img" onClick={handleFileClick}>
+            <div className="main_img" onClick={handleClickFile}>
               <span className="icon">
                 <FontAwesomeIcon icon={faBowlFood} />
               </span>
@@ -342,8 +406,7 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
               ref={mainImgRef}
               type="file"
               accept="image/jpg, image/png, image/jpeg"
-              onClick={preventEvent}
-              onChange={(e) => console.log(e.target.files[0])}
+              onChange={handleChangeFile}
             />
           </div>
         </IntroContainer>
@@ -359,10 +422,20 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
             modifyMode={modifyMode}
             InputData={InputData}
             setInputData={setInputData}
+            setFiles={setFiles}
+            setBeforeDelete={setBeforeDelete}
+            encodeFile={encodeFileToBase64}
+            FileFirst={FileFirst}
           />
         </OrderContainer>
         <BtnContainer>
-          <RegisterBtn modifyMode={modifyMode} />
+          <RegisterBtn
+            modifyMode={modifyMode}
+            InputData={InputData}
+            Files={Files}
+            setInputData={setInputData}
+            BeforeDelete={BeforeDelete}
+          />
         </BtnContainer>
       </InputBox>
     </Container>

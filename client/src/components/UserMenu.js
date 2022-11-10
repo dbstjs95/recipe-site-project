@@ -100,10 +100,13 @@ function UserMenu() {
     setIsOpen((nextIsOpen) => !nextIsOpen);
   }, []);
 
-  const handleGoLogin = () => {
-    console.log("???");
+  const handleGoPage = (dest) => {
     let current = location.pathname;
-    navigate("/user/login", { state: current });
+    if (dest === "login") {
+      navigate("/user/login", { state: current });
+    } else {
+      navigate("/register/recipe");
+    }
   };
 
   return (
@@ -115,15 +118,15 @@ function UserMenu() {
             {IsOpen && <SettingModal />}
           </StyledSpan>
         ) : (
-          <a className="userIcon" onClick={handleGoLogin}>
+          <a className="userIcon" onClick={() => handleGoPage("login")}>
             <FontAwesomeIcon icon={faUserCircle} />
           </a>
         )}
       </li>
       <li>
-        <Link to="register/recipe">
+        <a onClick={() => handleGoPage("register")}>
           <FontAwesomeIcon icon={faPenToSquare} />
-        </Link>
+        </a>
       </li>
     </Container>
   );

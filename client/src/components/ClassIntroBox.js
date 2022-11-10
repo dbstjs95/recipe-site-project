@@ -1,31 +1,31 @@
 import React from "react";
 import styled, { css } from "styled-components";
 
-function Title({ children }) {
-  const H2Style = styled.h2`
-    display: inline-block;
-    font-size: 1.5em;
-    font-weight: bold;
-    margin-bottom: 10px;
-    .under_line {
-      background-color: #b8c91e;
-      width: 100%;
-      height: 8px;
-      position: relative;
-      bottom: 10px;
-      opacity: 0.5;
-    }
-    @media screen and (max-width: 900px) {
-      font-size: 1.4em;
-    }
-    @media screen and (max-width: 700px) {
-      font-size: 1.3em;
-    }
-    @media screen and (max-width: 480px) {
-      font-size: 1.2em;
-    }
-  `;
+const H2Style = styled.h2`
+  display: inline-block;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  .under_line {
+    background-color: #b8c91e;
+    width: 100%;
+    height: 8px;
+    position: relative;
+    bottom: 10px;
+    opacity: 0.5;
+  }
+  @media screen and (max-width: 900px) {
+    font-size: 1.4em;
+  }
+  @media screen and (max-width: 700px) {
+    font-size: 1.3em;
+  }
+  @media screen and (max-width: 480px) {
+    font-size: 1.2em;
+  }
+`;
 
+function Title({ children }) {
   return (
     <H2Style>
       {children}

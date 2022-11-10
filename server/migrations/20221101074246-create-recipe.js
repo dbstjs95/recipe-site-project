@@ -29,10 +29,10 @@ module.exports = {
         type: Sequelize.STRING,
       },
       header_title: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(500),
       },
       header_desc: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(5000),
       },
       servings: {
         type: Sequelize.STRING,

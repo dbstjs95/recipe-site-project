@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
 import uuid from "react-uuid";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -164,8 +164,16 @@ const InputContainer = styled.ul`
   }
 `;
 
-function OrderInputBox({ modifyMode, InputData, setInputData }) {
-  const orderImgRef = useRef(null);
+function OrderInputBox({
+  modifyMode,
+  InputData,
+  setInputData,
+  encodeFile,
+  FileFirst,
+  setFiles,
+  setBeforeDelete,
+}) {
+  const orderImgRef = useRef([]);
 
   //register: 주어진 초기 데이터로 만들면 됨.(문제없음)
   //modify: 1) steps: [["sdsd", "sdsds"], ...] (문제없음)
@@ -180,10 +188,51 @@ function OrderInputBox({ modifyMode, InputData, setInputData }) {
     .map((_) => uuid());
 
   const [ItemArrState, setItemArrState] = useState([...temp]);
-  const [StepsData, setStepsData] = useState([...steps]);
 
-  const handleSelectFile = () => {
-    orderImgRef.current.click();
+  const handleSelectFile = (idx) => {
+    orderImgRef.current[idx].click();
+  };
+
+  // {
+  //   main: "",
+  //   steps: {},
+  // };
+  const handleChangeFile = (e, index, id) => {
+    if (modifyMode) {
+      let stepsKey =
+        InputData?.steps && InputData.steps[index] && InputData.steps[index][1];
+
+      if (stepsKey && stepsKey.startsWith(FileFirst)) {
+        setBeforeDelete((prev) => [...prev, stepsKey]);
+      }
+    }
+
+    let file = e.target.files[0];
+
+    setFiles((prev) => {
+      let newSteps = { ...prev.steps };
+      newSteps[id] = file;
+
+      return { ...prev, steps: newSteps };
+    });
+
+    let updateImgSrc = (imgSrc = "") => {
+      let newSteps = [...steps];
+      newSteps[index][1] = imgSrc;
+      setInputData((prev) => {
+        return { ...prev, steps: newSteps };
+      });
+    };
+
+    encodeFile(file, updateImgSrc);
+  };
+
+  const handleChangeText = (e, index) => {
+    let newSteps = [...steps];
+    let newItem = newSteps[index];
+    newItem[0] = e.target.value;
+
+    setInputData((prev) => ({ ...prev, steps: newSteps }));
   };
 
   const handlePlusBtn = (targetIdx) => {
@@ -192,27 +241,46 @@ function OrderInputBox({ modifyMode, InputData, setInputData }) {
       newArr.splice(targetIdx + 1, 0, uuid());
       return newArr;
     });
-    setStepsData((prev) => {
-      let newState = [...prev];
-      newState.splice(targetIdx + 1, 0, ["", ""]);
-      return newState;
+
+    setInputData((prev) => {
+      let newSteps = [...steps];
+      newSteps.splice(targetIdx + 1, 0, ["", ""]);
+      return { ...prev, steps: newSteps };
     });
   };
 
   //1개면 삭제 X
-  const handleDeleteBtn = (targetId, index) => {
+  const handleDeleteBtn = (targetIdx) => {
     if (ItemArrState.length <= 1) return;
 
+    if (modifyMode) {
+      let stepsKey =
+        InputData?.steps &&
+        InputData.steps[targetIdx] &&
+        InputData.steps[targetIdx][1];
+
+      if (stepsKey && stepsKey.startsWith(FileFirst)) {
+        setBeforeDelete((prev) => [...prev, stepsKey]);
+      }
+    }
+
     setItemArrState((prev) => {
-      let newArr = prev.filter((id) => id !== targetId);
+      let newArr = [...prev];
+      newArr.splice(targetIdx, 1);
       return newArr;
     });
-    setStepsData((prev) => {
-      let newState = [...prev];
-      newState.splice(index, 1);
-      return newState;
+    setInputData((prev) => {
+      let newSteps = [...steps];
+      newSteps.splice(targetIdx, 1);
+      return { ...prev, steps: newSteps };
     });
   };
+
+  useEffect(() => {
+    setFiles((prev) => {
+      return { ...prev, stepIdArr: [...ItemArrState] };
+    });
+  }, [ItemArrState]);
 
   return (
     <Container>
@@ -223,23 +291,24 @@ function OrderInputBox({ modifyMode, InputData, setInputData }) {
             <li key={id}>
               <h3>{`Step${idx + 1}`}</h3>
               <div>
-                <textarea defaultValue={StepsData[idx][0]} />
+                <textarea
+                  defaultValue={steps[idx][0]}
+                  onChange={(e) => handleChangeText(e, idx)}
+                />
                 <OrderImgBox
                   className="order_img"
-                  onClick={handleSelectFile}
-                  imgSrc={StepsData[idx][1]}
+                  imgSrc={steps[idx][1]}
+                  onClick={() => handleSelectFile(idx)}
                 >
                   <span>
                     <FontAwesomeIcon icon={faPlus} />
                   </span>
                 </OrderImgBox>
                 <input
-                  ref={orderImgRef}
+                  ref={(el) => (orderImgRef.current[idx] = el)}
                   type="file"
                   style={{ display: "none" }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                  }}
+                  onChange={(e) => handleChangeFile(e, idx, id)}
                 />
               </div>
               <p>
@@ -249,7 +318,7 @@ function OrderInputBox({ modifyMode, InputData, setInputData }) {
                 />
                 <FontAwesomeIcon
                   icon={faSquareXmark}
-                  onClick={() => handleDeleteBtn(id, idx)}
+                  onClick={() => handleDeleteBtn(idx)}
                 />
               </p>
             </li>

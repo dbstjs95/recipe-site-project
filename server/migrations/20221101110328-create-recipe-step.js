@@ -21,6 +21,12 @@ module.exports = {
       order: {
         type: Sequelize.INTEGER,
       },
+      text: {
+        type: Sequelize.STRING(10000),
+      },
+      img: {
+        type: Sequelize.STRING,
+      },
     });
   },
   async down(queryInterface, Sequelize) {

@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
+// api: https://docs.google.com/spreadsheets/d/1PdOtnxet5QdoUqcemtTGM1Ek04Q5mQK-WpDonJqDNLA/edit#gid=0
 const PORT = process.env.PORT || 5000;
 
 const app = express();
@@ -34,7 +35,7 @@ app.use(
   })
 );
 
-app.use("/", require("./routes"));
+app.use("/v1", require("./routes"));
 
 app.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);

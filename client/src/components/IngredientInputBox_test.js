@@ -165,13 +165,7 @@ const PlusButton = styled.span`
   }
 `;
 
-function IngredientInnerBox({
-  handleDeleteList,
-  isFirst,
-  data,
-  setData,
-  itemOrder,
-}) {
+function IngredientInnerBox({ handleDeleteList, isFirst, data, setData }) {
   const example = [
     ["예) 돼지고기", "예) 300g"],
     ["예) 양배추", "예) 1/2개"],
@@ -185,7 +179,6 @@ function IngredientInnerBox({
     ["", ""],
     ["", ""],
   ];
-
   const { name: ingrName = "", contents: ingrContents = initialState } = data;
 
   let numForCreate = isFirst ? 3 : 2;
@@ -197,62 +190,29 @@ function IngredientInnerBox({
 
   const [ItemArrState, setItemArrState] = useState([...temp]);
 
-  const handleChangeValue = (e, key, index, order) => {
-    let newData;
-    if (key === "name") {
-      newData = { ...data, [key]: e.target.value };
-    } else {
-      let newContents = [...ingrContents];
-      newContents[index][order] = e.target.value;
-      newData = { ...data, [key]: newContents };
-    }
-
-    setData((prev) => {
-      let newList = [...prev.ingredients];
-      newList[itemOrder] = newData;
-      return { ...prev, ingredients: newList };
-    });
-  };
+  const [ContentsState, setContentsState] = useState([...ingrContents]);
 
   const handlePlusItem = () => {
     setItemArrState((prev) => [...prev, uuid()]);
-    setData((prev) => {
-      let newContents = [...ingrContents, ["", ""]];
-      let newData = { ...data, contents: newContents };
-      let newList = [...prev.ingredients];
-      newList[itemOrder] = newData;
-
-      return { ...prev, ingredients: newList };
-    });
+    setContentsState((prev) => [...prev, ["", ""]]);
   };
 
-  const handleDeleteItem = (index) => {
+  const handleDeleteItem = (targetId, index) => {
     setItemArrState((prev) => {
-      let newArr = [...prev];
-      newArr.splice(index, 1);
+      let newArr = prev.filter((id) => id !== targetId);
       return newArr;
     });
-
-    setData((prev) => {
-      let newContents = [...ingrContents];
-      newContents.splice(index, 1);
-      let newData = { ...data, contents: newContents };
-      let newList = [...prev.ingredients];
-      newList[itemOrder] = newData;
-
-      return { ...prev, ingredients: newList };
+    setContentsState((prev) => {
+      let newState = [...prev];
+      newState.splice(index, 1);
+      return newState;
     });
   };
 
   return (
     <>
       <div className="title">
-        <input
-          type="text"
-          placeholder="재료"
-          defaultValue={ingrName}
-          onChange={(e) => handleChangeValue(e, "name")}
-        />
+        <input type="text" placeholder="재료" defaultValue={ingrName} />
         <span onClick={handleDeleteList}>
           재료단위{" "}
           <em>
@@ -267,16 +227,17 @@ function IngredientInnerBox({
               <input
                 type="text"
                 placeholder={example[idx % 5][0]}
-                defaultValue={ingrContents[idx][0]}
-                onChange={(e) => handleChangeValue(e, "contents", idx, 0)}
+                defaultValue={ContentsState[idx][0]}
               />
               <input
                 type="text"
                 placeholder={example[idx % 5][1]}
-                defaultValue={ingrContents[idx][1]}
-                onChange={(e) => handleChangeValue(e, "contents", idx, 1)}
+                defaultValue={ContentsState[idx][1]}
               />
-              <span className="delete" onClick={() => handleDeleteItem(idx)}>
+              <span
+                className="delete"
+                onClick={() => handleDeleteItem(id, idx)}
+              >
                 <FontAwesomeIcon icon={faSquareMinus} />
               </span>
             </p>
@@ -341,44 +302,40 @@ function IngredientInputBox({ modifyMode, InputData, setInputData }) {
       ],
     },
   ];
+  const { ingredients = initialState } = InputData;
 
-  const { ingredients: ingrData = initialState } = InputData;
-
-  let temp = Array(modifyMode ? ingrData.length : 1)
+  let temp = Array(modifyMode ? ingredients.length : 1)
     .fill(0)
     .map((_) => uuid());
 
   const [ListArrState, setListArrState] = useState([...temp]);
-  // const [IngrDataState, setIngrDataState] = useState([...ingredients]);
+  const [IngrDataState, setIngrDataState] = useState([...ingredients]);
 
   const handlePlusList = () => {
     setListArrState((prev) => [...prev, uuid()]);
-    setInputData((prev) => {
-      let newItem = {
+    setIngrDataState((prev) => [
+      ...prev,
+      {
         name: "",
         contents: [
           ["", ""],
           ["", ""],
         ],
-      };
-
-      return { ...prev, ingredients: [...ingrData, newItem] };
-    });
+      },
+    ]);
   };
 
-  const handleDeleteList = (index) => {
+  const handleDeleteList = (targetId, index) => {
     // 1개 이하면 초기화 시키기
     if (ListArrState.length <= 1) return;
     setListArrState((prev) => {
-      let newArr = [...prev];
-      newArr.splice(index, 1);
+      let newArr = prev.filter((id) => id !== targetId);
       return newArr;
     });
-
-    setInputData((prev) => {
-      let newState = [...ingrData];
+    setIngrDataState((prev) => {
+      let newState = [...prev];
       newState.splice(index, 1);
-      return { ...prev, ingredients: [...newState] };
+      return newState;
     });
   };
 
@@ -389,10 +346,9 @@ function IngredientInputBox({ modifyMode, InputData, setInputData }) {
           <li key={id}>
             <IngredientInnerBox
               isFirst={idx === 0}
-              data={ingrData[idx]}
-              setData={setInputData}
-              itemOrder={idx}
-              handleDeleteList={() => handleDeleteList(idx)}
+              data={IngrDataState[idx]}
+              setData={setIngrDataState}
+              handleDeleteList={() => handleDeleteList(id, idx)}
             />
           </li>
         ))}

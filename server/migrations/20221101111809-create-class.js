@@ -19,10 +19,10 @@ module.exports = {
         type: Sequelize.STRING,
       },
       header_title: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(500),
       },
       header_desc: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(1000),
       },
       time: {
         type: Sequelize.STRING,
@@ -37,22 +37,22 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       place: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(500),
       },
       email: {
         type: Sequelize.STRING,
       },
       intro: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(3000),
       },
       host_img: {
         type: Sequelize.STRING,
       },
       host_desc: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(5000),
       },
       host_details: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(2000),
       },
       createdAt: {
         allowNull: false,

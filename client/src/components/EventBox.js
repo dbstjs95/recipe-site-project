@@ -10,8 +10,8 @@ import {
 function EventBox() {
   const [SlideState, setSlideState] = useState(0);
   const [BtnDisplay, setBtnDisplay] = useState(false);
-  const MAX_SLIDES = events.length - 1;
-  const slideRef = useRef(null);
+  const MAX_SLIDES = events?.length - 1;
+  const slideRef = useRef("");
 
   const setTransition = (value) => {
     slideRef.current.style.transition = value;

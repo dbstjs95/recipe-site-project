@@ -4,8 +4,14 @@ const { OAuth2Client } = require("google-auth-library");
 require("dotenv").config();
 const userDB = require("../db/user");
 
-router.post("/google", (req, res) => {
-  const { id_token } = req.body;
+router.post("/login/google", (req, res) => {
+  const authHeader = req.get("Authorization");
+
+  let id_token;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    id_token = authHeader.split(" ")[1];
+  }
+
   if (!id_token)
     return res.status(400).json({ message: "failed to get id_token" });
 
@@ -54,7 +60,7 @@ router.post("/google", (req, res) => {
   });
 });
 
-router.post("/naver", async (req, res) => {
+router.post("/login/naver", async (req, res) => {
   try {
     const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
     const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;

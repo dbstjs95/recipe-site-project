@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Class_comment.init(
     {
-      content: DataTypes.STRING,
+      content: DataTypes.STRING(10000),
     },
     {
       sequelize,

@@ -33,7 +33,7 @@ function LoginPage() {
     if (authState) {
       //네이버
       let result = await axios
-        .post(`${ENV.REACT_APP_OUR_SERVER_URI}/login/naver`, {
+        .post(`${ENV.REACT_APP_OUR_SERVER_URI}/user/login/naver`, {
           code: authCode,
           state: authState,
         })
@@ -66,8 +66,15 @@ function LoginPage() {
 
       if (!id_token) return;
 
+      //헤더로...
       let result = await axios
-        .post(`${ENV.REACT_APP_OUR_SERVER_URI}/login/google`, { id_token })
+        .post(
+          `${ENV.REACT_APP_OUR_SERVER_URI}/user/login/google`,
+          {},
+          {
+            headers: { authorization: `Bearer ${id_token}` },
+          }
+        )
         .then((res) => {
           if (res?.data?.message === "success") return res.data;
           return null;
