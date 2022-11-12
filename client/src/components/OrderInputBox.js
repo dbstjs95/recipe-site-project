@@ -8,6 +8,7 @@ import {
   faSquareXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { colors } from "../css";
+import { bucketUrl } from "../api/fileUpload";
 
 const Container = styled.div`
   padding: 5px 0 15px;
@@ -295,9 +296,14 @@ function OrderInputBox({
                   defaultValue={steps[idx][0]}
                   onChange={(e) => handleChangeText(e, idx)}
                 />
+
                 <OrderImgBox
                   className="order_img"
-                  imgSrc={steps[idx][1]}
+                  imgSrc={
+                    steps[idx][1] && steps[idx][1].startsWith(FileFirst)
+                      ? `${bucketUrl}${steps[idx][1]}`
+                      : steps[idx][1]
+                  }
                   onClick={() => handleSelectFile(idx)}
                 >
                   <span>

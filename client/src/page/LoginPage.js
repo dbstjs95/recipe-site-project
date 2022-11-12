@@ -91,6 +91,7 @@ function LoginPage() {
 
   const userData = useQuery("login", clickLogin, {
     refetchOnWindowFocus: false,
+    cacheTime: Infinity,
     // suspense: true,
   });
 

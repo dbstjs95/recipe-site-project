@@ -11,8 +11,22 @@ async function findUserByUserId(id) {
   });
 }
 
-async function CreateUser(data) {
+async function createUser(data) {
   return await User.create(data);
 }
 
-module.exports = { findUserById, findUserByUserId, CreateUser };
+async function changeUserInfo(data) {
+  // 테스트용
+  let user_id = 1;
+
+  try {
+    let result = await User.update(data, { where: { id: user_id } });
+    if (!result) return null;
+    return "success";
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+module.exports = { findUserById, findUserByUserId, createUser, changeUserInfo };

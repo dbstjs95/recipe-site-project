@@ -37,7 +37,7 @@ router.post("/login/google", (req, res) => {
       userInfo = isUser;
     } else {
       //회원이 아닌 경우 --> 회원가입
-      userInfo = await userDB.CreateUser({
+      userInfo = await userDB.createUser({
         external_type: "google",
         external_id: sub,
         nickname: name,
@@ -100,7 +100,7 @@ router.post("/login/naver", async (req, res) => {
       userInfo = isUser;
     } else {
       //회원이 아닌 경우 --> 회원가입
-      userInfo = await userDB.CreateUser({
+      userInfo = await userDB.createUser({
         external_type: "naver",
         external_id: id,
         nickname,
@@ -121,6 +121,15 @@ router.post("/login/naver", async (req, res) => {
       message: "server error fail",
     });
   }
+});
+
+router.post("/change", async (req, res) => {
+  let data = req.body;
+  let result = await userDB.changeUserInfo(data);
+
+  if (!result) return res.status(400).json({ message: "fail" });
+
+  return res.status(200).json({ message: "success" });
 });
 
 module.exports = router;

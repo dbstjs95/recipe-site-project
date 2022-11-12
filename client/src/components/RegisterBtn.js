@@ -86,17 +86,20 @@ function RegisterBtn({
 
     if (result.message === "success") {
       // s3 파일 삭제는 디비 삭제 확인 후, 진행
-      let list = BeforeDelete.map((file) => ({ Key: file }));
+      let size = BeforeDelete?.length;
+      if (size > 0) {
+        let list = BeforeDelete.map((file) => ({ Key: file }));
 
-      try {
-        await fileDelete(list);
-      } catch (err) {
-        return alert("기존 이미지 파일 삭제 중 에러가 발생했습니다.");
+        try {
+          await fileDelete(list);
+        } catch (err) {
+          return alert("기존 이미지 파일 삭제 중 에러가 발생했습니다.");
+        }
       }
 
       alert("저장되었습니다.");
       // public or private
-      navigate("/mypage/recipe");
+      navigate(`/mypage/recipe?type=${type}`);
     } else {
       alert("저장에 실패했습니다.");
     }

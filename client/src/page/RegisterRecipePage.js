@@ -11,7 +11,7 @@ import { faBowlFood } from "@fortawesome/free-solid-svg-icons";
 import IngredientInputBox from "../components/IngredientInputBox";
 import OrderInputBox from "../components/OrderInputBox";
 import RegisterBtn from "../components/RegisterBtn";
-import { FileFirst } from "../api/fileUpload";
+import { FileFirst, bucketUrl } from "../api/fileUpload";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -332,15 +332,21 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
   };
 
   //확인용(나중에 삭제)
-  // useEffect(() => {
-  //   console.log("InputData: ", InputData?.steps);
-  // }, [InputData]);
+  useEffect(() => {
+    console.log("InputData: ", InputData);
+  }, [InputData]);
 
   return (
     <Container>
       <h1>레시피 등록</h1>
       <InputBox>
-        <IntroContainer mainSrc={InputData.mainSrc}>
+        <IntroContainer
+          mainSrc={
+            InputData.mainSrc.startsWith(FileFirst)
+              ? `${bucketUrl}${InputData.mainSrc}`
+              : InputData.mainSrc
+          }
+        >
           <ul id="input_info">
             <li>
               <h2>레시피 제목</h2>

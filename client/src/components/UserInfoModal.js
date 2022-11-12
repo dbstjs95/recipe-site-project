@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
@@ -50,18 +50,32 @@ const Container = styled.div`
   }
 `;
 
-function UserInfoModal({ handleClick }) {
+function UserInfoModal({ setIsOpen, value, userInfoMutation }) {
+  const inputRef = useRef();
+  const [Desc, setDesc] = useState(value);
+
+  const handleSubmit = () => {
+    userInfoMutation.mutate({ profile_desc: Desc });
+  };
+
+  useEffect(() => {
+    inputRef.current.focus();
+  }, []);
+
   return (
     <Container onClick={(e) => e.stopPropagation()}>
-      <span onClick={() => handleClick(false)}>
+      <span onClick={() => setIsOpen(false)}>
         <FontAwesomeIcon icon={faCircleXmark} />
       </span>
       <input
+        ref={inputRef}
         type="text"
         placeholder="100자 이내로 작성해주세요."
-        maxlength="100"
+        maxLength="100"
+        defaultValue={Desc}
+        onChange={(e) => setDesc(e.target.value)}
       />
-      <button>저장</button>
+      <button onClick={handleSubmit}>저장</button>
     </Container>
   );
 }

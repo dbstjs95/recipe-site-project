@@ -30,6 +30,7 @@ app.use(
       process.env.OUR_CLIENT_URI,
       "https://nid.naver.com",
       "https://openapi.naver.com",
+      "http://my-recipe-front.s3-website.ap-northeast-2.amazonaws.com",
     ], // 출처 허용 옵션
     credential: "true", // 사용자 인증이 필요한 리소스(쿠키 ..등) 접근
   })

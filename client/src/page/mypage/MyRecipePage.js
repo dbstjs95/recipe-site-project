@@ -5,6 +5,8 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import recipeList from "../../mockData/recipe_list";
 import { Link } from "react-router-dom";
 import Pagination from "../../components/Pagination";
+import queryString from "query-string";
+import { useLocation } from "react-router-dom";
 
 const myRecipeData = [...recipeList].slice(0, 5);
 
@@ -186,8 +188,11 @@ export const ContentPublic = styled(ContentPrivate)`
 `;
 
 function MyRecipePage() {
+  const { search } = useLocation();
+  const { type } = queryString.parse(search);
+
   const [Selected, setSelected] = useState(0);
-  const [Public, setPublic] = useState(true);
+  const [Public, setPublic] = useState(type === "public");
   const [IsOpen, setIsOpen] = useState(false);
 
   const handleOrderSelect = (num) => setSelected((prev) => num);
