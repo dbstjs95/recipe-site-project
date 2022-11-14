@@ -65,6 +65,7 @@ function RegisterBtn({
   Files,
   setInputData,
   BeforeDelete,
+  setBeforeDelete,
 }) {
   const navigate = useNavigate();
   const [Save, setSave] = useState({ private: false, public: false });
@@ -91,7 +92,10 @@ function RegisterBtn({
         let list = BeforeDelete.map((file) => ({ Key: file }));
 
         try {
-          await fileDelete(list);
+          let isDeleted = await fileDelete(list);
+          if (isDeleted?.response?.error) {
+            return alert("기존 이미지 파일 삭제 중 에러가 발생했습니다.");
+          }
         } catch (err) {
           return alert("기존 이미지 파일 삭제 중 에러가 발생했습니다.");
         }
@@ -110,27 +114,19 @@ function RegisterBtn({
     let recipe_id = InputData?.id;
 
     let result = await axios
-      .delete(
-        `${process.env.REACT_APP_OUR_SERVER_URI}/v1/recipe/${recipe_id}?type=${type}`
-      )
-      .then((res) => res.data)
+      .delete(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipe_id}`)
       .catch((err) => {
         console.error(err);
         return null;
       });
 
-    if (result?.message === "success") {
-      // s3 파일들 삭제: directoryDelete 이용하면 좋겠지만, 일단은 단일 파일 삭제를 반복적으로..
-      let files =
-        InputData?.steps &&
-        InputData.steps.map((item) => (Array.isArray(item) ? item[1] : ""));
-
-      if (files) {
-        files = [InputData?.mainSrc, ...files];
-        await files.forEach((fileKey) => {
-          if (fileKey) fileDelete(fileKey);
-        });
-
+    if (result?.status === 200) {
+      // s3 파일들 삭제
+      let list = BeforeDelete.map((file) => ({ Key: file }));
+      let isDeleted = await fileDelete(list);
+      if (isDeleted?.response?.error) {
+        return alert("기존 이미지 파일 삭제 중 에러가 발생했습니다.");
+      } else {
         alert("삭제되었습니다.");
         navigate(-1);
       }
@@ -196,6 +192,14 @@ function RegisterBtn({
     e.preventDefault();
     let confirm = window.confirm("삭제하시겠니까?");
     if (confirm) {
+      setBeforeDelete(() => {
+        let stepsFiles = InputData.steps
+          .map((item) => item[1])
+          .filter((item) => item);
+
+        let filesList = [InputData.mainSrc, ...stepsFiles];
+        return filesList;
+      });
       setDelete(true);
     }
   };

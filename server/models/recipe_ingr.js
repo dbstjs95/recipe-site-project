@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        as: "contents",
       });
     }
   }

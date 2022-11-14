@@ -8,6 +8,8 @@ import RecipeDetailIngr from "../../components/RecipeDetailIngr";
 import RecipeDetailSteps from "../../components/RecipeDetailSteps";
 import RecipeDetailWriter from "../../components/RecipeDetailWriter";
 import RecipeDetailComments from "../../components/RecipeDetailComments";
+import { useQuery } from "react-query";
+import axios from "axios";
 
 export const DetailPageLayout = css`
   ${LayoutSize}
@@ -22,24 +24,42 @@ export const Container = styled.div`
 `;
 
 function RecipePage() {
-  const { recipeId } = useParams();
+  // const { recipeId } = useParams();
+
+  // 테스트용
+  let recipeId = 4;
+  const { data, isLoading } = useQuery(
+    "getRecipe",
+    async () => {
+      let result = await axios
+        .get(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}`)
+        .then((res) => res.data);
+      if (result?.message === "success") return result;
+      return null;
+    },
+    { refetchOnWindowFocus: false }
+  );
+  console.log("data: ", data);
+
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <Container>
       <div className="intro">
-        <RecipeDetailIntro data={recipe_info} />
+        <RecipeDetailIntro data={data?.recipe} />
       </div>
       <div className="ingredients">
-        <RecipeDetailIngr data={recipe_info} />
+        <RecipeDetailIngr data={data?.recipe} />
       </div>
       <div className="steps">
-        <RecipeDetailSteps data={recipe_info} />
+        <RecipeDetailSteps data={data?.recipe} />
       </div>
       <div className="writerInfo">
-        <RecipeDetailWriter data={recipe_info.userInfo} />
+        <RecipeDetailWriter data={data?.recipe?.writer} />
       </div>
-      <div className="comments">
+      {/* <div className="comments">
         <RecipeDetailComments data={recipe_info.commentsData} />
-      </div>
+      </div> */}
     </Container>
   );
 }

@@ -124,7 +124,6 @@ function Profile() {
       let list = [{ Key: prevImg }];
       let isDeleted = await fileDelete(list);
 
-      console.log("isDeleted?.response: ", isDeleted?.response);
       if (isDeleted?.response?.error) {
         return alert("기존 파일 삭제 에러 발생");
       }

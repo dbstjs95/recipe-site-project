@@ -99,7 +99,7 @@ const DetailStyle = styled.p`
 
 function RecipeListBox({ children, data = recipeList, use }) {
   const navigate = useNavigate();
-  const handleMovePage = () => navigate("/recipes/1");
+  const handleMovePage = () => navigate("/recipes/4");
 
   return (
     <BestSection>

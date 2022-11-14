@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { H2Style } from "./RecipeDetailIngr";
 import { colors } from "../css";
+import { bucketUrl } from "../api/fileUpload";
 
 const Container = styled.ul`
   width: 80%;
@@ -110,18 +111,23 @@ function RecipeDetailSteps({ data }) {
   return (
     <Container>
       <h2>조리순서</h2>
-      {data.steps.map((item) => {
+      {data?.steps.map((item, idx) => {
         return (
-          <li key={item[0]}>
+          <li key={idx}>
             <div className="desc">
-              <span>{item[0]}</span>
-              <p>{item[1]}</p>
+              <span>{idx + 1}</span>
+              <p>{item[0]}</p>
             </div>
-            <StepsImg className="img" imgSrc={item[2]}></StepsImg>
+            <StepsImg
+              className="img"
+              imgSrc={`${bucketUrl}${item[1]}`}
+            ></StepsImg>
           </li>
         );
       })}
-      {data.resultSrc && <ResultImg imgSrc={data.resultSrc}></ResultImg>}
+      {data?.resultSrc && (
+        <ResultImg imgSrc={`${bucketUrl}${data?.resultSrc}`}></ResultImg>
+      )}
     </Container>
   );
 }

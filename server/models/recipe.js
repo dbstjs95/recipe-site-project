@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        as: "writer",
       });
       Recipe.hasMany(models.Like, {
         foreignKey: "recipe_id",
@@ -20,12 +21,14 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        as: "ingredients",
       });
       Recipe.hasMany(models.Recipe_step, {
         foreignKey: "recipe_id",
         sourceKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        as: "steps",
       });
       Recipe.hasMany(models.Recipe_comment, {
         foreignKey: "recipe_id",

@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "Like",
       timestamps: true,
-      createdAt: false,
+      updatedAt: false,
       indexes: [
         {
           unique: true,

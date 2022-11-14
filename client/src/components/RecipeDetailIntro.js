@@ -11,6 +11,7 @@ import {
   faGear,
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart, faComment } from "@fortawesome/free-regular-svg-icons";
+import { bucketUrl } from "../api/fileUpload";
 
 const Container = styled.div`
   display: flex;
@@ -217,8 +218,8 @@ const DetailBox2 = styled.ul`
 function RecipeDetailIntro({ data }) {
   const navigate = useNavigate();
 
-  const [IsLiked, setIsLiked] = useState(data.isLiked);
-  const [LikeNum, setLikeNum] = useState(data.like);
+  const [IsLiked, setIsLiked] = useState(data?.isLiked || false);
+  const [LikeNum, setLikeNum] = useState(data?.like);
 
   const handleClickLike = () => {
     setIsLiked((prev) => {
@@ -236,13 +237,16 @@ function RecipeDetailIntro({ data }) {
 
   return (
     <Container>
-      <MainImgBox main={data.mainSrc} writer={data?.userInfo?.src}>
+      <MainImgBox
+        main={`${bucketUrl}${data?.mainSrc}`}
+        writer={`${bucketUrl}${data?.writer?.profile_img}`}
+      >
         <span className="view_icon">
           <FontAwesomeIcon icon={faEye} /> {Number(data?.view).toLocaleString()}
         </span>
         <figure>
           <span className="nickname">
-            {data.userInfo.nickname}
+            {data?.writer?.nickname}
             <span className="setting" onClick={handleModify}>
               <FontAwesomeIcon icon={faGear} />
               <em>수정</em>
@@ -251,8 +255,8 @@ function RecipeDetailIntro({ data }) {
         </figure>
       </MainImgBox>
       <IntroBox>
-        <h1 className="title">{data.title}</h1>
-        <pre className="desc">{data.intro}</pre>
+        <h1 className="title">{data?.title}</h1>
+        <pre className="desc">{data?.intro}</pre>
       </IntroBox>
       <DetailBox1>
         {data?.details.map((item, idx) => {
@@ -277,7 +281,7 @@ function RecipeDetailIntro({ data }) {
         </li>
         <li>
           <FontAwesomeIcon icon={faComment} />
-          <span>{data.commentsNum}</span>
+          <span>{data?.commentsNum}</span>
         </li>
       </DetailBox2>
     </Container>

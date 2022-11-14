@@ -57,11 +57,36 @@ router.post("/", async (req, res) => {
   // const data = req.body;
 
   let data = { ...example };
-  let isRegistered = await recipeDB.CreateRecipe(type, data);
+  let isRegistered = await recipeDB.createRecipe(type, data);
 
-  if (isRegistered && isRegistered === "success") {
+  if (!isRegistered) return res.status(500).json({ message: "server error" });
+
+  if (isRegistered === "success") {
     return res.status(204).json({ message: "success" });
+  } else if (
+    typeof isRegistered === "string" &&
+    isRegistered.startsWith("error")
+  ) {
+    return res.status(400).json({ message: "fail" });
   }
+});
+
+// 레시피 수정
+
+// 레세피 삭제
+router.delete("/:recipeId", async (req, res) => {
+  const { recipeId } = req.params;
+
+  const isDeleted = await recipeDB.deleteRecipe(recipeId);
+
+  if (isDeleted === 1) {
+    return res.status(200).json({ message: "success" });
+  } else if (isDeleted === 0) {
+    return res.status(200).json({ message: "can't find data" });
+  }
+
+  if (isDeleted === "DB error")
+    return res.status(500).json({ message: "server error" });
 
   return res.status(400).json({ message: "fail" });
 });
@@ -75,14 +100,28 @@ router.get("/", async (req, res) => {
 
 // 레시피 상세
 router.get("/:recipeId", async (req, res) => {
+  // 테스트용
+  let userId = 1;
+
   let { recipeId } = req.params;
-  let recipe = await recipeDB.findRecipeById(recipeId);
+  let recipe = recipeDB.findRecipeById(recipeId, userId);
+  let comments = recipeDB.getRecipeComments(recipeId, userId);
 
-  if (recipe) {
-    return res.status(200).json({ message: "success", recipe });
-  }
+  let results = await Promise.all([recipe, comments]);
 
-  return res.status(400).json({ message: "fail" });
+  res.json(results);
+
+  // if (!recipe) return res.status(500).json({ message: "server error" });
+
+  // if (typeof recipe === "string" && recipe.startsWith("error")) {
+  //   return res.status(400).json({ message: recipe });
+  // }
+
+  // if (recipe) {
+  //   return res.status(200).json({ message: "success", recipe });
+  // }
+
+  // return res.status(400).json({ message: "fail" });
 });
 
 module.exports = router;

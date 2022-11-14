@@ -256,7 +256,7 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
     mainSrc: "",
     intro: "",
     category: ["", "", ""],
-    recipeInfo: ["", "", ""],
+    details: ["", "", ""],
     ingredients: [
       {
         name: "",
@@ -388,8 +388,8 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
               {dataKeys2.map((prop, idx) => (
                 <select
                   key={idx}
-                  name="recipeInfo"
-                  defaultValue={InputData.recipeInfo[idx]}
+                  name="details"
+                  defaultValue={InputData.details[idx]}
                   onChange={(e) => handleInputChange(e, idx)}
                 >
                   {data[prop].map((item, idx) => (
@@ -441,6 +441,7 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
             Files={Files}
             setInputData={setInputData}
             BeforeDelete={BeforeDelete}
+            setBeforeDelete={setBeforeDelete}
           />
         </BtnContainer>
       </InputBox>

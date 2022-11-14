@@ -110,12 +110,12 @@ function RecipeDetailIngr({ data }) {
     <Container>
       <h2>재료</h2>
       <ul>
-        {data.ingredients.map((list, idx) => {
+        {data?.ingredients.map((obj, idx) => {
           return (
             <ListContainer key={idx} isOdd={isOdd}>
-              <h3>[{list[0]}]</h3>
+              <h3>[{obj.name}]</h3>
               <ItemContainer>
-                {list.map((item, idx) => {
+                {obj?.contents.map((item, idx) => {
                   if (idx === 0) return;
                   return (
                     <li key={idx}>
