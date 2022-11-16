@@ -28,38 +28,57 @@ function RecipePage() {
 
   // 테스트용
   let recipeId = 4;
-  const { data, isLoading } = useQuery(
+
+  const { data: recipeData, isLoading } = useQuery(
     "getRecipe",
     async () => {
       let result = await axios
         .get(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}`)
         .then((res) => res.data);
-      if (result?.message === "success") return result;
+      if (result?.message === "success") return result?.recipe;
       return null;
     },
     { refetchOnWindowFocus: false }
   );
-  console.log("data: ", data);
+
+  // const commentQuery = useQuery(
+  //   "getComment",
+  //   async () => {
+  //     let result = await axios
+  //       .get(
+  //         `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/comment?limit=${Limit}`
+  //       )
+  //       .then((res) => res.data);
+
+  //     console.log("result: ", result);
+  //     if (result?.message === "success") {
+  //       setCommentList([...result?.comments?.rows]);
+  //       return result.comments;
+  //     }
+  //     return null;
+  //   },
+  //   { refetchOnWindowFocus: false }
+  // );
 
   if (isLoading) return <div>Loading...</div>;
 
   return (
     <Container>
       <div className="intro">
-        <RecipeDetailIntro data={data?.recipe} />
+        <RecipeDetailIntro data={recipeData} />
       </div>
       <div className="ingredients">
-        <RecipeDetailIngr data={data?.recipe} />
+        <RecipeDetailIngr data={recipeData} />
       </div>
       <div className="steps">
-        <RecipeDetailSteps data={data?.recipe} />
+        <RecipeDetailSteps data={recipeData} />
       </div>
       <div className="writerInfo">
-        <RecipeDetailWriter data={data?.recipe?.writer} />
+        <RecipeDetailWriter data={recipeData?.writer} />
       </div>
-      {/* <div className="comments">
-        <RecipeDetailComments data={recipe_info.commentsData} />
-      </div> */}
+      <div className="comments">
+        <RecipeDetailComments recipeId={recipeData?.id} />
+      </div>
     </Container>
   );
 }

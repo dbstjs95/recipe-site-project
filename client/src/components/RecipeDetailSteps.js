@@ -111,22 +111,24 @@ function RecipeDetailSteps({ data }) {
   return (
     <Container>
       <h2>조리순서</h2>
-      {data?.steps.map((item, idx) => {
+      {data?.steps.map((item) => {
         return (
-          <li key={idx}>
+          <li key={item?.step}>
             <div className="desc">
-              <span>{idx + 1}</span>
-              <p>{item[0]}</p>
+              <span>{item?.step}</span>
+              <p>{item?.text}</p>
             </div>
             <StepsImg
               className="img"
-              imgSrc={`${bucketUrl}${item[1]}`}
+              imgSrc={`${bucketUrl}${item?.img}`}
             ></StepsImg>
           </li>
         );
       })}
-      {data?.resultSrc && (
+      {data?.resultSrc ? (
         <ResultImg imgSrc={`${bucketUrl}${data?.resultSrc}`}></ResultImg>
+      ) : (
+        <ResultImg imgSrc={`${bucketUrl}${data?.mainSrc}`}></ResultImg>
       )}
     </Container>
   );

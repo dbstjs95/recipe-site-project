@@ -43,7 +43,7 @@ async function findRecipeById(id, user_id) {
         {
           model: Recipe_ingr,
           as: "ingredients",
-          attributes: [["title", "name"]],
+          attributes: ["title"],
           include: [
             {
               model: Recipe_ingr_detail,
@@ -55,13 +55,16 @@ async function findRecipeById(id, user_id) {
         {
           model: Recipe_step,
           as: "steps",
-          attributes: ["order", "text", "img"],
+          attributes: [["order", "step"], "text", "img"],
           order: "order",
         },
       ],
     });
 
     if (!recipeResult) return "error: recipeResult";
+
+    // isLiked
+    recipeResult.dataValues.isLiked = isLiked;
 
     // 카테고리
     let category = recipeResult.category;
@@ -82,123 +85,53 @@ async function findRecipeById(id, user_id) {
     deleteList.map((item) => delete recipeResult.dataValues[item]);
 
     return recipeResult;
-
-    // let stepsPromise = Recipe_step.findAll({
-    //   where: { recipe_id: id },
-    // });
-
-    // let ingrPromise = Recipe_ingr.findAll({
-    //   where: { recipe_id: id },
-    // });
-
-    // let results = await Promise.all([recipePromise, stepsPromise, ingrPromise]);
-    // // results 결과: [{ recipe }, [recipeSteps {}, {}, ...], [recipeIngr {}, {}]]
-
-    // let userId;
-    // let ingr_ids;
-    // if (results) {
-    //   userId = results[0].user_id;
-    //   ingr_ids = results[2].map((item) => item.id);
-    // } else {
-    //   return "error: recipe & steps & ingr";
-    // }
-
-    // let writerInfo, ingrDetails;
-    // if (userId && ingr_ids) {
-    //   let writerPromise = User.findOne({
-    //     where: { id: 1 },
-    //     attributes: ["id", "nickname", "profile_img", "profile_desc"],
-    //   });
-
-    //   let ingrDetailPromise = Recipe_ingr_detail.findAll({
-    //     where: {
-    //       recipe_ingr_id: {
-    //         [Op.in]: ingr_ids,
-    //       },
-    //     },
-    //   });
-
-    //   let subResults = await Promise.all([writerPromise, ingrDetailPromise]);
-    //   if (!subResults || subResults.length === 0) return "error: subResults";
-
-    //   writerInfo = subResults[0];
-    //   ingrDetails = subResults[1];
-    // } else {
-    //   return "error: userId && ingr_ids";
-    // }
-
-    // let recipeData;
-    // if (ingrDetails && writerInfo) {
-    //   let recipe = { ...results[0].dataValues };
-    //   let steps = [...results[1]];
-    //   let ingr = [...results[2]];
-
-    //   let category = recipe?.category && recipe.category.split(",");
-    //   let stepsList = steps.map((item) => [item.text, item.img]);
-    //   let ingrList = ingr.map((item) => {
-    //     let contents = ingrDetails
-    //       .filter((data) => data.recipe_ingr_id === item.id)
-    //       .map((data) => [data.name, data.amount]);
-    //     return { name: item.title, contents };
-    //   });
-
-    //   recipeData = {
-    //     writer: writerInfo,
-    //     title: recipe.header_title,
-    //     mainSrc: recipe.header_img,
-    //     intro: recipe.header_desc,
-    //     category,
-    //     details: [recipe.servings, recipe.time, recipe.level],
-    //     ingredients: ingrList,
-    //     steps: stepsList,
-    //     view: recipe.view,
-    //     like: recipe.likes,
-    //     // 로그인 한 상태라면 like 테이블을 통해 isLiked 알아내기
-    //     isLiked,
-    //     resultSrc: recipe.header_img,
-    //   };
-    // } else {
-    //   return "error: writerInfo & ingrDetail";
-    // }
-
-    // if (!recipeData) return "error: recipeInfo";
-
-    // return recipeData;
   } catch (err) {
     console.error("에러: ", err);
     return null;
   }
 }
 
-async function getRecipeComments(id, user_id) {
+async function getRecipeComments(id, targetId = 0, limit = 3) {
   // 처음: 해당 레시피 댓글 최신순으로 3개,
   // 로그인한 유저가 쓴 댓글이 가장 상단에
   try {
-    let commnets;
-    if (user_id) {
-      commnets = await Recipe_comment.findAndCountAll({
-        where: { recipe_id: id },
-        attributes: { exclude: ["recipe_id"] },
-        limit: 3,
-        order: [
-          [fn("field", col("user_id"), user_id), "DESC"],
-          ["createdAt", "DESC"],
-        ],
-      });
-    } else {
-      commnets = await Recipe_comment.findAndCountAll({
-        where: { recipe_id: id },
-        attributes: { exclude: ["recipe_id"] },
-        limit: 3,
-        order: [["createdAt", "DESC"]],
-      });
-    }
+    let commnets = await Recipe_comment.findAndCountAll({
+      where: {
+        recipe_id: id,
+        id: {
+          [Op.gt]: targetId,
+        },
+      },
+      attributes: { exclude: ["user_id", "recipe_id"] },
+      include: [
+        {
+          model: User,
+          as: "writer",
+          attributes: ["id", "nickname", "profile_img"],
+        },
+      ],
+      limit: limit,
+      order: [["id", "DESC"]],
+    });
 
+    if (!commnets) return "error: commnets";
     return commnets;
   } catch (err) {
     console.error(err);
-    return "server error";
+    return null;
   }
+}
+
+async function deleteComment(id) {
+  let isDeleted = await Recipe_comment.destroy({ where: { id } });
+
+  return isDeleted;
+}
+
+async function getComment(id) {
+  let isFound = await Recipe_comment.findByPk(id, { paranoid: false });
+
+  return isFound;
 }
 
 async function createRecipe(type, data) {
@@ -291,6 +224,8 @@ async function deleteRecipe(id) {
 module.exports = {
   findRecipeById,
   getRecipeComments,
+  deleteComment,
+  getComment,
   createRecipe,
   deleteRecipe,
 };

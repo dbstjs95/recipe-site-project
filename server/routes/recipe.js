@@ -103,25 +103,69 @@ router.get("/:recipeId", async (req, res) => {
   // 테스트용
   let userId = 1;
 
-  let { recipeId } = req.params;
-  let recipe = recipeDB.findRecipeById(recipeId, userId);
-  let comments = recipeDB.getRecipeComments(recipeId, userId);
+  try {
+    let { recipeId } = req.params;
+    let recipe = await recipeDB.findRecipeById(recipeId, userId);
 
-  let results = await Promise.all([recipe, comments]);
+    if (!recipe) return res.status(500).json({ message: "server error" });
 
-  res.json(results);
+    if (typeof recipe === "string" && recipe.startsWith("error")) {
+      return res.status(400).json({ message: "fail", recipe });
+    }
 
-  // if (!recipe) return res.status(500).json({ message: "server error" });
+    return res.status(200).json({ message: "success", recipe });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "server error" });
+  }
+});
 
-  // if (typeof recipe === "string" && recipe.startsWith("error")) {
-  //   return res.status(400).json({ message: recipe });
-  // }
+// 레시피 댓글 불러오기
+router.get("/:recipeId/comment", async (req, res) => {
+  const { recipeId } = req.params;
+  const { targetId = 0, limit } = req.query;
 
-  // if (recipe) {
-  //   return res.status(200).json({ message: "success", recipe });
-  // }
+  if (!recipeId || !targetId || !limit)
+    return res
+      .status(400)
+      .json({ message: "Can't find recipeId or targetId or limit" });
 
-  // return res.status(400).json({ message: "fail" });
+  try {
+    let comments = await recipeDB.getRecipeComments(
+      recipeId,
+      Number(targetId),
+      Number(limit)
+    );
+
+    if (!comments) return res.status(500).json({ message: "server error" });
+
+    if (typeof comments === "string" && comments.startsWith("error")) {
+      return res.status(400).json({ message: "fail", comments });
+    }
+
+    return res.status(200).json({ message: "success", comments });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "server error" });
+  }
+});
+
+// 댓글 삭제
+router.delete("/:recipeId/comment/:cmtId", async (req, res) => {
+  const { cmtId } = req.params;
+
+  let result = await recipeDB.deleteComment(cmtId);
+
+  return res.json(result);
+});
+
+// 댓글 타겟팅
+router.get("/:recipeId/comment/:cmtId", async (req, res) => {
+  const { cmtId } = req.params;
+
+  let result = await recipeDB.getComment(cmtId);
+
+  return res.json(result);
 });
 
 module.exports = router;

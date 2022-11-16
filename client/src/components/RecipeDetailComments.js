@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
 import { H2Style } from "./RecipeDetailIngr";
 import { colors } from "../css";
+import { bucketUrl } from "../api/fileUpload";
+import userImg from "../assets/logo_img/user.png";
+import { useQuery } from "react-query";
+import axios from "axios";
 
 const Container = styled.div`
   width: 80%;
@@ -168,53 +172,107 @@ const CommentInputBox = styled.form`
   }
 `;
 
-function RecipeDetailComments({ data }) {
-  const myUserId = 51;
+function RecipeDetailComments({ recipeId }) {
+  // 테스트용
+  const myUserId = 1;
   const [CommentList, setCommentList] = useState([]);
-  const [ShowNum, setShowNum] = useState(3);
+  const [Limit, setLimit] = useState(3);
+  const [ShowNum, setShowNum] = useState(0);
+  const [PagingInfo, setPagingInfo] = useState({
+    targetId: 0,
+    limit: 3,
+  });
 
-  const showComments = () => {
-    let temp = [...data.contents].slice(0, Number(ShowNum));
-    setCommentList(temp);
-  };
+  const { data, isLoading, refetch } = useQuery(
+    ["getComment", PagingInfo],
+    async ({ queryKey }) => {
+      let result = await axios
+        .get(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/comment?targetId=${queryKey[1]?.targetId}&limit=${queryKey[1]?.limit}`
+        )
+        .then((res) => res.data);
 
-  useEffect(() => {
-    showComments();
-  }, [ShowNum]);
+      if (result?.message === "success") {
+        if (CommentList.length === 0) setShowNum(3);
+        return result.comments;
+      }
+      return null;
+    },
+    { refetchOnWindowFocus: false }
+  );
 
   const handleClickMore = () => {
-    setShowNum((prev) => prev + 10);
+    let totalData = data?.rows.length;
+    let totalCmtList = CommentList.length;
+    if (totalData > totalCmtList) {
+      setCommentList(() => {
+        let newState = data?.rows.slice(0, totalCmtList + 10);
+        return newState;
+      });
+    } else {
+      setLimit((prev) => {
+        let newState = prev + 10;
+        return newState;
+      });
+    }
   };
 
   const handleClickShorten = () => {
-    setShowNum(3);
+    setCommentList((prev) => {
+      let newState = prev.slice(0, 3);
+      return newState;
+    });
   };
+
+  const handleDelete = useCallback((id) => {}, []);
+
+  useEffect(() => {
+    if (!data?.rows) return;
+    let temp = [...data?.rows].slice(0, Number(ShowNum));
+    setCommentList(temp);
+  }, [ShowNum]);
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <Container>
       <h2>
-        댓글 <em>{data.num}</em>
+        댓글 <em>{data?.count}</em>
       </h2>
       <CommentsBox>
         {CommentList.map((item) => {
           return (
-            <li key={item[0]}>
-              <img src={item[1]} alt="프로필 이미지" />
+            <li key={item?.id}>
+              <img
+                src={
+                  item?.writer?.profile_img
+                    ? `${bucketUrl}${item?.writer?.profile_img}`
+                    : userImg
+                }
+                alt="프로필 이미지"
+              />
               <ContentBox>
                 <p className="head">
-                  <span className="nickname">{item[2]}</span>
+                  <span className="nickname">{item?.writer?.nickname}</span>
                   <span className="date">
-                    <em>{item[3]}</em>
+                    <em>{item?.createdAt}</em>
                   </span>
-                  {item[0] === myUserId && <span className="delete">삭제</span>}
+                  {item?.writer?.id === myUserId && (
+                    <span
+                      className="delete"
+                      onClick={() => handleDelete(item?.id)}
+                    >
+                      삭제
+                    </span>
+                  )}
                 </p>
-                <p className="body">{item[4]}</p>
+                <p className="body">{item?.content}</p>
               </ContentBox>
             </li>
           );
         })}
-        {data.num > 0 &&
-          (CommentList.length >= data.num ? (
+        {data?.count > 0 &&
+          (CommentList.length >= data?.count ? (
             <ShortenBtn onClick={handleClickShorten}>줄여보기</ShortenBtn>
           ) : (
             <MoreBtn onClick={handleClickMore}>더 보기</MoreBtn>

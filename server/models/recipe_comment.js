@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        as: "writer",
       });
       Recipe_comment.belongsTo(models.Recipe, {
         foreignKey: "recipe_id",
@@ -26,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Recipe_comment",
       timestamps: true,
       updatedAt: false,
+      paranoid: true,
     }
   );
   return Recipe_comment;

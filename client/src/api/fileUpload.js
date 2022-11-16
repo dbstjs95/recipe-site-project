@@ -1,10 +1,10 @@
 import AWS from "aws-sdk";
 import { v4 } from "uuid";
 
-const ACCESS_KEY = "AKIAYS76VCFXWZJKAL6K";
-const SECRET_ACCESS_KEY = "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";
-const REGION = "ap-northeast-2";
-const S3_BUCKET = "myrecipe-bucket";
+const ACCESS_KEY = process.env.REACT_APP_ACCESS_KEY;
+const SECRET_ACCESS_KEY = process.env.REACT_APP_SECRET_ACCESS_KEY;
+const REGION = process.env.REACT_APP_REGION;
+const S3_BUCKET = process.env.REACT_APP_S3_BUCKET;
 
 export const bucketUrl =
   "https://myrecipe-bucket.s3.ap-northeast-2.amazonaws.com/";
