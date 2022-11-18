@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { H2Style } from "./RecipeDetailIngr";
 import { bucketUrl } from "../api/fileUpload";
+import userImg from "../assets/logo_img/user.png";
 
 const Container = styled.div`
   padding: 20px 15px;
@@ -81,7 +82,10 @@ function RecipeDetailWriter({ data }) {
     <Container>
       <h2>레시피 작성자</h2>
       <div>
-        <img src={`${bucketUrl}${data?.profile_img}`} alt="프로필 이미지" />
+        <img
+          src={data?.profile_img ? `${bucketUrl}${data?.profile_img}` : userImg}
+          alt="프로필 이미지"
+        />
         <p>
           <span className="nickname">{data?.nickname}</span>
           <span className="greetings">{data?.profile_desc}</span>

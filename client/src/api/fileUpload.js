@@ -6,8 +6,7 @@ const SECRET_ACCESS_KEY = process.env.REACT_APP_SECRET_ACCESS_KEY;
 const REGION = process.env.REACT_APP_REGION;
 const S3_BUCKET = process.env.REACT_APP_S3_BUCKET;
 
-export const bucketUrl =
-  "https://myrecipe-bucket.s3.ap-northeast-2.amazonaws.com/";
+export const bucketUrl = process.env.REACT_APP_BUCKET_URL;
 
 export const FileFirst = "upload/recipe/";
 

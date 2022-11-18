@@ -62,7 +62,7 @@ router.post("/", async (req, res) => {
   if (!isRegistered) return res.status(500).json({ message: "server error" });
 
   if (isRegistered === "success") {
-    return res.status(204).json({ message: "success" });
+    return res.status(201).json({ message: "success" });
   } else if (
     typeof isRegistered === "string" &&
     isRegistered.startsWith("error")
@@ -123,17 +123,15 @@ router.get("/:recipeId", async (req, res) => {
 // 레시피 댓글 불러오기
 router.get("/:recipeId/comment", async (req, res) => {
   const { recipeId } = req.params;
-  const { targetId = 0, limit } = req.query;
+  const { targetId, limit } = req.query;
 
-  if (!recipeId || !targetId || !limit)
-    return res
-      .status(400)
-      .json({ message: "Can't find recipeId or targetId or limit" });
+  if (!recipeId || !limit)
+    return res.status(400).json({ message: "Can't find recipeId or limit" });
 
   try {
     let comments = await recipeDB.getRecipeComments(
       recipeId,
-      Number(targetId),
+      targetId ? Number(targetId) : "",
       Number(limit)
     );
 
@@ -155,17 +153,34 @@ router.delete("/:recipeId/comment/:cmtId", async (req, res) => {
   const { cmtId } = req.params;
 
   let result = await recipeDB.deleteComment(cmtId);
+  if (!result) return res.status(500).json({ message: "server error" });
 
-  return res.json(result);
+  if (typeof result === "string" && result.startsWith("error"))
+    return res.status(400).json({ message: "fail", result });
+
+  return res.status(200).json({ message: "success" });
 });
 
-// 댓글 타겟팅
-router.get("/:recipeId/comment/:cmtId", async (req, res) => {
-  const { cmtId } = req.params;
+// 댓글 추가
+router.post("/:recipeId/comment", async (req, res) => {
+  // 테스트
+  let userId = 1;
 
-  let result = await recipeDB.getComment(cmtId);
+  const { recipeId } = req.params;
+  const { content } = req.body;
 
-  return res.json(result);
+  if (!recipeId || !content)
+    return res.status(400).json({ message: "can't find recipeId or content" });
+
+  let newComment = { user_id: userId, recipe_id: recipeId, content };
+
+  let result = await recipeDB.addComment(newComment);
+  if (!result) return res.status(500).json({ message: "server error" });
+
+  if (typeof result === "string" && result.startsWith("error"))
+    return res.status(400).json({ message: "fail", result });
+
+  return res.status(201).json({ message: "success" });
 });
 
 module.exports = router;

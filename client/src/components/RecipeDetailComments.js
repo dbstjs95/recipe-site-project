@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import styled from "styled-components";
 import { H2Style } from "./RecipeDetailIngr";
 import { colors } from "../css";
 import { bucketUrl } from "../api/fileUpload";
 import userImg from "../assets/logo_img/user.png";
-import { useQuery } from "react-query";
+import { useQuery, useMutation, useQueryClient } from "react-query";
 import axios from "axios";
 
 const Container = styled.div`
@@ -175,16 +175,20 @@ const CommentInputBox = styled.form`
 function RecipeDetailComments({ recipeId }) {
   // 테스트용
   const myUserId = 1;
+
+  const textRef = useRef();
+  const queryClient = useQueryClient();
+
+  const [Count, setCount] = useState(0);
   const [CommentList, setCommentList] = useState([]);
-  const [Limit, setLimit] = useState(3);
-  const [ShowNum, setShowNum] = useState(0);
+  const [ShowNum, setShowNum] = useState(3);
   const [PagingInfo, setPagingInfo] = useState({
-    targetId: 0,
+    targetId: null,
     limit: 3,
   });
 
-  const { data, isLoading, refetch } = useQuery(
-    ["getComment", PagingInfo],
+  const { isLoading } = useQuery(
+    ["getComment", PagingInfo, recipeId],
     async ({ queryKey }) => {
       let result = await axios
         .get(
@@ -193,54 +197,99 @@ function RecipeDetailComments({ recipeId }) {
         .then((res) => res.data);
 
       if (result?.message === "success") {
-        if (CommentList.length === 0) setShowNum(3);
+        setCount((prev) =>
+          queryKey[1]?.targetId ? prev : result?.comments?.count
+        );
+        setCommentList((prev) =>
+          queryKey[1]?.targetId
+            ? [...prev, ...result?.comments?.rows]
+            : [...result?.comments?.rows]
+        );
         return result.comments;
       }
       return null;
     },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false, keepPreviousData: true }
+  );
+
+  const { mutate } = useMutation(
+    (data) => {
+      if (data?.api === "delete") {
+        return axios.delete(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/comment/${data?.value}`
+        );
+      } else if (data?.api === "add") {
+        return axios.post(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/comment`,
+          data?.value
+        );
+      }
+    },
+    {
+      onSuccess: async () => {
+        textRef.current.value = "";
+
+        let isUsed = queryClient.getQueryData([
+          "getComment",
+          { targetId: null, limit: ShowNum },
+          recipeId,
+        ]);
+
+        if (isUsed) {
+          await queryClient.invalidateQueries([
+            "getComment",
+            { targetId: null, limit: ShowNum },
+            recipeId,
+          ]);
+        } else {
+          setPagingInfo({ targetId: null, limit: ShowNum });
+        }
+      },
+      onError: (err) => {
+        console.error(err);
+      },
+    }
   );
 
   const handleClickMore = () => {
-    let totalData = data?.rows.length;
-    let totalCmtList = CommentList.length;
-    if (totalData > totalCmtList) {
-      setCommentList(() => {
-        let newState = data?.rows.slice(0, totalCmtList + 10);
-        return newState;
-      });
-    } else {
-      setLimit((prev) => {
-        let newState = prev + 10;
-        return newState;
-      });
+    let targetId = CommentList[ShowNum - 1]?.id;
+    setPagingInfo({ targetId, limit: 10 });
+    setShowNum((prev) => prev + 10);
+  };
+
+  const handleClickShorten = useCallback(() => {
+    setShowNum(3);
+  }, []);
+
+  const handleDelete = useCallback((id) => {
+    let confirm = window.confirm("댓글을 삭제하겠습니까?");
+    if (confirm) {
+      mutate({ api: "delete", value: id });
     }
-  };
+    return;
+  }, []);
 
-  const handleClickShorten = () => {
-    setCommentList((prev) => {
-      let newState = prev.slice(0, 3);
-      return newState;
-    });
-  };
-
-  const handleDelete = useCallback((id) => {}, []);
-
-  useEffect(() => {
-    if (!data?.rows) return;
-    let temp = [...data?.rows].slice(0, Number(ShowNum));
-    setCommentList(temp);
-  }, [ShowNum]);
+  const handleClickAdd = useCallback(
+    (e) => {
+      e.preventDefault();
+      let content = textRef.current.value;
+      if (!content) {
+        return alert("댓글을 입력해주세요.");
+      }
+      mutate({ api: "add", value: { content } });
+    },
+    [queryClient]
+  );
 
   if (isLoading) return <div>Loading...</div>;
 
   return (
     <Container>
       <h2>
-        댓글 <em>{data?.count}</em>
+        댓글 <em>{Count}</em>
       </h2>
       <CommentsBox>
-        {CommentList.map((item) => {
+        {CommentList.slice(0, ShowNum).map((item) => {
           return (
             <li key={item?.id}>
               <img
@@ -271,16 +320,16 @@ function RecipeDetailComments({ recipeId }) {
             </li>
           );
         })}
-        {data?.count > 0 &&
-          (CommentList.length >= data?.count ? (
+        {Count > 0 &&
+          (CommentList.slice(0, ShowNum).length >= Count ? (
             <ShortenBtn onClick={handleClickShorten}>줄여보기</ShortenBtn>
           ) : (
             <MoreBtn onClick={handleClickMore}>더 보기</MoreBtn>
           ))}
       </CommentsBox>
       <CommentInputBox>
-        <textarea />
-        <button onClick={(e) => e.preventDefault()}>등록</button>
+        <textarea defaultValue="" ref={textRef} />
+        <button onClick={handleClickAdd}>등록</button>
       </CommentInputBox>
     </Container>
   );

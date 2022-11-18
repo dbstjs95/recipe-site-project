@@ -91,28 +91,47 @@ async function findRecipeById(id, user_id) {
   }
 }
 
-async function getRecipeComments(id, targetId = 0, limit = 3) {
+async function getRecipeComments(id, targetId, limit = 3) {
   // 처음: 해당 레시피 댓글 최신순으로 3개,
   // 로그인한 유저가 쓴 댓글이 가장 상단에
   try {
-    let commnets = await Recipe_comment.findAndCountAll({
-      where: {
-        recipe_id: id,
-        id: {
-          [Op.gt]: targetId,
+    let commnets;
+    if (targetId) {
+      commnets = await Recipe_comment.findAndCountAll({
+        where: {
+          recipe_id: id,
+          id: {
+            [Op.lt]: targetId,
+          },
         },
-      },
-      attributes: { exclude: ["user_id", "recipe_id"] },
-      include: [
-        {
-          model: User,
-          as: "writer",
-          attributes: ["id", "nickname", "profile_img"],
+        attributes: { exclude: ["user_id", "recipe_id"] },
+        include: [
+          {
+            model: User,
+            as: "writer",
+            attributes: ["id", "nickname", "profile_img"],
+          },
+        ],
+        limit: limit,
+        order: [["id", "DESC"]],
+      });
+    } else {
+      commnets = await Recipe_comment.findAndCountAll({
+        where: {
+          recipe_id: id,
         },
-      ],
-      limit: limit,
-      order: [["id", "DESC"]],
-    });
+        attributes: { exclude: ["user_id", "recipe_id"] },
+        include: [
+          {
+            model: User,
+            as: "writer",
+            attributes: ["id", "nickname", "profile_img"],
+          },
+        ],
+        limit: limit,
+        order: [["id", "DESC"]],
+      });
+    }
 
     if (!commnets) return "error: commnets";
     return commnets;
@@ -123,15 +142,27 @@ async function getRecipeComments(id, targetId = 0, limit = 3) {
 }
 
 async function deleteComment(id) {
-  let isDeleted = await Recipe_comment.destroy({ where: { id } });
-
-  return isDeleted;
+  try {
+    let isDeleted = await Recipe_comment.destroy({ where: { id } });
+    if (!isDeleted) return "error: isDeleted";
+    return isDeleted;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
 }
 
-async function getComment(id) {
-  let isFound = await Recipe_comment.findByPk(id, { paranoid: false });
+async function addComment(data) {
+  try {
+    let isCreated = await Recipe_comment.create(data);
+    if (!isCreated) return "error: isCreated";
 
-  return isFound;
+    console.log("isCreated: ", isCreated);
+    return isCreated;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
 }
 
 async function createRecipe(type, data) {
@@ -225,7 +256,7 @@ module.exports = {
   findRecipeById,
   getRecipeComments,
   deleteComment,
-  getComment,
+  addComment,
   createRecipe,
   deleteRecipe,
 };

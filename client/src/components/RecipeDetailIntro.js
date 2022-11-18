@@ -12,6 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart, faComment } from "@fortawesome/free-regular-svg-icons";
 import { bucketUrl } from "../api/fileUpload";
+import userImg from "../assets/logo_img/user.png";
 
 const Container = styled.div`
   display: flex;
@@ -239,7 +240,11 @@ function RecipeDetailIntro({ data }) {
     <Container>
       <MainImgBox
         main={`${bucketUrl}${data?.mainSrc}`}
-        writer={`${bucketUrl}${data?.writer?.profile_img}`}
+        writer={
+          data?.writer?.profile_img
+            ? `${bucketUrl}${data?.writer?.profile_img}`
+            : userImg
+        }
       >
         <span className="view_icon">
           <FontAwesomeIcon icon={faEye} /> {Number(data?.view).toLocaleString()}
