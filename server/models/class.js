@@ -8,12 +8,14 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        as: "classHost",
       });
       Class.hasMany(models.Class_food, {
         foreignKey: "class_id",
         sourceKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        as: "classFoods",
       });
       Class.hasMany(models.Class_party, {
         foreignKey: "class_id",
@@ -27,12 +29,6 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       });
-      // Class.belongsTo(models.Class_host, {
-      //   foreignKey: "host_id",
-      //   targetKey: "id",
-      //   onDelete: "CASCADE",
-      //   onUpdate: "CASCADE",
-      // });
     }
   }
   Class.init(
@@ -41,13 +37,14 @@ module.exports = (sequelize, DataTypes) => {
       header_img: DataTypes.STRING,
       header_title: DataTypes.STRING(500),
       header_desc: DataTypes.STRING(1000),
-      time_required: DataTypes.DATE,
+      time_required: DataTypes.INTEGER,
       date_time: DataTypes.DATE,
       limit: DataTypes.INTEGER,
       price: DataTypes.INTEGER,
       place: DataTypes.STRING(500),
       intro: DataTypes.STRING(3000),
       post_start_date: DataTypes.DATE,
+      deadline: DataTypes.DATE,
     },
     {
       sequelize,

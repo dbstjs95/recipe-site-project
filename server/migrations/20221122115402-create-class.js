@@ -32,7 +32,7 @@ module.exports = {
         type: Sequelize.STRING(1000),
       },
       time_required: {
-        type: Sequelize.DATE,
+        type: Sequelize.INTEGER,
       },
       date_time: {
         type: Sequelize.DATE,
@@ -50,6 +50,9 @@ module.exports = {
         type: Sequelize.STRING(3000),
       },
       post_start_date: {
+        type: Sequelize.DATE,
+      },
+      deadline: {
         type: Sequelize.DATE,
       },
       createdAt: {

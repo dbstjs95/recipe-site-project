@@ -3,7 +3,7 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Class_host extends Model {
     static associate(models) {
-      Recipe.hasMany(models.Class, {
+      Class_host.hasMany(models.Class, {
         foreignKey: "host_id",
         sourceKey: "id",
         onDelete: "CASCADE",
