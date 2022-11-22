@@ -93,9 +93,30 @@ router.delete("/:recipeId", async (req, res) => {
 
 // 레시피 리스트
 router.get("/", async (req, res) => {
-  // 정렬: 최신순, 인기순, 조회순(?)
-  // 검색 결과/카테고리
-  // 타입별: 공개중인, 작성중인 --> 마이페이지
+  const {
+    list_type = "",
+    order_by = "like",
+    category = "",
+    keyword = "",
+    offset = 0,
+    limit = 15,
+  } = req.query;
+
+  let result = await recipeDB.getRecipeList(
+    list_type,
+    order_by,
+    category,
+    keyword,
+    Number(offset),
+    Number(limit)
+  );
+
+  if (!result) return res.status(500).json({ message: "server error" });
+  if (typeof result === "string" && result.startsWith("error"))
+    return res.status(400).json({ message: "fail", result });
+
+  result.status = 200;
+  return res.status(200).json(result);
 });
 
 // 레시피 상세

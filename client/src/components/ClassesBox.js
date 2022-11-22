@@ -121,21 +121,20 @@ const ImgBox = styled.div`
   }
 `;
 
-export function ClassesInnerBox() {
+export function ClassesInnerBox({ data }) {
   return (
     <>
       {classes.map((item, idx) => {
-        let refinedPrice = Number(item.price).toLocaleString("ko-KR");
+        let refinedPrice = Number(item?.price).toLocaleString("ko-KR");
         return (
           <li key={idx}>
             <div className="container">
-              <Link to="/classes/1">
-                {/* <img src={item.src} alt="클래스" /> */}
-                <ImgBox imgSrc={item.src} />
-                <p className="title">{item.title}</p>
+              <Link to={`/classes/${item?.class_id}`}>
+                <ImgBox imgSrc={item?.src} />
+                <p className="title">{item?.title}</p>
                 <p className="details">
                   <span className="price">{refinedPrice}원</span>
-                  <span className="sales">{item.sales}명 신청</span>
+                  <span className="sales">{item?.sales}명 신청</span>
                 </p>
               </Link>
             </div>

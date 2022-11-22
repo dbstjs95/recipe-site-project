@@ -24,6 +24,12 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Class_party",
       timestamps: true,
       updatedAt: false,
+      indexes: [
+        {
+          unique: true,
+          fields: ["class_id", "user_id"],
+        },
+      ],
     }
   );
   return Class_party;

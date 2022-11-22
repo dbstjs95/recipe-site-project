@@ -76,31 +76,36 @@ const CategoryBtn = styled.div`
   }
 `;
 
-function CategoryBox() {
-  const [IsOpen, setIsOpen] = useState(true);
-  const [CategoryValue, setCategoryValue] = useState({
-    type: "전체",
-    circumstance: "전체",
-    ingredient: "전체",
-  });
+function CategoryBox({ state, InitialCategory, setPagingInfo }) {
+  const [IsOpen, setIsOpen] = useState(state);
+  const [CategoryValue, setCategoryValue] = useState(InitialCategory);
   const tableRef = useRef(null);
 
   const handleClick = () => {
-    setIsOpen((prevState) => {
-      let nextState = !prevState;
-      if (nextState) {
-        tableRef.current.style.display = "table";
-      } else {
-        tableRef.current.style.display = "none";
-      }
-      return nextState;
-    });
+    setIsOpen((prevState) => !prevState);
   };
 
   const handleCategoryClick = (key, value) =>
     setCategoryValue((prevState) => {
-      return { ...prevState, [key]: value };
+      let newState = { ...prevState, [key]: value };
+      let category = "";
+      for (let key in newState) {
+        category += newState[key];
+        if (key !== "ingredient") {
+          category += ",";
+        }
+      }
+      setPagingInfo((prev) => ({ ...prev, category }));
+      return newState;
     });
+
+  useEffect(() => {
+    if (IsOpen) {
+      tableRef.current.style.display = "table";
+    } else {
+      tableRef.current.style.display = "none";
+    }
+  }, [IsOpen]);
 
   return (
     <>

@@ -27,7 +27,7 @@ const Container = styled.footer`
     background-color: #555;
     color: #fff;
     text-align: center;
-    padding: 30px 20px;
+    padding: 40px 20px;
   }
 `;
 

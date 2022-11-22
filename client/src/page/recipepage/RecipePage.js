@@ -41,25 +41,6 @@ function RecipePage() {
     { refetchOnWindowFocus: false }
   );
 
-  // const commentQuery = useQuery(
-  //   "getComment",
-  //   async () => {
-  //     let result = await axios
-  //       .get(
-  //         `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/comment?limit=${Limit}`
-  //       )
-  //       .then((res) => res.data);
-
-  //     console.log("result: ", result);
-  //     if (result?.message === "success") {
-  //       setCommentList([...result?.comments?.rows]);
-  //       return result.comments;
-  //     }
-  //     return null;
-  //   },
-  //   { refetchOnWindowFocus: false }
-  // );
-
   if (isLoading) return <div>Loading...</div>;
 
   return (

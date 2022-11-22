@@ -8,7 +8,7 @@ import RecipeListBox from "../components/RecipeListBox";
 import ClassesBox from "../components/ClassesBox";
 import { LayoutSize } from "../css";
 import recipeList from "../mockData/recipe_list";
-import { useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 
 const ENV = process.env;
 
@@ -60,7 +60,44 @@ const Container = styled.div`
 `;
 
 function HomePage() {
-  const queryClient = useQueryClient();
+  // axios.defaults.withCredentials = true;
+  // const { isLoading, isError } = useQuery(
+  //   "test",
+  //   async () => {
+  //     let result = await axios
+  //       .get(`${process.env.REACT_APP_OUR_SERVER_URI}`)
+  //       .then((res) => res.data);
+
+  //     console.log("result: ", result);
+  //     // if (result?.status === 200) {
+  //     //   return result?.list;
+  //     // }
+  //     // return null;
+  //   },
+  //   { refetchOnWindowFocus: false }
+  // );
+
+  const {
+    isLoading: rcpIsLoading,
+    data: rcpData,
+    isError,
+  } = useQuery(
+    ["recipeList", "best"],
+    async () => {
+      let result = await axios
+        .get(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe?list_type=best`)
+        .then((res) => res.data);
+
+      if (result?.status === 200) {
+        return result?.list;
+      }
+      return null;
+    },
+    { refetchOnWindowFocus: false }
+  );
+
+  if (rcpIsLoading) return <div>loading...</div>;
+  if (isError) return <div>error...</div>;
 
   return (
     <Container>
@@ -68,10 +105,10 @@ function HomePage() {
       <ClassifyBox>
         <ClassifyHeader>레시피 분류</ClassifyHeader>
       </ClassifyBox>
-      <RecipeListBox data={recipeList} use="best">
+      <RecipeListBox data={rcpData} use="best">
         <BestHeader>
           베스트 레시피
-          <Link to="/recipes">더보기</Link>
+          <Link to="/recipes?type=best">더보기</Link>
         </BestHeader>
       </RecipeListBox>
       <ClassesBox>

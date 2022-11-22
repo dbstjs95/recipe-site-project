@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -7,6 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import SettingModal from "./SettingModal";
 import { colors } from "../css";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Container = styled.form`
   display: flex;
@@ -52,6 +53,10 @@ const SettingIcon = styled.span`
 `;
 
 function SearchBar() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const searchRef = useRef();
+
   const [IsOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -65,15 +70,35 @@ function SearchBar() {
     };
   }, [IsOpen]);
 
-  const handleClick = useCallback((e) => {
-    e.stopPropagation();
-    setIsOpen((nextIsOpen) => !nextIsOpen);
-  }, []);
+  useEffect(() => {
+    if (!pathname) return;
+    if (pathname !== "/recipes") {
+      searchRef.current.value = "";
+    }
+  }, [pathname]);
+
+  const handleClick = useCallback(
+    (e) => {
+      e.stopPropagation();
+      setIsOpen((nextIsOpen) => !nextIsOpen);
+    },
+    [setIsOpen]
+  );
+
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+      let keyword = searchRef.current.value;
+      if (!keyword) return alert("검색어를 입력해주세요.");
+      navigate(`/recipes?type=search&keyword=${keyword}`);
+    },
+    [searchRef]
+  );
 
   return (
     <Container>
-      <InPutBox type="text" placeholder="레시피 찾기" />
-      <SubmitBtn type="submit">
+      <InPutBox ref={searchRef} type="text" placeholder="레시피 찾기" />
+      <SubmitBtn type="submit" onClick={handleSubmit}>
         <FontAwesomeIcon icon={faMagnifyingGlass} />
       </SubmitBtn>
       <SettingIcon>

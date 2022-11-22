@@ -252,6 +252,99 @@ async function deleteRecipe(id) {
   }
 }
 
+async function getRecipeList(
+  list_type,
+  order_by,
+  category,
+  keyword,
+  offset,
+  limit
+) {
+  try {
+    let customOrder =
+      order_by === "like" ? ["likes", "DESC"] : ["createdAt", "DESC"];
+
+    let customLimit = list_type === "best" ? 10 : limit;
+
+    let std;
+    if (category) {
+      let temp = category.split(",");
+      std = temp.map((item, idx) => {
+        if (item === "전체") {
+          return "%";
+        } else {
+          if (idx === 2) return item;
+          return `${item},`;
+        }
+      });
+    } else {
+      std = ["%"];
+    }
+
+    const STD = std.join("");
+
+    if (keyword) {
+      keyword = `%${keyword}%`;
+    } else {
+      keyword = "%";
+    }
+
+    let count;
+    if ((list_type === "classification") & (offset === 0)) {
+      count = await Recipe.count();
+    }
+
+    let data = await Recipe.findAll({
+      where: {
+        public: 1,
+        category: {
+          [Op.and]: {
+            [Op.like]: STD,
+          },
+        },
+        header_title: {
+          [Op.like]: keyword,
+        },
+      },
+      attributes: [
+        ["id", "recipe_id"],
+        ["likes", "like"],
+        "view",
+        ["header_img", "src"],
+        ["header_title", "title"],
+        ["createdAt", "created_at"],
+      ],
+      include: [
+        {
+          model: User,
+          as: "writer",
+          attributes: ["profile_img", "nickname"],
+        },
+      ],
+      order: [customOrder],
+      offset: offset,
+      limit: customLimit,
+    });
+
+    if (!data) return "error: data";
+
+    let result = data.map(({ dataValues: item }) => {
+      let { profile_img, nickname } = item?.writer;
+      let temp = [profile_img, nickname];
+      delete item.writer;
+      return { ...item, userInfo: temp };
+    });
+
+    if (!result) return "error: result";
+
+    if (count) return { count, list: result };
+    return { list: result };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 module.exports = {
   findRecipeById,
   getRecipeComments,
@@ -259,4 +352,5 @@ module.exports = {
   addComment,
   createRecipe,
   deleteRecipe,
+  getRecipeList,
 };

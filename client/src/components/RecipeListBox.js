@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import recipeList from "../mockData/recipe_list";
+import { bucketUrl } from "../api/fileUpload";
+import userImg from "../assets/logo_img/user.png";
 
 const BestSection = styled.section`
   ul {
@@ -35,6 +37,7 @@ const BestSection = styled.section`
         line-height: 2em;
         border: 1px solid #cfcfcf;
         border-radius: 5px;
+        z-index: 1000;
       }
       p.title {
         width: 100%;
@@ -68,15 +71,32 @@ const BestSection = styled.section`
   }
 `;
 
+// const ImgBox = styled.div`
+//   width: 230px;
+//   height: 200px;
+//   background: ${({ imgSrc }) => `url(${imgSrc}) no-repeat center center`};
+//   background-size: cover;
+//   border-radius: 5px 5px 0 0;
+//   /* transition: background-size 0.5s;
+//   &:hover {
+//     background-size: 110%;
+//   } */
+// `;
+
 const ImgBox = styled.div`
   width: 230px;
   height: 200px;
-  background: ${({ imgSrc }) => `url(${imgSrc}) no-repeat center center`};
-  background-size: 100%;
+  overflow: hidden;
   border-radius: 5px 5px 0 0;
-  transition: background-size 0.5s;
-  &:hover {
-    background-size: 110%;
+  > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    transition: transform 0.5s;
+    &:hover {
+      transform: scale(1.2);
+    }
   }
 `;
 
@@ -97,31 +117,45 @@ const DetailStyle = styled.p`
   }
 `;
 
-function RecipeListBox({ children, data = recipeList, use }) {
+function RecipeListBox({ children, data, use }) {
   const navigate = useNavigate();
-  const handleMovePage = () => navigate("/recipes/4");
+  const handleMovePage = (id) => navigate(`/recipes/${id}`);
 
   return (
     <BestSection>
       {children}
       <ul>
         {data.map((item, idx) => {
-          const { order, src, title, userInfo, view, like } = item;
+          const { recipe_id, src, title, userInfo, view, like } = item;
           let simpleView = (Number(view) / 10000).toFixed(1);
+
+          // 테스트용
+          let mainImg = "";
+          if (src && src.startsWith("https://")) {
+            mainImg = src;
+          } else if (src) {
+            mainImg = `${bucketUrl}${src}`;
+          }
+
           return (
-            <li key={idx} onClick={handleMovePage}>
-              {use === "best" && <span className="order">{order}</span>}
-              <ImgBox imgSrc={src} />
+            <li key={idx} onClick={() => handleMovePage(recipe_id)}>
+              {use === "best" && <span className="order">{idx + 1}</span>}
+              <ImgBox>
+                <img src={mainImg} alt="메인 이미지" />
+              </ImgBox>
               <p className="title">{title}</p>
               <p className="user">
-                <img src={userInfo[0]} />
+                <img
+                  src={userInfo[0] ? `${bucketUrl}${userInfo[0]}` : userImg}
+                />
                 <span>{userInfo[1]}</span>
               </p>
               <DetailStyle best={use === "best"}>
                 <span className="like">
                   <em>&hearts;</em> {like}
                 </span>
-                <span className="view">조회수 {simpleView}만</span>
+                {/* <span className="view">조회수 {simpleView}만</span> */}
+                <span className="view">조회수 {view}</span>
               </DetailStyle>
             </li>
           );

@@ -4,6 +4,8 @@ import { classMenuIcons } from "../../mockData/food_icon";
 import { LayoutSize, ContainerStyle } from "../../css";
 import { LiStyleForClass, ClassesInnerBox } from "../../components/ClassesBox";
 import Pagination from "../../components/Pagination";
+import { useQuery } from "react-query";
+import axios from "axios";
 
 const Container = styled.div`
   ${LayoutSize};
@@ -111,9 +113,44 @@ const ListContainer = styled.div`
 `;
 
 function ClassListPage() {
-  const [Selected, setSelected] = useState("전체");
+  const LIMIT = 12;
+  const [Count, setCount] = useState(0);
+  const [PagingInfo, setPagingInfo] = useState({
+    category: "전체",
+    offset: 0,
+    limit: LIMIT,
+  });
 
-  const handleMenuClick = (key) => setSelected(key);
+  const handleMenuClick = (val) =>
+    setPagingInfo((prev) => ({ ...prev, category: val }));
+
+  const {
+    data: listData,
+    isLoading,
+    isError,
+  } = useQuery(
+    ["classList", PagingInfo],
+    async ({ queryKey }) => {
+      let { category, offset, limit } = queryKey[1];
+      let result = await axios
+        .get(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/class?category=${category}&offset=${offset}&limit=${limit}`
+        )
+        .then((res) => res.data);
+
+      if (result?.status === 200) {
+        if (offset === 0) setCount(result?.count);
+        return result?.list;
+      }
+    },
+    {
+      refetchOnWindowFocus: false,
+      keepPreviousData: true,
+    }
+  );
+
+  if (isLoading) return <div>loading...</div>;
+  if (isError) return <div>error...</div>;
 
   return (
     <Container>
@@ -121,7 +158,7 @@ function ClassListPage() {
         {classMenuIcons.map((item, idx) => (
           <li
             key={idx}
-            className={Selected === item.name ? "selected" : ""}
+            className={PagingInfo?.category === item?.name ? "selected" : ""}
             onClick={() => handleMenuClick(item.name)}
           >
             <img src={item.src} alt={item.name} />
@@ -131,11 +168,15 @@ function ClassListPage() {
       </MenuContainer>
       <ListContainer>
         <ul>
-          <ClassesInnerBox />
+          <ClassesInnerBox data={listData} />
         </ul>
       </ListContainer>
       <div id="paginationLayout">
-        <Pagination totalData={100} />
+        <Pagination
+          totalData={Count}
+          dataLimit={LIMIT}
+          setPagingInfo={setPagingInfo}
+        />
       </div>
     </Container>
   );

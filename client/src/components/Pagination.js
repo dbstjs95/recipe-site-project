@@ -41,7 +41,12 @@ const ArrowBtn = styled.button`
   }
 `;
 
-function Pagination({ totalData = 0, dataLimit = 20, pageLimit = 10 }) {
+function Pagination({
+  totalData = 0,
+  dataLimit = 20,
+  pageLimit = 10,
+  setPagingInfo,
+}) {
   const [Offset, setOffset] = useState(0);
   const [Selected, setSelected] = useState(1);
   const DATA_LIMIT = dataLimit;
@@ -68,11 +73,15 @@ function Pagination({ totalData = 0, dataLimit = 20, pageLimit = 10 }) {
       return newState;
     });
 
-  const handleSelect = (num) => setSelected((prevState) => num);
+  const handleSelect = (num) => {
+    setSelected(num);
+  };
 
-  // useEffect(() => {
-  //   console.log(Offset);
-  // }, [Offset]);
+  useEffect(() => {
+    if (!setPagingInfo) return;
+    let offset = DATA_LIMIT * (Number(Selected) - 1);
+    setPagingInfo((prev) => ({ ...prev, offset }));
+  }, [Selected]);
 
   return (
     <>

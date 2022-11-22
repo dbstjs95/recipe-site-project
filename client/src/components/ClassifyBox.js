@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { foodImgs } from "../mockData/food_icon";
 // import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -44,13 +45,21 @@ const ClassifySection = styled.section`
 `;
 
 function ClassifyBox({ children }) {
+  const navigate = useNavigate();
+
   return (
     <ClassifySection>
-      {/* <span><FontAwesomeIcon icon={faChevronDown} /></span> */}
       {children}
       <ul>
         {foodImgs.map((img, idx) => (
-          <li key={idx}>
+          <li
+            key={idx}
+            onClick={() =>
+              navigate(
+                `/recipes?type=category&sort=${img.sort}&value=${img.name}`
+              )
+            }
+          >
             <img src={img.src} alt={img.name} />
             <span>{img.name}</span>
           </li>
