@@ -124,33 +124,33 @@ function ClassListPage() {
   const handleMenuClick = (val) =>
     setPagingInfo((prev) => ({ ...prev, category: val }));
 
-  const {
-    data: listData,
-    isLoading,
-    isError,
-  } = useQuery(
-    ["classList", PagingInfo],
-    async ({ queryKey }) => {
-      let { category, offset, limit } = queryKey[1];
-      let result = await axios
-        .get(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/class?category=${category}&offset=${offset}&limit=${limit}`
-        )
-        .then((res) => res.data);
+  // const {
+  //   data: listData,
+  //   isLoading,
+  //   isError,
+  // } = useQuery(
+  //   ["classList", PagingInfo],
+  //   async ({ queryKey }) => {
+  //     let { category, offset, limit } = queryKey[1];
+  //     let result = await axios
+  //       .get(
+  //         `${process.env.REACT_APP_OUR_SERVER_URI}/class?category=${category}&offset=${offset}&limit=${limit}`
+  //       )
+  //       .then((res) => res.data);
 
-      if (result?.status === 200) {
-        if (offset === 0) setCount(result?.count);
-        return result?.list;
-      }
-    },
-    {
-      refetchOnWindowFocus: false,
-      keepPreviousData: true,
-    }
-  );
+  //     if (result?.status === 200) {
+  //       if (offset === 0) setCount(result?.count);
+  //       return result?.list;
+  //     }
+  //   },
+  //   {
+  //     refetchOnWindowFocus: false,
+  //     keepPreviousData: true,
+  //   }
+  // );
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  // if (isLoading) return <div>loading...</div>;
+  // if (isError) return <div>error...</div>;
 
   return (
     <Container>
@@ -168,7 +168,8 @@ function ClassListPage() {
       </MenuContainer>
       <ListContainer>
         <ul>
-          <ClassesInnerBox data={listData} />
+          {/* <ClassesInnerBox data={listData} /> */}
+          <ClassesInnerBox />
         </ul>
       </ListContainer>
       <div id="paginationLayout">

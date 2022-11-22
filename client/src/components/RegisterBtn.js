@@ -72,11 +72,11 @@ function RegisterBtn({
   const [Delete, setDelete] = useState(false);
 
   const saveApi = async () => {
-    let type = Save.private ? "private" : "public";
     console.log("saveApi InputData: ", InputData);
 
     let result = await axios
-      .post(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe?type=${type}`, {
+      .post(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe`, {
+        public: Save.public ? 1 : 0,
         ...InputData,
       })
       .then((res) => res.data)
@@ -103,14 +103,14 @@ function RegisterBtn({
 
       alert("저장되었습니다.");
       // public or private
-      navigate(`/mypage/recipe?type=${type}`);
+      navigate(`/mypage/recipe?type=${Save.public ? "public" : "private"}`);
     } else {
       alert("저장에 실패했습니다.");
     }
   };
 
   const deleteApi = async () => {
-    let type = InputData?.public ? "public" : "private";
+    // let type = InputData?.public ? "public" : "private";
     let recipe_id = InputData?.id;
 
     let result = await axios

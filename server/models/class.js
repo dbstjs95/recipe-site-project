@@ -3,6 +3,12 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Class extends Model {
     static associate(models) {
+      Class.belongsTo(models.Class_host, {
+        foreignKey: "host_id",
+        targetKey: "id",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
       Class.hasMany(models.Class_food, {
         foreignKey: "class_id",
         sourceKey: "id",
@@ -21,6 +27,12 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       });
+      // Class.belongsTo(models.Class_host, {
+      //   foreignKey: "host_id",
+      //   targetKey: "id",
+      //   onDelete: "CASCADE",
+      //   onUpdate: "CASCADE",
+      // });
     }
   }
   Class.init(
@@ -29,16 +41,13 @@ module.exports = (sequelize, DataTypes) => {
       header_img: DataTypes.STRING,
       header_title: DataTypes.STRING(500),
       header_desc: DataTypes.STRING(1000),
-      time: DataTypes.STRING,
-      date: DataTypes.STRING,
+      time_required: DataTypes.DATE,
+      date_time: DataTypes.DATE,
       limit: DataTypes.INTEGER,
       price: DataTypes.INTEGER,
-      place: DataTypes.STRING(200),
-      email: DataTypes.STRING,
+      place: DataTypes.STRING(500),
       intro: DataTypes.STRING(3000),
-      host_img: DataTypes.STRING,
-      host_desc: DataTypes.STRING(5000),
-      host_details: DataTypes.STRING(2000),
+      post_start_date: DataTypes.DATE,
     },
     {
       sequelize,

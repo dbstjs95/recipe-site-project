@@ -102,12 +102,12 @@ export const recipe_info = {
 
 export const my_recipe_data = {
   id: 1,
-  mainSrc: main,
   title: "다른 반찬 필요 없음! 맛남의광장 백종원의 다시마쌈장",
+  mainSrc: main,
   intro:
     "작년 이맘 때쯤 맛남의광장에서 소개한 다시마쌈장!\n더운 여름 입맛 없을 때 다시마쌈장을 탁!\n밥에 쓱싹~ 비벼 먹으면 한 그릇 뚝딱 가능♥\n다른 반찬이 필요 없어요~",
   category: ["반찬", "일상", ""],
-  recipeInfo: ["", "30분이내", "아무나"],
+  details: ["", "30분이내", "아무나"],
   ingredients: [
     {
       name: "양념장1",

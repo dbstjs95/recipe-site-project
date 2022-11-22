@@ -4,12 +4,13 @@ const recipeDB = require("../db/recipe");
 
 let example = {
   user_id: 1,
+  public: 1,
   title: "부산식 떡볶이 만들기",
   mainSrc: "upload/recipe/06056db288ae4f4fb90d8a3c1a642f8f.jpeg",
   intro:
     " Lorem ipsum dolor sit amet consectetur adipisicing elit. Similique doloremque aspernatur voluptate modi iusto neque accusamus recusandae assumenda quia! Aliquam dolore tenetur odit accusantium natus provident rem quas quos voluptatem!",
   category: ["분식류", "간편식", "곡류"],
-  recipeInfo: ["2인분", "20분이내", "아무나"],
+  details: ["2인분", "20분이내", "아무나"],
   ingredients: [
     {
       name: "양념장",
@@ -53,11 +54,10 @@ let example = {
 
 // 레시피 등록
 router.post("/", async (req, res) => {
-  let { type } = req.query;
   // const data = req.body;
 
   let data = { ...example };
-  let isRegistered = await recipeDB.createRecipe(type, data);
+  let isRegistered = await recipeDB.createRecipe(data);
 
   if (!isRegistered) return res.status(500).json({ message: "server error" });
 

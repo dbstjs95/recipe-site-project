@@ -17,6 +17,8 @@ import {
   HostIntro,
 } from "../../components/ClassIntroBox";
 import RecipeDetailComments from "../../components/RecipeDetailComments";
+import { useQuery } from "react-query";
+import axios from "axios";
 
 const Container = styled.div`
   > div {
@@ -93,6 +95,32 @@ function AdditionalInfo({ data }) {
 
 function ClassPage() {
   const { classId } = useParams();
+
+  // const {
+  //   data: classData,
+  //   isLoading,
+  //   isError,
+  // } = useQuery(
+  //   ["class", classId],
+  //   async () => {
+  //     let result = await axios
+  //       .get(`${process.env.REACT_APP_OUR_SERVER_URI}/class/${classId}`)
+  //       .then((res) => res.data);
+
+  //     if (result?.status === 200) {
+  //       return result?.data;
+  //     }
+
+  //     return null;
+  //   },
+  //   {
+  //     refetchOnWindowFocus: false,
+  //   }
+  // );
+
+  // if (isLoading) return <div>loading...</div>;
+  // if (isError) return <div>error...</div>;
+
   return (
     <Container>
       <div className="intro">

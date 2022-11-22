@@ -61,43 +61,46 @@ export function ClassMainIntro({ data }) {
   );
 }
 
-//서브
-const SubContainer = styled.div`
-  > div {
-    margin-bottom: 15px;
+//음식 사진
+const FoodImgContainer = styled.div`
+  margin-bottom: 30px;
+  width: 100%;
+  h3 {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #7d5a27;
+    padding: 10px 0;
+    @media screen and (max-width: 700px) {
+      font-size: 1em;
+    }
+    @media screen and (max-width: 500px) {
+      font-size: 0.9em;
+    }
+  }
+  .img {
+    background: ${({ imgSrc }) => `url(${imgSrc}) no-repeat center center`};
+    background-size: cover;
     width: 100%;
-    h3 {
-      font-size: 1.1em;
-      font-weight: bold;
-      color: #7d5a27;
-      padding: 10px 0;
-      @media screen and (max-width: 700px) {
-        font-size: 1em;
-      }
-      @media screen and (max-width: 500px) {
-        font-size: 0.9em;
-      }
-    }
-    .img {
-      background: ${({ imgSrc }) => `url(${imgSrc}) no-repeat center center`};
-      background-size: cover;
-      width: 100%;
-      height: 0;
-      padding-bottom: 60%;
-      border-radius: 10px;
-    }
+    height: 0;
+    padding-bottom: 60%;
+    border-radius: 10px;
   }
 `;
 
 export function ClassSubIntro({ data }) {
   return (
-    <SubContainer imgSrc={data[1]}>
+    <div>
       <Title>이런 음식을 만들 수 있어요!</Title>
-      <div>
-        <h3>{data[0]}</h3>
-        <div className="img"></div>
-      </div>
-    </SubContainer>
+      {data.map((item, idx) => {
+        let { title, img } = item;
+        return (
+          <FoodImgContainer imgSrc={img} key={idx}>
+            <h3>{title}</h3>
+            <div className="img"></div>
+          </FoodImgContainer>
+        );
+      })}
+    </div>
   );
 }
 

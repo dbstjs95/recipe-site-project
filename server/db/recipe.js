@@ -165,14 +165,15 @@ async function addComment(data) {
   }
 }
 
-async function createRecipe(type, data) {
+async function createRecipe(data) {
   let {
     user_id,
+    public,
     title,
     mainSrc,
     intro,
     category,
-    recipeInfo,
+    details,
     ingredients,
     steps,
   } = data;
@@ -181,14 +182,14 @@ async function createRecipe(type, data) {
 
   let recipeData = {
     user_id,
-    public: type === "public",
+    public,
     category: str_category,
     header_img: mainSrc,
     header_title: title,
     header_desc: intro,
-    servings: recipeInfo[0],
-    time: recipeInfo[1],
-    level: recipeInfo[2],
+    servings: details[0],
+    time: details[1],
+    level: details[2],
   };
 
   try {

@@ -41,4 +41,16 @@ async function getClassList(category, offset, limit) {
   }
 }
 
-module.exports = { getClassList };
+async function getClass(id) {
+  try {
+    let result = await Class.findByPk(id, {
+      attributes: [],
+    });
+    return result;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+module.exports = { getClassList, getClass };

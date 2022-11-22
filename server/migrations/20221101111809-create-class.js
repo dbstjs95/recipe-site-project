@@ -1,7 +1,5 @@
 "use strict";
 
-const { fn } = require("sequelize");
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -11,6 +9,15 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
+      },
+      host_id: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        onDelete: "CASCADE",
+        references: {
+          model: "Class_hosts",
+          key: "id",
+        },
       },
       category: {
         type: Sequelize.STRING,
@@ -24,11 +31,11 @@ module.exports = {
       header_desc: {
         type: Sequelize.STRING(1000),
       },
-      time: {
-        type: Sequelize.STRING,
+      time_required: {
+        type: Sequelize.DATE,
       },
-      date: {
-        type: Sequelize.STRING,
+      date_time: {
+        type: Sequelize.DATE,
       },
       limit: {
         type: Sequelize.INTEGER,
@@ -39,20 +46,11 @@ module.exports = {
       place: {
         type: Sequelize.STRING(500),
       },
-      email: {
-        type: Sequelize.STRING,
-      },
       intro: {
         type: Sequelize.STRING(3000),
       },
-      host_img: {
-        type: Sequelize.STRING,
-      },
-      host_desc: {
-        type: Sequelize.STRING(5000),
-      },
-      host_details: {
-        type: Sequelize.STRING(2000),
+      post_start_date: {
+        type: Sequelize.DATE,
       },
       createdAt: {
         allowNull: false,
