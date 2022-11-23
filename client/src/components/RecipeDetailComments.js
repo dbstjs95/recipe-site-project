@@ -172,7 +172,7 @@ const CommentInputBox = styled.form`
   }
 `;
 
-function RecipeDetailComments({ recipeId }) {
+function RecipeDetailComments({ ID, use = "recipe" }) {
   // 테스트용
   const myUserId = 1;
 
@@ -188,11 +188,11 @@ function RecipeDetailComments({ recipeId }) {
   });
 
   const { isLoading } = useQuery(
-    ["getComment", PagingInfo, recipeId],
+    [`getComment_${use}`, PagingInfo, ID],
     async ({ queryKey }) => {
       let result = await axios
         .get(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/comment?targetId=${queryKey[1]?.targetId}&limit=${queryKey[1]?.limit}`
+          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment?targetId=${queryKey[1]?.targetId}&limit=${queryKey[1]?.limit}`
         )
         .then((res) => res.data);
 
@@ -216,11 +216,11 @@ function RecipeDetailComments({ recipeId }) {
     (data) => {
       if (data?.api === "delete") {
         return axios.delete(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/comment/${data?.value}`
+          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment/${data?.value}`
         );
       } else if (data?.api === "add") {
         return axios.post(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/comment`,
+          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment`,
           data?.value
         );
       }
@@ -230,16 +230,16 @@ function RecipeDetailComments({ recipeId }) {
         textRef.current.value = "";
 
         let isUsed = queryClient.getQueryData([
-          "getComment",
+          `getComment_${use}`,
           { targetId: null, limit: ShowNum },
-          recipeId,
+          ID,
         ]);
 
         if (isUsed) {
           await queryClient.invalidateQueries([
-            "getComment",
+            `getComment_${use}`,
             { targetId: null, limit: ShowNum },
-            recipeId,
+            ID,
           ]);
         } else {
           setPagingInfo({ targetId: null, limit: ShowNum });

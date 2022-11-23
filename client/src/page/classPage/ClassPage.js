@@ -16,7 +16,7 @@ import {
   ClassSubIntro,
   HostIntro,
 } from "../../components/ClassIntroBox";
-import RecipeDetailComments from "../../components/RecipeDetailComments";
+import CommentDetailCommnets from "../../components/RecipeDetailComments";
 import { useQuery } from "react-query";
 import axios from "axios";
 
@@ -73,9 +73,12 @@ const Container = styled.div`
 `;
 
 function AdditionalInfo({ data }) {
+  let { date_time, limit, place, email } = data;
+  let dataList = [date_time, limit, place, email];
+
   return (
     <ul>
-      {data.map((item, idx) => {
+      {dataList.map((item, idx) => {
         let iconType = [faClock, faPeopleGroup, faLocationDot, faEnvelope];
         let text = ["시간", "정원", "위치", "문의"];
         let content = idx === 1 ? `${item}명` : item;
@@ -96,50 +99,54 @@ function AdditionalInfo({ data }) {
 function ClassPage() {
   const { classId } = useParams();
 
-  // const {
-  //   data: classData,
-  //   isLoading,
-  //   isError,
-  // } = useQuery(
-  //   ["class", classId],
-  //   async () => {
-  //     let result = await axios
-  //       .get(`${process.env.REACT_APP_OUR_SERVER_URI}/class/${classId}`)
-  //       .then((res) => res.data);
+  const {
+    data: classData,
+    isLoading,
+    isError,
+  } = useQuery(
+    ["class", classId],
+    async () => {
+      let result = await axios
+        .get(`${process.env.REACT_APP_OUR_SERVER_URI}/class/${classId}`)
+        .then((res) => res.data);
 
-  //     if (result?.status === 200) {
-  //       return result?.data;
-  //     }
+      if (result?.status === 200) {
+        return result?.class;
+      }
 
-  //     return null;
-  //   },
-  //   {
-  //     refetchOnWindowFocus: false,
-  //   }
-  // );
+      return null;
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  // if (isLoading) return <div>loading...</div>;
-  // if (isError) return <div>error...</div>;
+  if (isLoading) return <div>loading...</div>;
+  if (isError) return <div>error...</div>;
 
   return (
     <Container>
       <div className="intro">
-        <ClassImgBox data={class_info} />
+        <ClassImgBox data={classData} />
       </div>
       <div className="additionalInfo">
-        <AdditionalInfo data={class_info.additional} />
+        <AdditionalInfo data={classData} />
       </div>
       <div className="mainInfo">
-        <ClassMainIntro data={class_info.classDesc} />
+        <ClassMainIntro data={classData.class_desc} />
       </div>
       <div className="subInfo">
-        <ClassSubIntro data={class_info.classFoodImg} />
+        <ClassSubIntro data={classData.classFoods} />
       </div>
       <div className="profile">
-        <HostIntro data={class_info.HostDesc} />
+        <HostIntro data={classData.classHost} />
       </div>
       <div className="comments">
-        <RecipeDetailComments data={class_info.commentsData} />
+        <CommentDetailCommnets
+          // data={class_info.commentsData}
+          use="class"
+          ID={classId}
+        />
       </div>
     </Container>
   );

@@ -23,6 +23,7 @@ async function getClassList(category, offset, limit) {
         ["header_img", "src"],
         ["header_title", "title"],
         "price",
+        "deadline",
         [fn("COUNT", col("Class.id")), "sales"],
       ],
       include: [
@@ -32,7 +33,7 @@ async function getClassList(category, offset, limit) {
         },
       ],
       group: ["Class.id"],
-      // order: [["deadline", "DESC"]],
+      order: [["deadline"]],
       offset: offset,
       limit: limit,
     });
@@ -111,11 +112,57 @@ async function getClass(id) {
     result.dataValues.sales = sales;
     result.dataValues.isPurchased = isPurchased;
     result.dataValues.date_time = time_result;
-    return result;
+    return { class: result };
   } catch (err) {
     console.error(err);
     return null;
   }
 }
 
-module.exports = { getClassList, getClass };
+async function getClassComments(id, targetId, limit = 3) {
+  try {
+    let customWhere = {
+      class_id: id,
+    };
+
+    if (targetId) {
+      customWhere.id = {
+        [Op.lt]: targetId,
+      };
+    }
+
+    let commnets = await Class_comment.findAndCountAll({
+      where: customWhere,
+      attributes: {
+        exclude: ["user_id", "class_id", "deletedAt"],
+        include: [
+          [
+            fn(
+              "DATE_FORMAT",
+              col("Class_comment.createdAt"),
+              "%Y-%m-%d %H:%i:%s"
+            ),
+            "createdAt",
+          ],
+        ],
+      },
+      include: [
+        {
+          model: User,
+          as: "writer",
+          attributes: ["id", "nickname", "profile_img"],
+        },
+      ],
+      limit: limit,
+      order: [["id", "DESC"]],
+    });
+
+    if (!commnets) return "error: commnets";
+    return commnets;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+module.exports = { getClassList, getClass, getClassComments };

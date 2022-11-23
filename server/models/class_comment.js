@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        as: "writer",
       });
       Class_comment.belongsTo(models.Class, {
         foreignKey: "class_id",

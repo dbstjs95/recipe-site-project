@@ -1,5 +1,6 @@
 import React from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
+import { bucketUrl } from "../api/fileUpload";
 
 const H2Style = styled.h2`
   display: inline-block;
@@ -92,10 +93,10 @@ export function ClassSubIntro({ data }) {
     <div>
       <Title>이런 음식을 만들 수 있어요!</Title>
       {data.map((item, idx) => {
-        let { title, img } = item;
+        let { name, img } = item;
         return (
-          <FoodImgContainer imgSrc={img} key={idx}>
-            <h3>{title}</h3>
+          <FoodImgContainer imgSrc={`${bucketUrl}${img}`} key={idx}>
+            <h3>{name}</h3>
             <div className="img"></div>
           </FoodImgContainer>
         );
@@ -156,14 +157,14 @@ const HostContainer = styled.div`
 `;
 
 export function HostIntro({ data }) {
-  const { photo, text, profile } = data;
+  const { img, desc, details } = data;
   return (
-    <HostContainer imgSrc={photo}>
+    <HostContainer imgSrc={`${bucketUrl}${img}`}>
       <Title>호스트 소개</Title>
       <div>
         <div className="img"></div>
-        <pre className="text">{text}</pre>
-        <pre className="profile">{profile}</pre>
+        <pre className="text">{desc}</pre>
+        <pre className="profile">{details}</pre>
       </div>
     </HostContainer>
   );

@@ -8,6 +8,7 @@ import {
   faCalendarDay,
 } from "@fortawesome/free-solid-svg-icons";
 import { colors } from "../css";
+import { bucketUrl } from "../api/fileUpload";
 
 const Container = styled.div``;
 
@@ -141,10 +142,10 @@ function ClassImgBox({ data }) {
   let price = Number(data?.price).toLocaleString();
   return (
     <Container>
-      <MainImg main={data.mainSrc}></MainImg>
+      <MainImg main={`${bucketUrl}${data?.header_img}`}></MainImg>
       <IntroBox>
-        <h1>{data.title}</h1>
-        <pre className="desc">{data.intro}</pre>
+        <h1>{data?.header_title}</h1>
+        <pre className="desc">{data?.header_desc}</pre>
         <p className="price">
           <em>{price}</em>원
         </p>
@@ -154,19 +155,19 @@ function ClassImgBox({ data }) {
           <span>
             <FontAwesomeIcon icon={faClock} />
           </span>
-          {data.details[0]}
+          {data?.time_required}분
         </li>
         <li>
           <span>
             <FontAwesomeIcon icon={faCalendarDay} />
           </span>
-          {data.details[1]}
+          {data?.date}
         </li>
         <li>
           <span>
             <FontAwesomeIcon icon={faUserGroup} />
           </span>
-          <em>{data.details[2]}</em>명 신청
+          <em>{data?.sales}</em>명 신청
         </li>
       </DetailBox>
       <RegisterBtn onClick={handleMovePay}>{price}원 신청</RegisterBtn>

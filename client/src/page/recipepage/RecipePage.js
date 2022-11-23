@@ -58,7 +58,7 @@ function RecipePage() {
         <RecipeDetailWriter data={recipeData?.writer} />
       </div>
       <div className="comments">
-        <RecipeDetailComments recipeId={recipeData?.id} />
+        <RecipeDetailComments ID={recipeData?.id} use="recipe" />
       </div>
     </Container>
   );

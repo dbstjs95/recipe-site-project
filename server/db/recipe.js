@@ -95,43 +95,41 @@ async function getRecipeComments(id, targetId, limit = 3) {
   // 처음: 해당 레시피 댓글 최신순으로 3개,
   // 로그인한 유저가 쓴 댓글이 가장 상단에
   try {
-    let commnets;
+    let customWhere = {
+      recipe_id: id,
+    };
+
     if (targetId) {
-      commnets = await Recipe_comment.findAndCountAll({
-        where: {
-          recipe_id: id,
-          id: {
-            [Op.lt]: targetId,
-          },
-        },
-        attributes: { exclude: ["user_id", "recipe_id"] },
-        include: [
-          {
-            model: User,
-            as: "writer",
-            attributes: ["id", "nickname", "profile_img"],
-          },
-        ],
-        limit: limit,
-        order: [["id", "DESC"]],
-      });
-    } else {
-      commnets = await Recipe_comment.findAndCountAll({
-        where: {
-          recipe_id: id,
-        },
-        attributes: { exclude: ["user_id", "recipe_id"] },
-        include: [
-          {
-            model: User,
-            as: "writer",
-            attributes: ["id", "nickname", "profile_img"],
-          },
-        ],
-        limit: limit,
-        order: [["id", "DESC"]],
-      });
+      customWhere.id = {
+        [Op.lt]: targetId,
+      };
     }
+
+    let commnets = await Recipe_comment.findAndCountAll({
+      where: customWhere,
+      attributes: {
+        exclude: ["user_id", "recipe_id", "deletedAt"],
+        include: [
+          [
+            fn(
+              "DATE_FORMAT",
+              col("Recipe_comment.createdAt"),
+              "%Y-%m-%d %H:%i:%s"
+            ),
+            "createdAt",
+          ],
+        ],
+      },
+      include: [
+        {
+          model: User,
+          as: "writer",
+          attributes: ["id", "nickname", "profile_img"],
+        },
+      ],
+      limit: limit,
+      order: [["id", "DESC"]],
+    });
 
     if (!commnets) return "error: commnets";
     return commnets;
