@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        // as: "like",
       });
       Recipe.hasMany(models.Recipe_ingr, {
         foreignKey: "recipe_id",
@@ -55,10 +56,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
-      likes: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-      },
+      // likes: {
+      //   type: DataTypes.INTEGER,
+      //   defaultValue: 0,
+      // },
     },
     {
       sequelize,

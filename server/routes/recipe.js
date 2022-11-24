@@ -71,9 +71,25 @@ router.post("/", async (req, res) => {
   }
 });
 
-// 레시피 수정
+// 레시피 수정: 입력된 값 불러오기
+router.get("/:recipeId/modify", async (req, res) => {
+  const { recipeId } = req.params;
 
-// 레세피 삭제
+  let myRecipe = await recipeDB.getMyRecipe(recipeId);
+
+  if (!myRecipe) return res.status(500).json({ message: "server error" });
+
+  if (typeof myRecipe === "string" && myRecipe.startsWith("error")) {
+    return res.status(400).json({ message: "fail", myRecipe });
+  }
+
+  myRecipe.status = 200;
+  return res.status(200).json(myRecipe);
+});
+
+// 레시피 수정 기능
+
+// 레시피 삭제
 router.delete("/:recipeId", async (req, res) => {
   const { recipeId } = req.params;
 
@@ -126,7 +142,7 @@ router.get("/:recipeId", async (req, res) => {
 
   try {
     let { recipeId } = req.params;
-    let recipe = await recipeDB.findRecipeById(recipeId, userId);
+    let recipe = await recipeDB.getRecipe(recipeId, userId);
 
     if (!recipe) return res.status(500).json({ message: "server error" });
 

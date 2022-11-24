@@ -132,4 +132,47 @@ router.post("/change", async (req, res) => {
   return res.status(200).json({ message: "success" });
 });
 
+// 마이페이지: 내 레시피 목록
+router.get("/recipe", async (req, res) => {
+  // 테스트용
+  let userId = 1;
+
+  let { public, order_by = "created_at", offset = 0, limit = 10 } = req.query;
+
+  let result = await userDB.getMyRecipeList(
+    userId,
+    Number(public),
+    order_by,
+    Number(offset),
+    Number(limit)
+  );
+  if (!result) return res.status(500).json({ message: "server error" });
+
+  if (typeof result === "string" && result.startsWith("error")) {
+    return res.status(400).json({ message: "fail", result });
+  }
+
+  result.status = 200;
+  return res.status(200).json(result);
+});
+
+// 마이페이지: 좋아요 리스트
+router.get("/likes", async (req, res) => {
+  // 테스트용
+  let userId = 1;
+
+  let { offset = 0, limit = 10 } = req.query;
+
+  let result = await userDB.getMyLikes(userId, Number(offset), Number(limit));
+
+  if (!result) return res.status(500).json({ message: "server error" });
+
+  if (typeof result === "string" && result.startsWith("error")) {
+    return res.status(400).json({ message: "fail", result });
+  }
+
+  result.status = 200;
+  return res.status(200).json(result);
+});
+
 module.exports = router;

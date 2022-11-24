@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { recipe_info } from "../../mockData/recipe_detail";
 import { LayoutSize, ContainerStyle } from "../../css";
@@ -24,24 +24,41 @@ export const Container = styled.div`
 `;
 
 function RecipePage() {
-  // const { recipeId } = useParams();
+  const navigate = useNavigate();
+  const { recipeId } = useParams();
 
-  // 테스트용
-  let recipeId = 4;
-
-  const { data: recipeData, isLoading } = useQuery(
-    "getRecipe",
+  const {
+    data: recipeData,
+    isLoading,
+    isError,
+  } = useQuery(
+    ["getRecipe", recipeId],
     async () => {
       let result = await axios
         .get(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}`)
         .then((res) => res.data);
+      console.log("result: ", result);
       if (result?.message === "success") return result?.recipe;
       return null;
     },
-    { refetchOnWindowFocus: false }
+    {
+      onError: ({ response }) => {
+        let {
+          data: { recipe },
+        } = response;
+        if (recipe === "error: not exist") {
+          alert("존재하지 않는 게시물입니다.");
+        } else if (recipe === "error: private") {
+          alert("비공개중인 게시물입니다.");
+        }
+        navigate(-1);
+      },
+      refetchOnWindowFocus: false,
+    }
   );
 
   if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>error...</div>;
 
   return (
     <Container>

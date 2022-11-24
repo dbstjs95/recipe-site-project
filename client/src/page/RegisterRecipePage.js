@@ -12,8 +12,6 @@ import IngredientInputBox from "../components/IngredientInputBox";
 import OrderInputBox from "../components/OrderInputBox";
 import RegisterBtn from "../components/RegisterBtn";
 import { FileFirst, bucketUrl } from "../api/fileUpload";
-import { useQuery, useQueryClient } from "react-query";
-import { useNavigate, useLocation } from "react-router-dom";
 
 const titleColor = "#5e5e5e";
 const inputColor = "#b8b8b8";
@@ -247,10 +245,7 @@ const OrderContainer = styled.div``;
 const BtnContainer = styled.div``;
 
 function RegisterRecipePage({ myRecipeData, modifyMode }) {
-  // const queryClient = useQueryClient();
-  // const navigate = useNavigate();
-  // const location = useLocation();
-
+  // data form
   let emptyData = {
     title: "",
     mainSrc: "",
@@ -277,6 +272,7 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
     stepIdArr: [],
   };
 
+  // states
   const [InputData, setInputData] = useState(
     modifyMode ? { ...myRecipeData } : { ...emptyData }
   );
@@ -284,8 +280,10 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
   const [Files, setFiles] = useState(initialFiles);
   const [BeforeDelete, setBeforeDelete] = useState([]);
 
+  // ref
   const mainImgRef = useRef(null);
 
+  // functions
   const handleClickFile = () => mainImgRef.current.click();
 
   const encodeFileToBase64 = (fileBlob, callback) => {
@@ -330,11 +328,6 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
       }
     });
   };
-
-  //확인용(나중에 삭제)
-  useEffect(() => {
-    console.log("InputData: ", InputData);
-  }, [InputData]);
 
   return (
     <Container>

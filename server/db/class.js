@@ -165,4 +165,33 @@ async function getClassComments(id, targetId, limit = 3) {
   }
 }
 
-module.exports = { getClassList, getClass, getClassComments };
+async function deleteComment(id) {
+  try {
+    let isDeleted = await Class_comment.destroy({ where: { id } });
+    if (!isDeleted) return "error: isDeleted";
+    return isDeleted;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+async function addComment(data) {
+  try {
+    let isCreated = await Class_comment.create(data);
+    if (!isCreated) return "error: isCreated";
+
+    return isCreated;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+module.exports = {
+  getClassList,
+  getClass,
+  getClassComments,
+  deleteComment,
+  addComment,
+};

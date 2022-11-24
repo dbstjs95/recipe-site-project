@@ -9,18 +9,23 @@ const {
   Like,
 } = require("../models");
 
-async function findRecipeById(id, user_id) {
+async function getRecipe(id, user_id = null) {
   try {
     // 만약 user_id가 있으면 로그인 상태이므로 Like 테이블 조회하기
-    let likeResult = await Like.findOne({ where: { user_id, recipe_id: id } });
+    let likeResult = await Like.findAll({ where: { recipe_id: id } });
+    let recipeLikes = likeResult.map((item) => item?.dataValues?.user_id);
+    let like = recipeLikes.length;
 
     let isLiked = false;
-    if (likeResult) {
-      isLiked = true;
-      //좋아요 기록 없다면 likeResult는 null임.
-    }
+    if (user_id && like > 0)
+      isLiked = recipeLikes.some((item) => item === user_id);
 
-    let recipeResult = await Recipe.findByPk(id, {
+    // 조회수 올리기
+    let isVisited = await Recipe.increment({ view: 1 }, { where: { id } });
+    if (!isVisited) console.log("fail to update view");
+
+    let recipeResult = await Recipe.findOne({
+      where: { id: id, public: 1 },
       attributes: [
         "id",
         ["header_title", "title"],
@@ -31,7 +36,6 @@ async function findRecipeById(id, user_id) {
         "time",
         "level",
         "view",
-        ["likes", "like"],
         "createdAt",
       ],
       include: [
@@ -61,9 +65,14 @@ async function findRecipeById(id, user_id) {
       ],
     });
 
-    if (!recipeResult) return "error: recipeResult";
+    if (!recipeResult) {
+      let data = await Recipe.findByPk(id);
+      if (!data) return "error: not exist";
+      return "error: private";
+    }
 
-    // isLiked
+    // like & isLiked
+    recipeResult.dataValues.like = like;
     recipeResult.dataValues.isLiked = isLiked;
 
     // 카테고리
@@ -93,7 +102,6 @@ async function findRecipeById(id, user_id) {
 
 async function getRecipeComments(id, targetId, limit = 3) {
   // 처음: 해당 레시피 댓글 최신순으로 3개,
-  // 로그인한 유저가 쓴 댓글이 가장 상단에
   try {
     let customWhere = {
       recipe_id: id,
@@ -261,7 +269,7 @@ async function getRecipeList(
 ) {
   try {
     let customOrder =
-      order_by === "like" ? ["likes", "DESC"] : ["createdAt", "DESC"];
+      order_by === "like" ? ["like", "DESC"] : ["createdAt", "DESC"];
 
     let customLimit = list_type === "best" ? 10 : limit;
 
@@ -307,13 +315,20 @@ async function getRecipeList(
       },
       attributes: [
         ["id", "recipe_id"],
-        ["likes", "like"],
         "view",
         ["header_img", "src"],
         ["header_title", "title"],
-        ["createdAt", "created_at"],
+        [
+          fn("DATE_FORMAT", col("Recipe.createdAt"), "%Y-%m-%d %H:%i:%s"),
+          "created_at",
+        ],
+        [fn("COUNT", col("Likes.recipe_id")), "like"],
       ],
       include: [
+        {
+          model: Like,
+          attributes: [],
+        },
         {
           model: User,
           as: "writer",
@@ -321,13 +336,14 @@ async function getRecipeList(
         },
       ],
       order: [customOrder],
+      group: "Recipe.id",
       offset: offset,
-      limit: customLimit,
     });
 
     if (!data) return "error: data";
 
-    let result = data.map(({ dataValues: item }) => {
+    let limitedData = data?.slice(0, customLimit);
+    let result = limitedData.map(({ dataValues: item }) => {
       let { profile_img, nickname } = item?.writer;
       let temp = [profile_img, nickname];
       delete item.writer;
@@ -344,12 +360,94 @@ async function getRecipeList(
   }
 }
 
+async function getMyRecipe(id) {
+  try {
+    let recipeResult = await Recipe.findByPk(id, {
+      attributes: [
+        ["header_title", "title"],
+        ["header_img", "mainSrc"],
+        ["header_desc", "intro"],
+        "category",
+        "servings",
+        "time",
+        "level",
+      ],
+      include: [
+        {
+          model: Recipe_ingr,
+          as: "ingredients",
+          attributes: [["title", "name"]],
+          include: [
+            {
+              model: Recipe_ingr_detail,
+              as: "contents",
+              attributes: ["name", "amount"],
+            },
+          ],
+        },
+        {
+          model: Recipe_step,
+          as: "steps",
+          attributes: ["text", "img"],
+          order: "order",
+        },
+      ],
+    });
+
+    if (!recipeResult) return "error: recipeResult";
+
+    // 카테고리
+    let category = recipeResult.category;
+    category = category.split(",");
+
+    recipeResult.category = category;
+
+    // details
+    let details = [
+      recipeResult.servings,
+      recipeResult.time,
+      recipeResult.level,
+    ];
+
+    recipeResult.dataValues.details = details;
+
+    // ingredients
+    let ingredients = recipeResult?.ingredients?.map(({ dataValues: item }) => {
+      let { name, contents } = item;
+      let newContents = contents.map(({ dataValues: data }) => [
+        data?.name,
+        data?.amount,
+      ]);
+      return { name, contents: newContents };
+    });
+
+    recipeResult.dataValues.ingredients = ingredients;
+
+    // steps
+    let steps = recipeResult?.steps?.map(({ dataValues: item }) => [
+      item.text,
+      item.img,
+    ]);
+
+    recipeResult.dataValues.steps = steps;
+
+    let deleteList = ["servings", "time", "level"];
+    deleteList.map((item) => delete recipeResult.dataValues[item]);
+
+    return { recipe: recipeResult.dataValues };
+  } catch (err) {
+    console.error("에러: ", err);
+    return null;
+  }
+}
+
 module.exports = {
-  findRecipeById,
+  getRecipe,
   getRecipeComments,
   deleteComment,
   addComment,
   createRecipe,
   deleteRecipe,
   getRecipeList,
+  getMyRecipe,
 };
