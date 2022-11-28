@@ -37,7 +37,6 @@ function RecipePage() {
       let result = await axios
         .get(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}`)
         .then((res) => res.data);
-      console.log("result: ", result);
       if (result?.message === "success") return result?.recipe;
       return null;
     },

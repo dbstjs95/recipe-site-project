@@ -88,6 +88,21 @@ router.get("/:recipeId/modify", async (req, res) => {
 });
 
 // 레시피 수정 기능
+router.put("/:recipeId", async (req, res) => {
+  const { recipeId } = req.params;
+  const data = req.body;
+
+  let result = await recipeDB.updateRecipe(recipeId, data);
+
+  if (!result) return res.status(500).json({ message: "server error" });
+
+  if (typeof result === "string" && result.startsWith("error")) {
+    return res.status(400).json({ message: "fail", result });
+  }
+
+  result.status = 200;
+  return res.status(200).json(result);
+});
 
 // 레시피 삭제
 router.delete("/:recipeId", async (req, res) => {

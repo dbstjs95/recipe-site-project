@@ -441,6 +441,81 @@ async function getMyRecipe(id) {
   }
 }
 
+async function updateRecipe(recipeId, data) {
+  let { public, title, mainSrc, intro, category, details, ingredients, steps } =
+    data;
+
+  let str_category = category.join();
+
+  let recipeData = {
+    public,
+    category: str_category,
+    header_img: mainSrc,
+    header_title: title,
+    header_desc: intro,
+    servings: details[0],
+    time: details[1],
+    level: details[2],
+  };
+
+  try {
+    const recipe = await Recipe.update(recipeData, { where: { id: recipeId } });
+
+    console.log("recipe: ", recipe);
+    if (!recipe) return "error: recipe";
+
+    // step, ingr, ingr_detail 삭제후 다시 생성
+    let deleteResult = await Promise.all([
+      Recipe_step.destroy({ where: { recipe_id: recipeId } }),
+      Recipe_ingr.destroy({ where: { recipe_id: recipeId } }),
+    ]);
+
+    if (!deleteResult) return "error: deleteResult";
+
+    let ingr_titles = ingredients.map((item) => ({
+      recipe_id: recipeId,
+      title: item.name,
+    }));
+
+    let steps_data = steps.map((item, idx) => ({
+      recipe_id: recipeId,
+      order: idx + 1,
+      text: item[0],
+      img: item[1],
+    }));
+
+    const ingr_promise = Recipe_ingr.bulkCreate(ingr_titles);
+    const steps_promise = Recipe_step.bulkCreate(steps_data);
+
+    let results = await Promise.all([ingr_promise, steps_promise]);
+    if (!results) return "error: ingr & steps";
+
+    let ingr_results = results[0];
+    let ingr_ids = ingr_results.map((item) => item.id);
+
+    let ingr_detail_data = [];
+    for (let i = 0; i < ingredients.length; i++) {
+      let total = ingredients[i].contents.length;
+      for (let j = 0; j < total; j++) {
+        ingr_detail_data.push({
+          recipe_ingr_id: ingr_ids[i],
+          name: ingredients[i].contents[j][0],
+          amount: ingredients[i].contents[j][1],
+        });
+      }
+    }
+
+    const ingr_detail_result = await Recipe_ingr_detail.bulkCreate(
+      ingr_detail_data
+    );
+    if (!ingr_detail_result) return "error: ingr_detail";
+    return { message: "success" };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 module.exports = {
   getRecipe,
   getRecipeComments,
@@ -450,4 +525,5 @@ module.exports = {
   deleteRecipe,
   getRecipeList,
   getMyRecipe,
+  updateRecipe,
 };
