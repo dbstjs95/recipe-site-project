@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { user_info as data } from "../mockData/user_data";
+import { useMutation, useQueryClient } from "react-query";
+import { useSetAuth } from "../contexts/AuthContext";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   width: 600px;
@@ -138,17 +142,120 @@ const Container = styled.div`
   }
 `;
 
-function ModifyUserInfoPage() {
+function ModifyUserInfoPage({ setHeader }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+
+  const user = queryClient.getQueryData("login");
   const [IsOpen, setIsOpen] = useState({
     email: false,
     nickname: false,
     delete: false,
   });
+  const [InputVal, setInputVal] = useState({
+    email: "",
+    nickname: "",
+    delete: "",
+  });
+
+  const userInfoChange = useMutation(
+    (data) =>
+      axios.put(
+        `${process.env.REACT_APP_OUR_SERVER_URI}/user`,
+        data,
+        setHeader(user?.token, user?.authType)
+      ),
+    {
+      onSuccess: (data, val) => {
+        let result = data?.data;
+        if (user && result?.authInfo) {
+          let { isAuth, newToken } = result?.authInfo;
+          if (isAuth) {
+            queryClient.setQueryData("login", (prev) => {
+              let token = newToken || prev?.token;
+              let userInfo = prev?.userInfo;
+              if (result?.status === 200) {
+                userInfo = { ...userInfo, ...val };
+              }
+              return { ...prev, userInfo, token };
+            });
+          }
+        }
+      },
+      onError: (error, val) => {
+        console.error(error);
+        let result = error?.response?.data;
+        alert(result?.message);
+        if (!result?.authInfo?.isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+          alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+          return navigate("/user/login");
+        }
+      },
+    }
+  );
+
+  const userDelete = useMutation(
+    () =>
+      axios.delete(
+        `${process.env.REACT_APP_OUR_SERVER_URI}/user`,
+        setHeader(user?.token, user?.authType)
+      ),
+    {
+      onSuccess: (data) => {
+        let result = data?.data;
+        if (result?.status === 200) {
+          alert("회원탈퇴 되었습니다.");
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+          return navigate("/");
+        }
+      },
+      onError: (error) => {
+        console.error(error);
+        let result = error?.response?.data;
+        alert(result?.message);
+        if (!result?.authInfo?.isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+          alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+          return navigate("/user/login");
+        }
+      },
+    }
+  );
 
   const handleClickModify = (type) =>
     setIsOpen((prev) => {
       return { ...prev, [type]: true };
     });
+
+  const handleSubmit = (type) => {
+    let value = InputVal?.[type];
+    let data = { [type]: value };
+
+    if (!value) return;
+
+    if (type === "email") {
+      let emailCheck =
+        /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      if (!emailCheck.test(value)) {
+        return alert("올바른 이메일 형식이 아닙니다.");
+      }
+      userInfoChange.mutate(data);
+    } else if (type === "nickname") {
+      let nicknameCheck = /[~!@#$%^&*()_+|<>?:{}]/;
+      if (value.search(/\s/) !== -1 || nicknameCheck.test(value)) {
+        return alert("닉네임에 띄어쓰기, 특수문자 사용은 불가합니다.");
+      }
+      userInfoChange.mutate(data);
+    } else if (type === "delete") {
+      if (value !== "회원탈퇴") return;
+      userDelete.mutate();
+    }
+  };
 
   return (
     <Container>
@@ -156,29 +263,43 @@ function ModifyUserInfoPage() {
       <ul>
         <li>
           <div className="modify">
-            <span>{data.email}</span>
+            <span>{user?.userInfo?.email}</span>
             <button onClick={() => handleClickModify("email")}>
               이메일 수정
             </button>
           </div>
           {IsOpen.email && (
             <div className="submit">
-              <input type="email" placeholder="이메일" />
-              <button>변경</button>
+              <input
+                type="email"
+                placeholder="이메일"
+                defaultValue={InputVal?.email}
+                onChange={(e) =>
+                  setInputVal((prev) => ({ ...prev, email: e.target.value }))
+                }
+              />
+              <button onClick={() => handleSubmit("email")}>변경</button>
             </div>
           )}
         </li>
         <li>
           <div className="modify">
-            <span>{data.nickname}</span>
+            <span>{user?.userInfo?.nickname}</span>
             <button onClick={() => handleClickModify("nickname")}>
               닉네임 수정
             </button>
           </div>
           {IsOpen.nickname && (
             <div className="submit">
-              <input type="text" placeholder="닉네임" />
-              <button>변경</button>
+              <input
+                type="text"
+                placeholder="닉네임"
+                defaultValue={InputVal?.nickname}
+                onChange={(e) =>
+                  setInputVal((prev) => ({ ...prev, nickname: e.target.value }))
+                }
+              />
+              <button onClick={() => handleSubmit("nickname")}>변경</button>
             </div>
           )}
         </li>
@@ -194,8 +315,16 @@ function ModifyUserInfoPage() {
               <p id="delete">
                 정말 탈퇴를 원하신다면 <em>회원탈퇴</em>를 입력하세요.
               </p>
-              <input type="text" placeholder="회원탈퇴" maxLength={4} />
-              <button>입력</button>
+              <input
+                type="text"
+                placeholder="회원탈퇴"
+                maxLength={4}
+                defaultValue={InputVal?.delete}
+                onChange={(e) =>
+                  setInputVal((prev) => ({ ...prev, delete: e.target.value }))
+                }
+              />
+              <button onClick={() => handleSubmit("delete")}>입력</button>
             </div>
           )}
         </li>

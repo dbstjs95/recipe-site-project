@@ -121,10 +121,10 @@ const ImgBox = styled.div`
   }
 `;
 
-export function ClassesInnerBox({ data }) {
+export function ClassesInnerBox({ data = [] }) {
   return (
     <>
-      {classes.map((item, idx) => {
+      {data.map((item, idx) => {
         let refinedPrice = Number(item?.price).toLocaleString("ko-KR");
         return (
           <li key={idx}>

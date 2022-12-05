@@ -1,6 +1,6 @@
 const router = require("express").Router();
 require("dotenv").config();
-const auth = require("../controllers/auth");
+const { auth } = require("../middleware/auth");
 
 router.get("/", auth, (req, res) => {
   let isAuth = req.user;

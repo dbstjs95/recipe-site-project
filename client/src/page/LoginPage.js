@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styled, { css } from "styled-components";
 import google from "../assets/oauth_site_logo/google.png";
@@ -10,9 +9,6 @@ const ENV = process.env;
 
 function LoginPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  let savedPage = localStorage.getItem("path");
 
   const googleOAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?scope=email profile&response_type=code&redirect_uri=${ENV.REACT_APP_CLIENT_REDIRECT_URI}&client_id=${ENV.REACT_APP_GOOGLE_CLIENT_ID}`;
 
@@ -33,18 +29,21 @@ function LoginPage() {
     if (authState) {
       //네이버
       let result = await axios
-        .post(`${ENV.REACT_APP_OUR_SERVER_URI}/user/login/naver`, {
-          code: authCode,
-          state: authState,
-        })
-        .then((res) => {
-          if (res?.data?.message === "success") return res.data;
-          return null;
-        })
-        .catch((err) => null);
+        .post(
+          `${ENV.REACT_APP_OUR_SERVER_URI}/user/login/naver`,
+          {
+            code: authCode,
+            state: authState,
+          },
+          { withCredentials: true }
+        )
+        .then((res) => res.data);
 
-      if (result) {
-        return { ...result, isLogin: true };
+      if (result?.status === 200) {
+        return { ...result, authType: "naver", isLogin: true };
+      } else if (result?.status === 202 && !result?.isRegistered) {
+        navigate("/user/signup");
+        return { ...result?.userInfo };
       }
       return null;
     } else {
@@ -72,42 +71,49 @@ function LoginPage() {
           `${ENV.REACT_APP_OUR_SERVER_URI}/user/login/google`,
           {},
           {
-            headers: { authorization: `Bearer ${id_token}` },
+            headers: { Authorization: `Bearer ${id_token}` },
           }
         )
-        .then((res) => {
-          if (res?.data?.message === "success") return res.data;
-          return null;
-        })
-        .catch((err) => null);
+        .then((res) => res.data);
 
-      if (result) {
-        //로그인 성공
-        return { ...result, token: id_token, isLogin: true };
+      if (result?.status === 200) {
+        return {
+          ...result,
+          token: id_token,
+          authType: "google",
+          isLogin: true,
+        };
+      } else if (result?.status === 202 && !result?.isRegistered) {
+        navigate("/user/signup");
+        return { ...result?.userInfo, token: id_token };
       }
       return null;
     }
   };
 
-  const userData = useQuery("login", clickLogin, {
+  const { isLoading, isError } = useQuery("login", clickLogin, {
+    onSuccess: (data) => {
+      if (data?.isLogin && data?.token) {
+        let nextPage = localStorage.getItem("beforeLogin");
+        if (nextPage) {
+          navigate(nextPage);
+          return localStorage.removeItem("beforeLogin");
+        } else {
+          return navigate("/");
+        }
+      }
+    },
+    onError: () => {
+      alert("로그인 에러가 발생했습니다.");
+      return navigate("/");
+    },
     refetchOnWindowFocus: false,
     cacheTime: Infinity,
     // suspense: true,
   });
 
-  useEffect(() => {
-    let nextPage = location.state;
-    if (nextPage) localStorage.setItem("path", nextPage);
-
-    if (userData?.data?.isLogin) {
-      if (savedPage) {
-        navigate(savedPage);
-        localStorage.removeItem("path");
-      } else {
-        navigate("/");
-      }
-    }
-  });
+  if (isLoading) return <div>loading...</div>;
+  if (isError) return <div>error...</div>;
 
   return (
     <Background>

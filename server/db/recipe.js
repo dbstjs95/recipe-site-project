@@ -461,7 +461,6 @@ async function updateRecipe(recipeId, data) {
   try {
     const recipe = await Recipe.update(recipeData, { where: { id: recipeId } });
 
-    console.log("recipe: ", recipe);
     if (!recipe) return "error: recipe";
 
     // step, ingr, ingr_detail 삭제후 다시 생성

@@ -1,10 +1,12 @@
 import React from "react";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { Container as EntireBox, ContentPrivate } from "../mypage/MyRecipePage";
 import { classes } from "../../mockData/class_list";
 import Pagination from "../../components/Pagination";
 import { HeaderStyle } from "./MyLikePage";
+import { useQuery, useQueryClient } from "react-query";
+import { useSetAuth } from "../../contexts/AuthContext";
 
 const purchasedClasses = [...classes].slice(0, 5);
 const Container = styled(EntireBox)`
@@ -35,6 +37,10 @@ const ListContainer = styled(ContentPrivate)`
 `;
 
 function PurchasedClassPage() {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+  const { setHeader, user } = useOutletContext();
+
   const LocaleStringfn = (num) => Number(num).toLocaleString();
 
   return (

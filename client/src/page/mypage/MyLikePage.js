@@ -1,19 +1,20 @@
 import React, { useState } from "react";
 import styled, { css } from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { Container as EntireBox, ContentPublic } from "../mypage/MyRecipePage";
 import recipeList from "../../mockData/recipe_list";
 import Pagination from "../../components/Pagination";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { bucketUrl } from "../../api/fileUpload";
 import userStaticImg from "../../assets/logo_img/user.png";
+import { useSetAuth } from "../../contexts/AuthContext";
 
 const myLikeData = [...recipeList].slice(0, 5);
 
 export const HeaderStyle = css`
   padding: 20px 0 0 20px;
-  > p {
+  > div {
     display: inline-block;
     font-size: 22px;
     font-weight: bold;
@@ -51,7 +52,7 @@ const Container = styled(EntireBox)`
   }
 `;
 const ListContainer = styled(ContentPublic)``;
-const WriterInfo = styled.p`
+const WriterInfo = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 10px;
@@ -89,6 +90,11 @@ const WriterInfo = styled.p`
 `;
 
 function MyLikePage() {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+
+  const { setHeader, user } = useOutletContext();
+
   const LIMIT = 10;
   const [Count, setCount] = useState(0);
   const [PagingInfo, setPagingInfo] = useState({
@@ -103,9 +109,23 @@ function MyLikePage() {
       let { offset, limit } = queryKey[1];
       let result = await axios
         .get(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/user/likes?offset=${offset}&limit=${limit}`
+          `${process.env.REACT_APP_OUR_SERVER_URI}/user/likes?offset=${offset}&limit=${limit}`,
+          setHeader(user?.token, user?.authType)
         )
         .then((res) => res.data);
+
+      if (user && result?.authInfo) {
+        let { isAuth, newToken } = result?.authInfo;
+        if (!isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+        } else if (isAuth && newToken) {
+          queryClient.setQueryData("login", (prev) => ({
+            ...prev,
+            token: newToken,
+          }));
+        }
+      }
 
       if (result?.status === 200) {
         if (offset === 0) setCount(result?.count);
@@ -123,10 +143,10 @@ function MyLikePage() {
   return (
     <Container>
       <h1>
-        <p>
+        <div>
           레시피 좋아요 목록
           <div className="underline"></div>
-        </p>
+        </div>
       </h1>
       <ListContainer>
         {myLikeData.map((item, idx) => {

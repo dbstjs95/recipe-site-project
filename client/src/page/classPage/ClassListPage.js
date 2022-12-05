@@ -4,8 +4,9 @@ import { classMenuIcons } from "../../mockData/food_icon";
 import { LayoutSize, ContainerStyle } from "../../css";
 import { LiStyleForClass, ClassesInnerBox } from "../../components/ClassesBox";
 import Pagination from "../../components/Pagination";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
+import { useSetAuth } from "../../contexts/AuthContext";
 
 const Container = styled.div`
   ${LayoutSize};
@@ -112,7 +113,12 @@ const ListContainer = styled.div`
   }
 `;
 
-function ClassListPage() {
+function ClassListPage({ setHeader }) {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+
+  const user = queryClient.getQueryData("login");
+
   const LIMIT = 12;
   const [Count, setCount] = useState(0);
   const [PagingInfo, setPagingInfo] = useState({
@@ -124,33 +130,47 @@ function ClassListPage() {
   const handleMenuClick = (val) =>
     setPagingInfo((prev) => ({ ...prev, category: val }));
 
-  // const {
-  //   data: listData,
-  //   isLoading,
-  //   isError,
-  // } = useQuery(
-  //   ["classList", PagingInfo],
-  //   async ({ queryKey }) => {
-  //     let { category, offset, limit } = queryKey[1];
-  //     let result = await axios
-  //       .get(
-  //         `${process.env.REACT_APP_OUR_SERVER_URI}/class?category=${category}&offset=${offset}&limit=${limit}`
-  //       )
-  //       .then((res) => res.data);
+  const {
+    data: listData,
+    isLoading,
+    isError,
+  } = useQuery(
+    ["classList", PagingInfo],
+    async ({ queryKey }) => {
+      let { category, offset, limit } = queryKey[1];
+      let result = await axios
+        .get(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/class?category=${category}&offset=${offset}&limit=${limit}`,
+          setHeader(user?.token, user?.authType)
+        )
+        .then((res) => res.data);
 
-  //     if (result?.status === 200) {
-  //       if (offset === 0) setCount(result?.count);
-  //       return result?.list;
-  //     }
-  //   },
-  //   {
-  //     refetchOnWindowFocus: false,
-  //     keepPreviousData: true,
-  //   }
-  // );
+      if (user && result?.authInfo) {
+        let { isAuth, newToken } = result?.authInfo;
+        if (!isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+        } else if (isAuth && newToken) {
+          queryClient.setQueryData("login", (prev) => ({
+            ...prev,
+            token: newToken,
+          }));
+        }
+      }
 
-  // if (isLoading) return <div>loading...</div>;
-  // if (isError) return <div>error...</div>;
+      if (result?.status === 200) {
+        if (offset === 0) setCount(result?.count);
+        return result?.list;
+      }
+    },
+    {
+      refetchOnWindowFocus: false,
+      keepPreviousData: true,
+    }
+  );
+
+  if (isLoading) return <div>loading...</div>;
+  if (isError) return <div>error...</div>;
 
   return (
     <Container>
@@ -168,8 +188,7 @@ function ClassListPage() {
       </MenuContainer>
       <ListContainer>
         <ul>
-          {/* <ClassesInnerBox data={listData} /> */}
-          <ClassesInnerBox />
+          <ClassesInnerBox data={listData} />
         </ul>
       </ListContainer>
       <div id="paginationLayout">

@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { colors } from "../css";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { fileUpload, fileDelete } from "../api/fileUpload";
+import { useSetAuth } from "../contexts/AuthContext";
 
 const Container = styled.div`
   display: flex;
@@ -60,6 +61,7 @@ const Container = styled.div`
 `;
 
 function RegisterBtn({
+  setHeader,
   modifyMode,
   InputData,
   Files,
@@ -67,23 +69,45 @@ function RegisterBtn({
   BeforeDelete,
   setBeforeDelete,
 }) {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
   const navigate = useNavigate();
+
   const [Save, setSave] = useState({ click: false, type: "" });
   const [Delete, setDelete] = useState(false);
+  const user = queryClient.getQueryData("login");
 
   const saveApi = async () => {
     let result = await axios
-      .post(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe`, {
-        public: Save.type === "public" ? 1 : 0,
-        ...InputData,
-      })
+      .post(
+        `${process.env.REACT_APP_OUR_SERVER_URI}/recipe`,
+        {
+          public: Save.type === "public" ? 1 : 0,
+          ...InputData,
+        },
+        setHeader(user?.token, user?.authType)
+      )
       .then((res) => res.data)
       .catch((err) => {
         console.error(err);
-        return null;
       });
 
-    if (result.message === "success") {
+    if (user && result?.authInfo) {
+      let { isAuth, newToken } = result?.authInfo;
+      if (!isAuth) {
+        setAuth((prev) => false);
+        queryClient.removeQueries("login");
+        alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+        return navigate("/user/login");
+      } else if (isAuth && newToken) {
+        queryClient.setQueryData("login", (prev) => ({
+          ...prev,
+          token: newToken,
+        }));
+      }
+    }
+
+    if (result?.status === 200) {
       // s3 파일 삭제는 디비 삭제 확인 후, 진행
       let size = BeforeDelete?.length;
       if (size > 0) {
@@ -111,11 +135,29 @@ function RegisterBtn({
     let recipe_id = InputData?.id;
 
     let result = await axios
-      .delete(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipe_id}`)
+      .delete(
+        `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipe_id}`,
+        setHeader(user?.token, user?.authType)
+      )
+      .then((res) => res.data)
       .catch((err) => {
         console.error(err);
-        return null;
       });
+
+    if (user && result?.authInfo) {
+      let { isAuth, newToken } = result?.authInfo;
+      if (!isAuth) {
+        setAuth((prev) => false);
+        queryClient.removeQueries("login");
+        alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+        return navigate("/user/login");
+      } else if (isAuth && newToken) {
+        queryClient.setQueryData("login", (prev) => ({
+          ...prev,
+          token: newToken,
+        }));
+      }
+    }
 
     if (result?.status === 200) {
       // s3 파일들 삭제

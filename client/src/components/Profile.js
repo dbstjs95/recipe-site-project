@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import profileImg from "../assets/profile_bg.jpg";
 import { user_info as data } from "../mockData/user_data";
@@ -10,14 +10,7 @@ import { useQueryClient, useMutation } from "react-query";
 import axios from "axios";
 import userImg from "../assets/logo_img/user.png";
 import { bucketUrl, fileUpload, fileDelete } from "../api/fileUpload";
-
-/* 화면 너비 0 ~ 1220px */
-/* 화면 너비 0 ~ 1024px */
-/* 화면 너비 0 ~ 960px */
-/* 화면 너비 0 ~ 768px */
-/* 화면 너비 0 ~ 600px */
-/* 화면 너비 0 ~ 480px */
-/* 화면 너비 0 ~ 320px */
+import { useSetAuth } from "../contexts/AuthContext";
 
 const Container = styled.div`
   width: 80%;
@@ -89,36 +82,59 @@ const BackgroundImg = styled.div`
   }
 `;
 
-function Profile() {
+function Profile({ setHeader }) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+
+  const user = queryClient.getQueryData("login");
   const [IsOpen, setIsOpen] = useState(false);
-  const loginData = queryClient.getQueryData("login");
 
   //https://kyounghwan01.github.io/blog/React/react-query/basic/#usemutation
   //https://jforj.tistory.com/244
   const userInfoMutation = useMutation(
     (data) =>
-      axios.post(`${process.env.REACT_APP_OUR_SERVER_URI}/user/change`, data),
+      axios.post(
+        `${process.env.REACT_APP_OUR_SERVER_URI}/user/change`,
+        data,
+        setHeader(user?.token, user?.authType)
+      ),
     {
-      onMutate: (variable) => {},
+      // onMutate: (variable) => {},
       onError: (error, variable, context) => {
-        // error
+        console.error(error);
+        let result = error?.response?.data;
+        alert(result?.message);
+        if (!result?.authInfo?.isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+          alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+          return navigate("/user/login");
+        }
       },
       onSuccess: (data, variables, context) => {
-        console.log("success", data, variables, context);
-        queryClient.setQueryData("login", (data) => {
-          let userInfo = data?.userInfo;
-          userInfo = { ...userInfo, ...variables };
-          return { ...data, userInfo };
-        });
+        let result = data?.data;
+        if (user && result?.authInfo) {
+          let { isAuth, newToken } = result?.authInfo;
+          if (isAuth) {
+            queryClient.setQueryData("login", (prev) => {
+              let token = newToken || prev?.token;
+              let userInfo = prev?.userInfo;
+              if (result?.status === 200) {
+                userInfo = { ...userInfo, ...variables };
+              }
+              return { ...prev, userInfo, token };
+            });
+          }
+        }
         setIsOpen(false);
       },
-      onSettled: () => {},
+      // onSettled: () => {},
     }
   );
 
   const handleChangePhoto = async (e) => {
-    let prevImg = loginData?.userInfo?.profile_img;
+    let prevImg = user?.userInfo?.profile_img;
 
     if (prevImg) {
       let list = [{ Key: prevImg }];
@@ -131,7 +147,7 @@ function Profile() {
 
     let fileName = await fileUpload(
       e.target.files[0],
-      `upload/user/${loginData?.userInfo?.id}/`
+      `upload/user/${user?.userInfo?.id}/`
     );
 
     if (fileName) {
@@ -157,27 +173,27 @@ function Profile() {
       {IsOpen && (
         <UserInfoModal
           setIsOpen={setIsOpen}
-          value={loginData?.userInfo?.profile_desc || ""}
+          value={user?.userInfo?.profile_desc || ""}
           userInfoMutation={userInfoMutation}
         />
       )}
       <div className="container">
-        <Outlet />
+        <Outlet context={{ setHeader, user }} />
       </div>
       <ProfileBox>
         <div>
           <BackgroundImg
             bgSrc={profileImg}
             userSrc={
-              loginData?.userInfo?.profile_img
-                ? `${bucketUrl}${loginData?.userInfo?.profile_img}`
+              user?.userInfo?.profile_img
+                ? `${bucketUrl}${user?.userInfo?.profile_img}`
                 : userImg
             }
           >
             <label htmlFor="file"></label>
             <input type="file" id="file" onChange={handleChangePhoto} />
           </BackgroundImg>
-          <p className="nickname">{loginData?.userInfo?.nickname}</p>
+          <p className="nickname">{user?.userInfo?.nickname}</p>
           <p
             className="write"
             onClick={(e) => {
@@ -185,13 +201,13 @@ function Profile() {
               setIsOpen(true);
             }}
           >
-            {!loginData?.userInfo?.profile_desc ? (
+            {!user?.userInfo?.profile_desc ? (
               <>
                 <FontAwesomeIcon icon={faPen} />
                 <em>자기소개를 등록하세요.</em>
               </>
             ) : (
-              loginData?.userInfo?.profile_desc
+              user?.userInfo?.profile_desc
             )}
           </p>
         </div>

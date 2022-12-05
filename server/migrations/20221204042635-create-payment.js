@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable(
-      "Users",
+      "Payments",
       {
         id: {
           allowNull: false,
@@ -11,25 +11,40 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER,
         },
-        nickname: {
-          type: Sequelize.STRING(20),
-        },
-        email: {
-          type: Sequelize.STRING(30),
-        },
-        profile_img: {
-          type: Sequelize.STRING,
-        },
-        profile_desc: {
-          type: Sequelize.STRING,
-        },
-        external_type: {
-          type: Sequelize.STRING(10),
+        user_id: {
+          allowNull: false,
+          type: Sequelize.INTEGER,
           unique: "actions_unique",
+          onDelete: "CASCADE",
+          references: {
+            model: "Users",
+            key: "id",
+          },
         },
-        external_id: {
-          type: Sequelize.STRING,
+        class_id: {
+          allowNull: false,
+          type: Sequelize.INTEGER,
           unique: "actions_unique",
+          onDelete: "CASCADE",
+          references: {
+            model: "Classes",
+            key: "id",
+          },
+        },
+        imp_uid: {
+          type: Sequelize.STRING,
+        },
+        merchant_uid: {
+          type: Sequelize.STRING,
+        },
+        pay_method: {
+          type: Sequelize.STRING,
+        },
+        paid_amount: {
+          type: Sequelize.INTEGER,
+        },
+        status: {
+          type: Sequelize.STRING,
         },
         createdAt: {
           allowNull: false,
@@ -45,13 +60,13 @@ module.exports = {
       {
         uniqueKeys: {
           actions_unique: {
-            fields: ["external_type", "external_id"],
+            fields: ["user_id", "class_id"],
           },
         },
       }
     );
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Users");
+    await queryInterface.dropTable("Payments");
   },
 };

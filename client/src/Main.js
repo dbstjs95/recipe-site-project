@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./components/App";
 import HomePage from "./page/HomePage";
 import LoginPage from "./page/LoginPage";
+import SignUpPage from "./page/SignUpPage";
 import NotFoundPage from "./page/NotFoundPage";
 import RecipeListPage from "./page/recipepage/RecipeListPage";
 import ClassListPage from "./page/classPage/ClassListPage";
@@ -60,6 +61,7 @@ function Main() {
         </Route>
         <Route path="/user" element={<SimpleOuter />}>
           <Route path="login" element={<LoginPage />} />
+          <Route path="signup" element={<SignUpPage />} />
           <Route path="update" element={<AuthModifyUserInfoPage />} />
         </Route>
       </Routes>

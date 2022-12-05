@@ -244,7 +244,7 @@ const IngredientContainer = styled.div`
 const OrderContainer = styled.div``;
 const BtnContainer = styled.div``;
 
-function RegisterRecipePage({ myRecipeData, modifyMode }) {
+function RegisterRecipePage({ setHeader, myRecipeData, modifyMode }) {
   // data form
   let emptyData = {
     title: "",
@@ -429,6 +429,7 @@ function RegisterRecipePage({ myRecipeData, modifyMode }) {
         </OrderContainer>
         <BtnContainer>
           <RegisterBtn
+            setHeader={setHeader}
             modifyMode={modifyMode}
             InputData={InputData}
             Files={Files}

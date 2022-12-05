@@ -3,6 +3,7 @@ const axios = require("axios");
 const { OAuth2Client } = require("google-auth-library");
 require("dotenv").config();
 const userDB = require("../db/user");
+const { googleVerify, naverVerify, userAuth } = require("../middleware/auth");
 
 router.post("/login/google", (req, res) => {
   const authHeader = req.get("Authorization");
@@ -30,32 +31,27 @@ router.post("/login/google", (req, res) => {
       return res.status(400).json({ message: "fail to get external_id" });
 
     let isUser = await userDB.findUserById("google", sub);
-
-    let userInfo;
-    if (isUser) {
-      //이미 회원인 경우 --> 로그인
-      userInfo = isUser;
-    } else {
-      //회원이 아닌 경우 --> 회원가입
-      userInfo = await userDB.createUser({
-        external_type: "google",
-        external_id: sub,
-        nickname: name,
-        email,
-        profileImg: picture,
+    if (!isUser) {
+      // 회원이 아니라면 --> 회원가입
+      return res.status(202).json({
+        isRegistered: false,
+        status: 202,
+        userInfo: { nickname: name, email, external_type: "google" },
       });
     }
 
-    if (!userInfo)
-      return res.status(500).json({ message: "fail to get userInfo from DB" });
+    // if (!userInfo)
+    //   return res.status(500).json({ message: "fail to get userInfo from DB" });
 
-    return res.status(200).json({ message: "success", userInfo });
+    return res
+      .status(200)
+      .json({ message: "success", userInfo: isUser, status: 200 });
   }
 
   verify().catch((err) => {
     console.error(err);
     return res.status(500).json({
-      message: "server error fail",
+      message: "server error",
     });
   });
 });
@@ -93,49 +89,98 @@ router.post("/login/naver", async (req, res) => {
     if (!id) return res.status(400).json("fail to get external_id");
 
     let isUser = await userDB.findUserById("naver", id);
-
-    let userInfo;
-    if (isUser) {
-      //이미 회원인 경우 --> 로그인
-      userInfo = isUser;
-    } else {
+    if (!isUser) {
       //회원이 아닌 경우 --> 회원가입
-      userInfo = await userDB.createUser({
-        external_type: "naver",
-        external_id: id,
-        nickname,
-        email,
+      return res.status(202).json({
+        isRegistered: false,
+        status: 202,
+        userInfo: {
+          nickname,
+          email,
+          external_type: "naver",
+          token: access_token,
+          refresh_token,
+        },
       });
     }
 
-    if (!userInfo)
-      return res.status(500).json({ message: "fail to get userInfo from DB" });
-
-    res.setHeader("Set-Cookie", `token=${refresh_token}`);
-    return res
-      .status(200)
-      .json({ message: "success", token: access_token, userInfo });
+    // res.cookie("token", refresh_token, { httpOnly: true, secure: true });
+    res.cookie("token", refresh_token);
+    return res.json({
+      message: "success",
+      token: access_token,
+      userInfo: isUser,
+      status: 200,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
-      message: "server error fail",
+      message: "server error",
     });
   }
 });
 
-router.post("/change", async (req, res) => {
+// 회원가입
+router.post("/register", async (req, res) => {
   let data = req.body;
-  let result = await userDB.changeUserInfo(data);
+  if (!data)
+    return res.status(400).json({ message: "can't find the data to register" });
 
-  if (!result) return res.status(400).json({ message: "fail" });
+  let { external_type, token, refresh_token, nickname, email } = data;
 
-  return res.status(200).json({ message: "success" });
+  if (!token || !external_type)
+    return res
+      .status(400)
+      .json({ message: "can't find token or external_type" });
+
+  let userData;
+  if (external_type === "google") {
+    userData = await googleVerify(token);
+  } else if (external_type === "naver") {
+    userData = await naverVerify(token);
+  }
+
+  if (!userData) return res.status(400).json({ message: "fail to verify" });
+
+  let userInfo = await userDB.createUser({
+    external_type,
+    external_id: external_type === "google" ? userData?.sub : userData?.id,
+    nickname,
+    email,
+    profileImg: userData?.picture,
+  });
+
+  if (!userInfo) return res.status(500).json({ message: "server error" });
+  if (typeof userInfo === "string" && userInfo?.startsWith("error"))
+    return res.status(400).json({ message: "fail", userInfo });
+
+  //  res.cookie("token", refresh_token, { httpOnly: true, secure: true });
+  if (refresh_token) res.cookie("token", refresh_token);
+  return res.status(200).json({ message: "success", status: 200, userInfo });
+});
+
+// 마이페이지: 프로필 변경
+router.post("/change", userAuth, async (req, res) => {
+  let authInfo = req?.authInfo;
+  let userId = req?.user?.id;
+
+  let data = req.body;
+  let result = await userDB.changeUserInfo(data, userId);
+
+  if (!result)
+    return res.status(500).json({ message: "server error", authInfo });
+  if (typeof result === "string" && result?.startsWith("error"))
+    return res.status(400).json({ message: "fail", authInfo });
+
+  result.status = 200;
+  result.authInfo = authInfo;
+  return res.status(200).json(result);
 });
 
 // 마이페이지: 내 레시피 목록
-router.get("/recipe", async (req, res) => {
-  // 테스트용
-  let userId = 1;
+router.get("/recipe", userAuth, async (req, res) => {
+  let authInfo = req?.authInfo;
+  let userId = req?.user?.id;
 
   let { public, order_by = "created_at", offset = 0, limit = 10 } = req.query;
 
@@ -146,33 +191,94 @@ router.get("/recipe", async (req, res) => {
     Number(offset),
     Number(limit)
   );
-  if (!result) return res.status(500).json({ message: "server error" });
+  if (!result)
+    return res.status(500).json({ message: "server error", authInfo });
 
   if (typeof result === "string" && result.startsWith("error")) {
-    return res.status(400).json({ message: "fail", result });
+    return res.status(400).json({ message: "fail", result, authInfo });
   }
 
   result.status = 200;
+  result.authInfo = authInfo;
   return res.status(200).json(result);
 });
 
 // 마이페이지: 좋아요 리스트
-router.get("/likes", async (req, res) => {
-  // 테스트용
-  let userId = 1;
+router.get("/likes", userAuth, async (req, res) => {
+  let authInfo = req?.authInfo;
+  let userId = req?.user?.id;
 
   let { offset = 0, limit = 10 } = req.query;
 
   let result = await userDB.getMyLikes(userId, Number(offset), Number(limit));
 
-  if (!result) return res.status(500).json({ message: "server error" });
+  if (!result)
+    return res.status(500).json({ message: "server error", authInfo });
 
   if (typeof result === "string" && result.startsWith("error")) {
-    return res.status(400).json({ message: "fail", result });
+    return res.status(400).json({ message: "fail", result, authInfo });
   }
 
   result.status = 200;
+  result.authInfo = authInfo;
   return res.status(200).json(result);
+});
+
+// 회원정보수정
+router.put("/", userAuth, async (req, res) => {
+  let authInfo = req?.authInfo;
+  let userId = req?.user?.id;
+
+  let data = req.body;
+  if (!data)
+    return res
+      .status(400)
+      .json({ message: "can't find the data to modify userData", authInfo });
+
+  let result = await userDB.changeUserInfo(data, userId);
+
+  if (!result)
+    return res.status(500).json({ message: "server error", authInfo });
+
+  if (typeof result === "string" && result?.startsWith("error"))
+    return res.status(400).json({ message: "fail", result, authInfo });
+
+  result.status = 200;
+  return res.status(200).json(result);
+});
+
+// 회원탈퇴
+router.delete("/", userAuth, async (req, res) => {
+  let authInfo = req?.authInfo;
+  let userId = req?.user?.id;
+  let cookie = req?.cookies?.token;
+
+  if (!userId)
+    return res.status(400).json({ message: "fail to get userId", authInfo });
+
+  let result = await userDB.deleteUser(userId);
+
+  if (!result)
+    return res.status(500).json({ message: "server error", authInfo });
+
+  if (typeof result === "string" && result?.startsWith("error"))
+    return res.status(400).json({ message: "fail", result, authInfo });
+
+  if (cookie) {
+    res.clearCookie("token");
+  }
+  result.status = 200;
+  return res.status(200).json(result);
+});
+
+// 로그아웃
+router.post("/logout", userAuth, async (req, res) => {
+  let cookie = req?.cookies?.token;
+
+  if (cookie) {
+    res.clearCookie("token");
+  }
+  return res.status(200).json({ message: "success", status: 200 });
 });
 
 module.exports = router;

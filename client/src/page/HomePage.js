@@ -8,7 +8,8 @@ import RecipeListBox from "../components/RecipeListBox";
 import ClassesBox from "../components/ClassesBox";
 import { LayoutSize } from "../css";
 import recipeList from "../mockData/recipe_list";
-import { useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useSetAuth } from "../contexts/AuthContext";
 
 const ENV = process.env;
 
@@ -59,34 +60,38 @@ const Container = styled.div`
   }
 `;
 
-function HomePage() {
-  // axios.defaults.withCredentials = true;
-  // const { isLoading, isError } = useQuery(
-  //   "test",
-  //   async () => {
-  //     let result = await axios
-  //       .get(`${process.env.REACT_APP_OUR_SERVER_URI}`)
-  //       .then((res) => res.data);
+function HomePage({ setHeader }) {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
 
-  //     console.log("result: ", result);
-  //     // if (result?.status === 200) {
-  //     //   return result?.list;
-  //     // }
-  //     // return null;
-  //   },
-  //   { refetchOnWindowFocus: false }
-  // );
+  const user = queryClient.getQueryData("login");
 
   const {
-    isLoading: rcpIsLoading,
     data: rcpData,
+    isLoading,
     isError,
   } = useQuery(
     ["recipeList", "best"],
     async () => {
       let result = await axios
-        .get(`${process.env.REACT_APP_OUR_SERVER_URI}/recipe?list_type=best`)
+        .get(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe?list_type=best`,
+          setHeader(user?.token, user?.authType)
+        )
         .then((res) => res.data);
+
+      if (user && result?.authInfo) {
+        let { isAuth, newToken } = result?.authInfo;
+        if (!isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+        } else if (isAuth && newToken) {
+          queryClient.setQueryData("login", (prev) => ({
+            ...prev,
+            token: newToken,
+          }));
+        }
+      }
 
       if (result?.status === 200) {
         return result?.list;
@@ -96,7 +101,7 @@ function HomePage() {
     { refetchOnWindowFocus: false }
   );
 
-  if (rcpIsLoading) return <div>loading...</div>;
+  if (isLoading) return <div>loading...</div>;
   if (isError) return <div>error...</div>;
 
   return (
@@ -105,12 +110,12 @@ function HomePage() {
       <ClassifyBox>
         <ClassifyHeader>레시피 분류</ClassifyHeader>
       </ClassifyBox>
-      <RecipeListBox data={rcpData} use="best">
+      {/* <RecipeListBox data={rcpData} use="best">
         <BestHeader>
           베스트 레시피
           <Link to="/recipes?type=best">더보기</Link>
         </BestHeader>
-      </RecipeListBox>
+      </RecipeListBox> */}
       <ClassesBox>
         <ClassesBoxHeader>
           요리 클래스

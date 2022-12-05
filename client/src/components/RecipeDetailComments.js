@@ -6,6 +6,7 @@ import { bucketUrl } from "../api/fileUpload";
 import userImg from "../assets/logo_img/user.png";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import axios from "axios";
+import { useSetAuth } from "../contexts/AuthContext";
 
 const Container = styled.div`
   width: 80%;
@@ -172,12 +173,10 @@ const CommentInputBox = styled.form`
   }
 `;
 
-function RecipeDetailComments({ ID, use = "recipe" }) {
-  // 테스트용
-  const myUserId = 1;
-
+function RecipeDetailComments({ ID, use = "recipe", user, setHeader }) {
   const textRef = useRef();
   const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
 
   const [Count, setCount] = useState(0);
   const [CommentList, setCommentList] = useState([]);
@@ -196,7 +195,7 @@ function RecipeDetailComments({ ID, use = "recipe" }) {
         )
         .then((res) => res.data);
 
-      if (result?.message === "success") {
+      if (result?.status === 200) {
         setCount((prev) =>
           queryKey[1]?.targetId ? prev : result?.comments?.count
         );
@@ -216,37 +215,58 @@ function RecipeDetailComments({ ID, use = "recipe" }) {
     (data) => {
       if (data?.api === "delete") {
         return axios.delete(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment/${data?.value}`
+          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment/${data?.value}`,
+          setHeader(user?.token, user?.authType)
         );
       } else if (data?.api === "add") {
         return axios.post(
           `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment`,
-          data?.value
+          data?.value,
+          setHeader(user?.token, user?.authType)
         );
       }
     },
     {
-      onSuccess: async () => {
-        textRef.current.value = "";
+      onSuccess: async (data) => {
+        let result = data?.data;
+        if (user && result?.authInfo) {
+          let { isAuth, newToken } = result?.authInfo;
+          if (isAuth) {
+            queryClient.setQueryData("login", (prev) => {
+              let token = newToken || prev?.token;
+              return { ...prev, token };
+            });
+          }
+        }
+        if (result?.status === 200) {
+          textRef.current.value = "";
 
-        let isUsed = queryClient.getQueryData([
-          `getComment_${use}`,
-          { targetId: null, limit: ShowNum },
-          ID,
-        ]);
-
-        if (isUsed) {
-          await queryClient.invalidateQueries([
+          let isUsed = queryClient.getQueryData([
             `getComment_${use}`,
             { targetId: null, limit: ShowNum },
             ID,
           ]);
-        } else {
-          setPagingInfo({ targetId: null, limit: ShowNum });
+
+          if (isUsed) {
+            await queryClient.invalidateQueries([
+              `getComment_${use}`,
+              { targetId: null, limit: ShowNum },
+              ID,
+            ]);
+          } else {
+            setPagingInfo({ targetId: null, limit: ShowNum });
+          }
         }
       },
-      onError: (err) => {
-        console.error(err);
+      onError: (error) => {
+        console.error(error);
+        let result = error?.response?.data;
+        alert(result?.message);
+        if (!result?.authInfo?.isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+          alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+        }
       },
     }
   );
@@ -273,6 +293,7 @@ function RecipeDetailComments({ ID, use = "recipe" }) {
     (e) => {
       e.preventDefault();
       let content = textRef.current.value;
+      if (!user?.token) return alert("댓글작성은 로그인 후 이용이 가능합니다.");
       if (!content) {
         return alert("댓글을 입력해주세요.");
       }
@@ -306,7 +327,7 @@ function RecipeDetailComments({ ID, use = "recipe" }) {
                   <span className="date">
                     <em>{item?.createdAt}</em>
                   </span>
-                  {item?.writer?.id === myUserId && (
+                  {item?.writer?.id === user?.userInfo?.id && (
                     <span
                       className="delete"
                       onClick={() => handleDelete(item?.id)}

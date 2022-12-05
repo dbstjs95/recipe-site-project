@@ -119,7 +119,7 @@ const DetailStyle = styled.p`
 
 function RecipeListBox({ children, data, use }) {
   const navigate = useNavigate();
-  const handleMovePage = (id) => navigate(`/recipes/20`);
+  const handleMovePage = (id) => navigate(`/recipes/${id}`);
 
   return (
     <BestSection>

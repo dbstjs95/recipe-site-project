@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -134,10 +134,23 @@ const RegisterBtn = styled.button`
   }
 `;
 
-function ClassImgBox({ data }) {
+function ClassImgBox({ data, user }) {
   const navigate = useNavigate();
+  const location = useLocation;
 
-  const handleMovePay = () => navigate("pay", { state: { use: "pay" } });
+  const handleMovePay = () => {
+    if (!user?.token) {
+      let confirm = window.confirm(
+        "로그인 후 이용 가능합니다. 로그인을 하시겠습니까?"
+      );
+      if (!confirm) return;
+      let current = location.pathname;
+      localStorage.setItem("beforeLogin", current);
+      return navigate("/user/login");
+    }
+
+    return navigate("pay", { state: { use: "pay" } });
+  };
 
   let price = Number(data?.price).toLocaleString();
   return (

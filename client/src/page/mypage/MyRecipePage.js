@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import recipeList from "../../mockData/recipe_list";
 import { Link, useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
 import queryString from "query-string";
-import { useLocation } from "react-router-dom";
-import { useQuery } from "react-query";
+import { useLocation, useOutletContext } from "react-router-dom";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
+import { useSetAuth } from "../../contexts/AuthContext";
 
 const myRecipeData = [...recipeList].slice(0, 5);
 
@@ -190,9 +191,13 @@ export const ContentPublic = styled(ContentPrivate)`
 `;
 
 function MyRecipePage() {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
   const navigate = useNavigate();
+
   const { search } = useLocation();
   const { type } = queryString.parse(search);
+  const { setHeader, user } = useOutletContext();
 
   const LIMIT = 10;
   const [Count, setCount] = useState(0);
@@ -215,11 +220,26 @@ function MyRecipePage() {
     async ({ queryKey }) => {
       let { order_by, offset, limit } = queryKey[1];
       let type = queryKey[2] === "public" ? 1 : 0;
+
       let result = await axios
         .get(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/user/recipe?public=${type}&order_by=${order_by}&offset=${offset}&limit=${limit}`
+          `${process.env.REACT_APP_OUR_SERVER_URI}/user/recipe?public=${type}&order_by=${order_by}&offset=${offset}&limit=${limit}`,
+          setHeader(user?.token, user?.authType)
         )
         .then((res) => res.data);
+
+      if (user && result?.authInfo) {
+        let { isAuth, newToken } = result?.authInfo;
+        if (!isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+        } else if (isAuth && newToken) {
+          queryClient.setQueryData("login", (prev) => ({
+            ...prev,
+            token: newToken,
+          }));
+        }
+      }
 
       if (result?.status === 200) {
         if (offset === 0) setCount(result?.count);

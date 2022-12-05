@@ -4,6 +4,9 @@ const { Op, fn, col, literal } = require("sequelize");
 async function findUserById(type, id) {
   return await User.findOne({
     where: { external_type: type, external_id: id },
+    attributes: {
+      exclude: ["external_id"],
+    },
   });
 }
 async function findUserByUserId(id) {
@@ -13,17 +16,33 @@ async function findUserByUserId(id) {
 }
 
 async function createUser(data) {
-  return await User.create(data);
+  try {
+    let isCreated = await User.create(data);
+    if (!isCreated) return "error: isCreated";
+    delete isCreated.dataValues.external_id;
+    return isCreated;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
 }
 
-async function changeUserInfo(data) {
-  // 테스트용
-  let user_id = 1;
-
+async function changeUserInfo(data, user_id) {
   try {
     let result = await User.update(data, { where: { id: user_id } });
-    if (!result) return null;
-    return "success";
+    if (!result) return "error: result";
+    return { message: "success" };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+async function deleteUser(user_id) {
+  try {
+    let result = await User.destroy({ where: { id: user_id } });
+    if (!result) return "error: result";
+    return { message: "success" };
   } catch (err) {
     console.error(err);
     return null;
@@ -149,6 +168,7 @@ module.exports = {
   findUserByUserId,
   createUser,
   changeUserInfo,
+  deleteUser,
   getMyRecipeList,
   getMyLikes,
 };

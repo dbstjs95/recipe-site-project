@@ -15,10 +15,10 @@ const googleVerify = async (token) => {
 
     if (!ticket) return null;
 
-    const { sub } = ticket.getPayload();
-    if (!sub) return null;
+    const result = ticket.getPayload();
+    if (!result?.sub) return null;
 
-    return sub;
+    return result;
   } catch (err) {
     return null;
   }
@@ -32,10 +32,8 @@ const naverVerify = async (token) => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const { id } = response;
-
-    if (!id) return null;
-    return id;
+    if (!response?.id) return null;
+    return response;
   } catch (err) {
     return null;
   }
@@ -56,11 +54,17 @@ const naverRefresh = async (token) => {
 
 // 비회원도 가능
 async function auth(req, res, next) {
+  let authInfo = { isAuth: false };
+  req.authInfo = authInfo;
+
   try {
     //external_type 알아내기
-    const external_type = req.query.type;
-    if (!external_type)
-      return res.status(400).json({ message: "no query string 'type'" });
+    const external_type = req.get("AuthType");
+    if (!external_type) {
+      console.log("no AuthType header");
+      res.clearCookie("token");
+      return next();
+    }
 
     // Authorization 헤더에서 토큰 찾기
     let token;
@@ -72,46 +76,50 @@ async function auth(req, res, next) {
 
     if (!token) {
       console.log("fail to get token in header");
-      next();
+      res.clearCookie("token");
+      return next();
     }
 
     let isVerified;
     if (external_type === "google") {
-      let external_id = await googleVerify(token);
-      if (!external_id) {
+      let userInfo = await googleVerify(token);
+      if (!userInfo) {
         console.log("fail to verify");
-        next();
+        return next();
       }
+
+      let external_id = userInfo?.sub;
 
       isVerified = await userDB.findUserById(external_type, external_id);
     } else if (external_type === "naver") {
-      let external_id = await naverVerify(token);
+      let userInfo = await naverVerify(token);
 
-      if (external_id) {
+      if (userInfo) {
+        let external_id = userInfo?.id;
         isVerified = await userDB.findUserById(external_type, external_id);
       } else {
         //refresh token으로 갱신
-
-        let cookie = req.headers.cookie;
-        let refresh_token = cookie.split("=")[1];
+        let refresh_token = req?.cookies?.token;
         if (!refresh_token) {
           console.log("fail to get refresh_token in cookie");
-          next();
+          return next();
         }
 
         let accToken = await naverRefresh(refresh_token);
         if (!accToken) {
           console.log("fail to get access_token by refresh_token");
-          next();
+          res.clearCookie("token");
+          return next();
         }
 
-        let external_id = await naverVerify(accToken);
-        if (external_id) {
+        let userInfo = await naverVerify(accToken);
+        if (userInfo) {
+          let external_id = userInfo?.id;
           isVerified = await userDB.findUserById(external_type, external_id);
 
           if (isVerified) {
-            res.setHeader("Set-Cookie", "");
-            req.newToken = accToken;
+            res.clearCookie("token");
+            authInfo.newToken = accToken;
           }
         }
       }
@@ -119,25 +127,33 @@ async function auth(req, res, next) {
 
     if (!isVerified) {
       console.log("fail to get userInfo from DB");
-      next();
+      res.clearCookie("token");
+      return next();
     } else {
+      authInfo.isAuth = true;
       req.user = isVerified;
-      next();
+      return next();
     }
   } catch (err) {
     console.error(err);
     console.log("error in process of auth api");
-    next();
+    res.clearCookie("token");
+    return next();
   }
 }
 
 // 유저만 가능
 async function userAuth(req, res, next) {
+  let authInfo = { isAuth: false };
+  req.authInfo = authInfo;
+
   try {
     //external_type 알아내기
-    const external_type = req.query.type;
-    if (!external_type)
-      return res.status(400).json({ message: "no query string 'type'" });
+    const external_type = req.get("AuthType");
+    if (!external_type) {
+      res.clearCookie("token");
+      return res.status(400).json({ message: "no AuthType header", authInfo });
+    }
 
     // Authorization 헤더에서 토큰 찾기
     let token;
@@ -148,69 +164,75 @@ async function userAuth(req, res, next) {
     }
 
     if (!token) {
+      res.clearCookie("token");
       return res
         .status(400)
-        .json({ message: "fail to get token in header", isAuth: false });
+        .json({ message: "fail to get token in header", authInfo });
     }
 
     let isVerified;
     if (external_type === "google") {
-      let external_id = await googleVerify(token);
-      if (!external_id)
-        return res
-          .status(400)
-          .json({ message: "fail to verify", isAuth: false });
+      let userInfo = await googleVerify(token);
+      if (!userInfo) {
+        return res.status(400).json({ message: "fail to verify", authInfo });
+      }
 
+      let external_id = userInfo?.sub;
       isVerified = await userDB.findUserById(external_type, external_id);
     } else if (external_type === "naver") {
-      let external_id = await naverVerify(token);
+      let userInfo = await naverVerify(token);
 
-      if (external_id) {
+      if (userInfo) {
+        let external_id = userInfo?.id;
         isVerified = await userDB.findUserById(external_type, external_id);
       } else {
         //refresh token으로 갱신
-
-        let cookie = req.headers.cookie;
-        let refresh_token = cookie.split("=")[1];
+        let refresh_token = req?.cookies?.token;
         if (!refresh_token)
           return res.status(400).json({
             message: "fail to get refresh_token in cookie",
-            isAuth: false,
+            authInfo,
           });
 
         let accToken = await naverRefresh(refresh_token);
-        if (!accToken)
+        if (!accToken) {
+          res.clearCookie("token");
           return res.status(400).json({
             message: "fail to get access_token by refresh_token",
-            isAuth: false,
+            authInfo,
           });
+        }
 
-        let external_id = await naverVerify(accToken);
-        if (external_id) {
+        let userInfo = await naverVerify(accToken);
+        if (userInfo) {
+          let external_id = userInfo?.id;
           isVerified = await userDB.findUserById(external_type, external_id);
 
           if (isVerified) {
-            res.setHeader("Set-Cookie", "");
-            req.newToken = accToken;
+            res.clearCookie("token");
+            authInfo.newToken = accToken;
           }
         }
       }
     }
 
     if (!isVerified) {
+      res.clearCookie("token");
       return res
         .status(400)
-        .json({ message: "fail to get userInfo from DB", isAuth: false });
+        .json({ message: "fail to get userInfo from DB", authInfo });
     } else {
+      authInfo.isAuth = true;
       req.user = isVerified;
-      next();
+      return next();
     }
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: err, isAuth: false });
+    res.clearCookie("token");
+    return res.status(500).json({ message: err, authInfo });
   }
 }
 
 //네이버api 참고: https://developers.naver.com/docs/login/api/api.md
 
-module.exports = { auth, userAuth };
+module.exports = { googleVerify, naverVerify, auth, userAuth };

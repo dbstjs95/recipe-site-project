@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import styled, { css } from "styled-components";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPenToSquare,
@@ -8,7 +8,6 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
 import SettingModal from "./SettingModal";
-import { useQueryClient } from "react-query";
 import { useAuth } from "../contexts/AuthContext";
 
 const UserMenuIconStyle = css`
@@ -71,18 +70,22 @@ function UserMenu() {
   const location = useLocation();
 
   const IsAuth = useAuth();
-
-  const queryClient = useQueryClient();
-  const loginData = queryClient.getQueryData("login");
-
   const [IsOpen, setIsOpen] = useState(false);
 
-  // useEffect(() => {
-  //   console.log("IsLogin: ", IsLogin);
-  //   const authData = queryClient.getQueryData("auth");
-  //   if (!authData) return;
-  //   setIsLogin(authData?.isAuth || false);
-  // });
+  const handleClick = useCallback((e) => {
+    e.stopPropagation();
+    setIsOpen((nextIsOpen) => !nextIsOpen);
+  }, []);
+
+  const handleGoPage = (dest) => {
+    let current = location.pathname;
+    if (dest === "login") {
+      localStorage.setItem("beforeLogin", current);
+      navigate("/user/login");
+    } else {
+      navigate("/register/recipe");
+    }
+  };
 
   useEffect(() => {
     if (!IsOpen) return;
@@ -94,20 +97,6 @@ function UserMenu() {
       window.removeEventListener("click", handleClickOutside);
     };
   }, [IsOpen]);
-
-  const handleClick = useCallback((e) => {
-    e.stopPropagation();
-    setIsOpen((nextIsOpen) => !nextIsOpen);
-  }, []);
-
-  const handleGoPage = (dest) => {
-    let current = location.pathname;
-    if (dest === "login") {
-      navigate("/user/login", { state: current });
-    } else {
-      navigate("/register/recipe");
-    }
-  };
 
   return (
     <Container>

@@ -13,6 +13,9 @@ import {
 import { faHeart, faComment } from "@fortawesome/free-regular-svg-icons";
 import { bucketUrl } from "../api/fileUpload";
 import userImg from "../assets/logo_img/user.png";
+import { useMutation, useQueryClient } from "react-query";
+import axios from "axios";
+import { useSetAuth } from "../contexts/AuthContext";
 
 const Container = styled.div`
   display: flex;
@@ -216,25 +219,74 @@ const DetailBox2 = styled.ul`
   }
 `;
 
-function RecipeDetailIntro({ data }) {
+function RecipeDetailIntro({ data, setHeader, user, ID }) {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
   const navigate = useNavigate();
 
   const [IsLiked, setIsLiked] = useState(data?.isLiked || false);
   const [LikeNum, setLikeNum] = useState(data?.like);
 
-  const handleClickLike = () => {
-    setIsLiked((prev) => {
-      let newState = !prev;
-      if (newState) {
-        setLikeNum((prev) => prev + 1);
+  const { mutate } = useMutation(
+    (api) => {
+      if (api === "add") {
+        return axios.post(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/like/${ID}`,
+          {},
+          setHeader(user?.token, user?.authType)
+        );
       } else {
-        setLikeNum((prev) => prev - 1);
+        return axios.delete(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/like/${ID}`,
+          setHeader(user?.token, user?.authType)
+        );
       }
-      return newState;
-    });
+    },
+    {
+      onSuccess: (data) => {
+        let result = data?.data;
+        if (user && result?.authInfo) {
+          let { isAuth, newToken } = result?.authInfo;
+          if (isAuth) {
+            queryClient.setQueryData("login", (prev) => {
+              let token = newToken || prev?.token;
+              return { ...prev, token };
+            });
+          }
+        }
+
+        if (result?.status === 200 && typeof result?.like === "number") {
+          setLikeNum((prev) => result?.like);
+          setIsLiked((prev) => !prev);
+        }
+      },
+      onError: async (error, variable, context) => {
+        console.error(error);
+        let result = error?.response?.data;
+        alert(result?.message);
+        if (!result?.authInfo?.isAuth) {
+          setIsLiked(false);
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+          queryClient.setQueryData(["getRecipe", ID], (prev) => ({
+            ...prev,
+            isLiked: false,
+          }));
+        }
+      },
+    }
+  );
+
+  const handleClickLike = () => {
+    if (!user?.token) return alert("로그인 후 이용가능합니다.");
+    if (IsLiked) {
+      mutate("delete");
+    } else {
+      mutate("add");
+    }
   };
 
-  const handleModify = () => navigate("/modify/1");
+  const handleModify = () => navigate(`/modify/${data?.id}`);
 
   return (
     <Container>

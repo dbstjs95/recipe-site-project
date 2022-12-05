@@ -17,8 +17,9 @@ import {
   HostIntro,
 } from "../../components/ClassIntroBox";
 import CommentDetailCommnets from "../../components/RecipeDetailComments";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
+import { useSetAuth } from "../../contexts/AuthContext";
 
 const Container = styled.div`
   > div {
@@ -96,8 +97,12 @@ function AdditionalInfo({ data }) {
   );
 }
 
-function ClassPage() {
+function ClassPage({ setHeader }) {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
   const { classId } = useParams();
+
+  const user = queryClient.getQueryData("login");
 
   const {
     data: classData,
@@ -107,8 +112,24 @@ function ClassPage() {
     ["class", classId],
     async () => {
       let result = await axios
-        .get(`${process.env.REACT_APP_OUR_SERVER_URI}/class/${classId}`)
+        .get(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/class/${classId}`,
+          setHeader(user?.token, user?.authType)
+        )
         .then((res) => res.data);
+
+      if (user && result?.authInfo) {
+        let { isAuth, newToken } = result?.authInfo;
+        if (!isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+        } else if (isAuth && newToken) {
+          queryClient.setQueryData("login", (prev) => ({
+            ...prev,
+            token: newToken,
+          }));
+        }
+      }
 
       if (result?.status === 200) {
         return result?.class;
@@ -127,7 +148,7 @@ function ClassPage() {
   return (
     <Container>
       <div className="intro">
-        <ClassImgBox data={classData} />
+        <ClassImgBox data={classData} user={user} />
       </div>
       <div className="additionalInfo">
         <AdditionalInfo data={classData} />
@@ -143,9 +164,10 @@ function ClassPage() {
       </div>
       <div className="comments">
         <CommentDetailCommnets
-          // data={class_info.commentsData}
           use="class"
           ID={classId}
+          user={user}
+          setHeader={setHeader}
         />
       </div>
     </Container>

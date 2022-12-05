@@ -12,6 +12,17 @@ const moment = require("moment");
 //https://stackoverflow.com/questions/37817808/counting-associated-entries-with-sequelize
 async function getClassList(category, offset, limit) {
   try {
+    let count;
+    if (offset === 0) {
+      count = await Class.count({
+        where: {
+          category: {
+            [Op.like]: category === "전체" ? "%" : `%${category}%`,
+          },
+        },
+      });
+    }
+
     let result = await Class.findAll({
       where: {
         category: {
@@ -37,7 +48,11 @@ async function getClassList(category, offset, limit) {
       offset: offset,
       limit: limit,
     });
-    return result;
+
+    if (offset === 0) {
+      return { message: "success", count, list: result };
+    }
+    return { message: "success", list: result };
   } catch (err) {
     console.error(err);
     return null;
@@ -45,10 +60,7 @@ async function getClassList(category, offset, limit) {
 }
 
 // https://sebhastian.com/sequelize-date-format/
-async function getClass(id) {
-  // 테스트
-  let user_id;
-
+async function getClass(id, user_id) {
   try {
     let parties = await Class_party.findAll({
       where: {
@@ -188,10 +200,50 @@ async function addComment(data) {
   }
 }
 
+async function createClass(data = {}) {
+  let { hostData, classData, foodData } = data;
+  try {
+    let createHost = await Class_host.create(hostData);
+    if (!createHost) return "error: createHost";
+
+    let host_id = createHost?.id;
+
+    let createClass = await Class.create({ ...classData, host_id });
+    if (!createClass) return "error: createClass";
+
+    let class_id = createClass?.id;
+
+    let foodList = foodData.map((item) => ({ ...item, class_id }));
+    let createClassFood = await Class_food.bulkCreate(foodList);
+    if (!createClassFood) return "error: createClassFood";
+
+    return { message: "success" };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+async function checkClassPrice(classId, amount) {
+  try {
+    let findClass = await Class.findOne({
+      where: { id: classId, price: amount },
+    });
+
+    if (findClass) return { isChecked: true };
+    return { isChecked: false };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 module.exports = {
   getClassList,
   getClass,
   getClassComments,
   deleteComment,
   addComment,
+  createClass,
+  checkClassPrice,
 };

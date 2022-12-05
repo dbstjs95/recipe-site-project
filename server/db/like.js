@@ -10,7 +10,9 @@ async function addLike(userId, recipeId) {
 
     if (!isCreated) return "error: isCreated";
 
-    return isCreated;
+    let like = await Like.count({ where: { recipe_id: recipeId } });
+
+    return { like };
   } catch (err) {
     console.error(err);
     return null;
@@ -28,7 +30,9 @@ async function deleteLike(userId, recipeId) {
 
     if (!isDeleted) return "error: isDeleted";
 
-    return isDeleted;
+    let like = await Like.count({ where: { recipe_id: recipeId } });
+
+    return { like };
   } catch (err) {
     console.error(err);
     return null;

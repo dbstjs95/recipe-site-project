@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Class_food",
+      timestamps: false,
     }
   );
   return Class_food;

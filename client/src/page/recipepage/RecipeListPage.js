@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import CategoryBox from "../../components/CategoryBox";
 import { LayoutSize, ContainerStyle } from "../../css";
@@ -6,8 +6,9 @@ import recipeList from "../../mockData/recipe_list";
 import RecipeListBox from "../../components/RecipeListBox";
 import Pagination from "../../components/Pagination";
 import { useLocation } from "react-router-dom";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
+import { useSetAuth } from "../../contexts/AuthContext";
 
 const Container = styled.div`
   ${LayoutSize}
@@ -48,8 +49,12 @@ const Container = styled.div`
   }
 `;
 
-function RecipeListPage() {
+function RecipeListPage({ setHeader }) {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+
   const { search } = useLocation();
+  const user = queryClient.getQueryData("login");
 
   const LIMIT = 15;
 
@@ -83,9 +88,23 @@ function RecipeListPage() {
       let { order_by, offset, limit, keyword, category } = queryKey[1];
       let result = await axios
         .get(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe?list_type=classification&order_by=${order_by}&keyword=${keyword}&category=${category}&offset=${offset}&limit=${limit}`
+          `${process.env.REACT_APP_OUR_SERVER_URI}/recipe?list_type=classification&order_by=${order_by}&keyword=${keyword}&category=${category}&offset=${offset}&limit=${limit}`,
+          setHeader(user?.token, user?.authType)
         )
         .then((res) => res.data);
+
+      if (user && result?.authInfo) {
+        let { isAuth, newToken } = result?.authInfo;
+        if (!isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+        } else if (isAuth && newToken) {
+          queryClient.setQueryData("login", (prev) => ({
+            ...prev,
+            token: newToken,
+          }));
+        }
+      }
 
       if (result?.status === 200) {
         if (offset === 0) setCount(result?.count);

@@ -1,36 +1,35 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class Like extends Model {
+  class Payment extends Model {
     static associate(models) {
-      Like.belongsTo(models.User, {
+      Payment.belongsTo(models.User, {
         foreignKey: "user_id",
         targetKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       });
-      Like.belongsTo(models.Recipe, {
-        foreignKey: "recipe_id",
+      Payment.belongsTo(models.Class, {
+        foreignKey: "class_id",
         targetKey: "id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       });
     }
   }
-  Like.init(
-    {},
+  Payment.init(
+    {
+      imp_uid: DataTypes.STRING,
+      merchant_uid: DataTypes.STRING,
+      pay_method: DataTypes.STRING,
+      paid_amount: DataTypes.INTEGER,
+      status: DataTypes.STRING,
+    },
     {
       sequelize,
-      modelName: "Like",
+      modelName: "Payment",
       timestamps: true,
-      updatedAt: false,
-      // indexes: [
-      //   {
-      //     unique: true,
-      //     fields: ["user_id", "recipe_id"],
-      //   },
-      // ],
     }
   );
-  return Like;
+  return Payment;
 };

@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import kakaoPay from "../assets/kakaoPay.png";
 import { ContainerStyle } from "../css";
 import { class_info } from "../mockData/class_detail";
 import { user_info } from "../mockData/user_data";
+import Payment from "../components/Payment";
+import { useQueryClient, useQuery } from "react-query";
+import { useSetAuth } from "../contexts/AuthContext";
+import axios from "axios";
 
 const headerColor = "#444";
 
@@ -173,39 +177,27 @@ const InnerContainer = styled.ul`
   }
 `;
 
-const PayButton = styled.div`
-  background-color: #03a81f;
-  width: 400px;
-  text-align: center;
-  padding: 15px 0;
-  color: white;
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin-bottom: 30px;
-  cursor: pointer;
-  @media screen and (max-width: 600px) {
-    width: 80%;
-    font-size: 1.2rem;
-  }
-  @media screen and (max-width: 400px) {
-    font-size: 1.1rem;
-    padding: 12px 0;
-  }
-  &:hover {
-    box-shadow: inset 0 0 500px rgba(0, 0, 0, 0.2);
-  }
-`;
-
-function PurchasePage() {
+function PurchasePage({ setHeader }) {
   const navigate = useNavigate();
   const location = useLocation();
-  let purpose = location.state?.use;
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+
+  const { classId } = useParams();
+  let purpose = location?.state?.use;
+
+  const classData = queryClient.getQueryData(["class", classId]);
+  const user = queryClient.getQueryData("login");
+
+  const [PaymentData, setPaymentData] = useState({
+    amount: classData?.price,
+    name: `원데이 클래스-${classId}`,
+    buyer_name: user?.userInfo?.nickname,
+    buyer_tel: "",
+    buyer_email: user?.userInfo?.email,
+  });
 
   const convertString = (num) => Number(num).toLocaleString();
-
-  const handlePay = () => {
-    navigate("", { state: { use: "afterPay" } });
-  };
 
   return (
     <Container>
@@ -216,11 +208,11 @@ function PurchasePage() {
             <em>클래스</em> 정보
           </h2>
           <div className="class">
-            <img src={class_info.mainSrc} alt="클래스 이미지" />
+            <img src={classData?.header_img} alt="클래스 이미지" />
             <div>
-              <h3>{class_info.title}</h3>
+              <h3>{classData?.header_title}</h3>
               <span>
-                <em>{convertString(class_info.price)}</em>원
+                <em>{convertString(classData?.price)}</em>원
               </span>
             </div>
           </div>
@@ -232,11 +224,26 @@ function PurchasePage() {
                 <em>주문자</em> 정보
               </h2>
               <div className="orderer">
-                <input type="tel" placeholder="핸드폰 번호" />
+                <input
+                  type="tel"
+                  placeholder="핸드폰번호(ex: 01012345678)"
+                  onChange={(e) =>
+                    setPaymentData((prev) => ({
+                      ...prev,
+                      buyer_tel: String(e.target.value),
+                    }))
+                  }
+                />
                 <input
                   type="email"
                   placeholder="이메일"
-                  defaultValue={user_info.email}
+                  defaultValue={PaymentData?.buyer_email}
+                  onChange={(e) =>
+                    setPaymentData((prev) => ({
+                      ...prev,
+                      buyer_email: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </li>
@@ -249,14 +256,79 @@ function PurchasePage() {
               </div>
             </li>
           </>
-        ) : purpose === "afterPay" ? (
-          <AfterPay />
         ) : (
-          ""
+          purpose === "afterPay" && (
+            <AfterPay setHeader={setHeader} user={user} />
+          )
         )}
       </InnerContainer>
-      {purpose === "pay" && <PayButton onClick={handlePay}>결제하기</PayButton>}
+      {purpose === "pay" && (
+        <Payment
+          PaymentData={PaymentData}
+          setHeader={setHeader}
+          classId={classId}
+          user={user}
+        />
+      )}
     </Container>
+  );
+}
+
+function AfterPay({ setHeader, user }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+
+  let paymentId = location?.state?.paymentId;
+
+  const { data, isLoading, isError } = useQuery(
+    ["getPaymentInfo", paymentId],
+    async () => {
+      let result = await axios
+        .get(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/pay/${paymentId}`,
+          setHeader(user?.token, user?.authType)
+        )
+        .then((res) => res.data);
+      return result;
+    },
+    {
+      onError: (err) => {
+        console.error(err);
+        let result = err?.response?.data;
+        alert(`결제 불러오기 실패: ${result?.message}`);
+      },
+      onSettled: (data, err) => {
+        let result = data?.authInfo || err?.response?.data?.authInfo;
+        if (result) {
+          let { isAuth, newToken } = result;
+          if (!isAuth) {
+            setAuth((prev) => false);
+            queryClient.removeQueries("login");
+            alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+            return navigate("/user/login");
+          } else if (isAuth && newToken) {
+            queryClient.setQueryData("login", (prev) => ({
+              ...prev,
+              token: newToken,
+            }));
+          }
+        }
+      },
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  if (isLoading) return <div>loading...</div>;
+  if (isError) return <div>error...</div>;
+
+  return (
+    <AfterContainer>
+      <p>구매가 완료되었습니다.</p>
+      <span>{data?.payment?.created_at}</span>
+      <button>구매 취소</button>
+    </AfterContainer>
   );
 }
 
@@ -292,15 +364,5 @@ const AfterContainer = styled.li`
     }
   }
 `;
-function AfterPay() {
-  let dateData = "2022-10-27 00:22";
-  return (
-    <AfterContainer>
-      <p>구매가 완료되었습니다.</p>
-      <span>{dateData}</span>
-      <button>구매 취소</button>
-    </AfterContainer>
-  );
-}
 
 export default PurchasePage;
