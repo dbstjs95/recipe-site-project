@@ -78,7 +78,7 @@ function UserMenu() {
   }, []);
 
   const handleGoPage = (dest) => {
-    let current = location.pathname;
+    let current = location.pathname + location?.search;
     if (dest === "login") {
       localStorage.setItem("beforeLogin", current);
       navigate("/user/login");

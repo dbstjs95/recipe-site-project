@@ -43,6 +43,10 @@ module.exports = {
         paid_amount: {
           type: Sequelize.INTEGER,
         },
+        cancel_amount: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0,
+        },
         status: {
           type: Sequelize.STRING,
         },

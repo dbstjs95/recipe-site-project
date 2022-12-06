@@ -89,6 +89,7 @@ async function getClass(id, user_id) {
         "limit",
         "place",
         ["intro", "class_desc"],
+        [fn("DATE_FORMAT", col("deadline"), "%Y-%m-%d %H:%i:%s"), "deadline"],
       ],
       where: {
         limit: {

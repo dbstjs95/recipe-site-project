@@ -136,7 +136,7 @@ const RegisterBtn = styled.button`
 
 function ClassImgBox({ data, user }) {
   const navigate = useNavigate();
-  const location = useLocation;
+  const location = useLocation();
 
   const handleMovePay = () => {
     if (!user?.token) {
@@ -144,7 +144,8 @@ function ClassImgBox({ data, user }) {
         "로그인 후 이용 가능합니다. 로그인을 하시겠습니까?"
       );
       if (!confirm) return;
-      let current = location.pathname;
+      let current = location.pathname + location?.search;
+
       localStorage.setItem("beforeLogin", current);
       return navigate("/user/login");
     }

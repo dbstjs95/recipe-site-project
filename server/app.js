@@ -32,6 +32,7 @@ app.use(
       "https://nid.naver.com",
       "https://openapi.naver.com",
       "http://my-recipe-front.s3-website.ap-northeast-2.amazonaws.com",
+      "https://api.iamport.kr",
     ],
     methods: "GET,PUT,POST,OPTIONS,DELETE",
     // 사용자 인증이 필요한 리소스(쿠키 ..등) 접근(credentials 스펠링 주의!!!!)

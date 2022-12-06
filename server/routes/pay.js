@@ -2,6 +2,7 @@ const router = require("express").Router();
 require("dotenv").config();
 const payDB = require("../db/pay");
 const { userAuth } = require("../middleware/auth");
+const axios = require("axios");
 
 // 결제정보 저장
 router.post("/:classId", userAuth, async (req, res) => {
@@ -56,6 +57,91 @@ router.get("/:paymentId", async (req, res) => {
   return res
     .status(200)
     .json({ message: "success", status: 200, payment: result, authInfo });
+});
+
+// 환불
+router.post("/:paymentId/cancel", async (req, res) => {
+  let authInfo = req?.authInfo;
+
+  let body = req.body;
+  if (!body || !body?.reason || !body?.merchant_uid)
+    return res
+      .status(400)
+      .json({ message: "can't find the refund data.", authInfo });
+
+  let { reason, merchant_uid } = body;
+  let { paymentId } = req.params;
+
+  // 액세스 토큰(access token) 발급 받기
+  const getToken = await axios({
+    url: "https://api.iamport.kr/users/getToken",
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    data: {
+      imp_key: process.env.IAMPORT_IMP_KEY,
+      imp_secret: process.env.IAMPORT_IMP_SECRET,
+    },
+  });
+
+  const { access_token } = getToken.data.response; // 인증 토큰
+
+  // 디비에서 결제 정보 조회
+  const dbData = await payDB.findPaymentData(paymentId, merchant_uid);
+  if (!dbData)
+    return res.status(500).json({
+      message: "디비에서 결제 정보 조회 실패: server error",
+      authInfo,
+    });
+  if (typeof dbData === "string" && dbData.startsWith("error"))
+    return res
+      .status(400)
+      .json({ message: "디비에서 결제 정보 조회 실패", dbData, authInfo });
+
+  const { imp_uid, paid_amount, cancel_amount, status: dbStatus } = dbData;
+  const cancelableAmount = Number(paid_amount) - Number(cancel_amount);
+  if (dbStatus === "cancelled" || cancelableAmount <= 0) {
+    return res
+      .status(400)
+      .json({ message: "이미 환불된 결제건 입니다.", authInfo });
+  }
+
+  const getCancelData = await axios({
+    url: "https://api.iamport.kr/payments/cancel",
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: access_token, // 아임포트 서버로부터 발급받은 엑세스 토큰
+    },
+    data: {
+      reason, // 가맹점 클라이언트로부터 받은 환불사유
+      imp_uid, // imp_uid를 환불 `unique key`로 입력
+      amount: paid_amount, // 가맹점 클라이언트로부터 받은 환불금액
+      checksum: cancelableAmount, // [권장] 환불 가능 금액 입력
+    },
+  });
+
+  const { response } = getCancelData.data;
+  const { merchant_uid: iamport_merchant_uid, status, cancelled_at } = response;
+
+  if (merchant_uid !== iamport_merchant_uid) {
+    return res.status(500).json({
+      message:
+        "환불결과: DB merchant_uid와 iamport merchant_uid가 일치하지 않습니다.",
+      authInfo,
+    });
+  }
+
+  let dataToUpdate = {
+    status,
+    cancel_amount: paid_amount,
+  };
+
+  let result = await payDB.updatePaymentData(merchant_uid, dataToUpdate);
+  if (!result) return res.status(500).json({ message: "server error" });
+  if (typeof result === "string" && result.startsWith("error"))
+    return res.status(400).json({ message: "fail", result, authInfo });
+
+  return res.status(200).json({ message: "success", status: 200, authInfo });
 });
 
 module.exports = router;

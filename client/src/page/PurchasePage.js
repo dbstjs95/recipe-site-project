@@ -6,7 +6,8 @@ import { ContainerStyle } from "../css";
 import { class_info } from "../mockData/class_detail";
 import { user_info } from "../mockData/user_data";
 import Payment from "../components/Payment";
-import { useQueryClient, useQuery } from "react-query";
+import Certification from "../components/Certification";
+import { useQueryClient, useQuery, useMutation } from "react-query";
 import { useSetAuth } from "../contexts/AuthContext";
 import axios from "axios";
 
@@ -151,13 +152,36 @@ const InnerContainer = styled.ul`
           box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
           border: 1px solid lightgray;
           border-radius: 3px;
-          @media screen and (max-width: 400px) {
+          @media screen and (max-width: 420px) {
             width: 100%;
             font-size: 15px;
           }
-          &[type="tel"] {
-            margin-bottom: 10px;
+        }
+        .telBox {
+          /* border: 1px solid red; */
+          margin-bottom: 10px;
+          input {
+            margin-right: 10px;
           }
+
+          @media screen and (max-width: 420px) {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+            align-items: flex-start;
+            input {
+              margin-right: 0px;
+              margin-bottom: 10px;
+            }
+            button {
+              align-self: flex-end;
+              margin-right: 5px;
+            }
+          }
+        }
+
+        input[type="email"],
+        .telBox {
         }
       }
       &.pay {
@@ -184,7 +208,8 @@ function PurchasePage({ setHeader }) {
   const setAuth = useSetAuth();
 
   const { classId } = useParams();
-  let purpose = location?.state?.use;
+  // let purpose = location?.state?.use;
+  let purpose = "afterPay";
 
   const classData = queryClient.getQueryData(["class", classId]);
   const user = queryClient.getQueryData("login");
@@ -224,16 +249,19 @@ function PurchasePage({ setHeader }) {
                 <em>주문자</em> 정보
               </h2>
               <div className="orderer">
-                <input
-                  type="tel"
-                  placeholder="핸드폰번호(ex: 01012345678)"
-                  onChange={(e) =>
-                    setPaymentData((prev) => ({
-                      ...prev,
-                      buyer_tel: String(e.target.value),
-                    }))
-                  }
-                />
+                <div className="telBox">
+                  <input
+                    type="tel"
+                    placeholder="핸드폰번호(ex: 01012345678)"
+                    onChange={(e) =>
+                      setPaymentData((prev) => ({
+                        ...prev,
+                        buyer_tel: String(e.target.value),
+                      }))
+                    }
+                  />
+                  <Certification />
+                </div>
                 <input
                   type="email"
                   placeholder="이메일"
@@ -258,7 +286,7 @@ function PurchasePage({ setHeader }) {
           </>
         ) : (
           purpose === "afterPay" && (
-            <AfterPay setHeader={setHeader} user={user} />
+            <AfterPay setHeader={setHeader} user={user} classData={classData} />
           )
         )}
       </InnerContainer>
@@ -274,15 +302,27 @@ function PurchasePage({ setHeader }) {
   );
 }
 
-function AfterPay({ setHeader, user }) {
+function AfterPay({ setHeader, user, classData }) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
 
   let paymentId = location?.state?.paymentId;
+  const [Refundable, setRefundable] = useState(true);
 
-  const { data, isLoading, isError } = useQuery(
+  const isValid = (deadline) => {
+    let diff_ms = new Date(deadline).getTime() - new Date().getTime();
+    let diff_d = Math.floor(diff_ms / (1000 * 60 * 60 * 24));
+    if (diff_d < 1) return false;
+    return true;
+  };
+
+  const {
+    data: paymentData,
+    isLoading,
+    isError,
+  } = useQuery(
     ["getPaymentInfo", paymentId],
     async () => {
       let result = await axios
@@ -294,6 +334,14 @@ function AfterPay({ setHeader, user }) {
       return result;
     },
     {
+      onSuccess: () => {
+        let deadline = classData?.deadline;
+        if (!deadline) return console.error("에러: 데드라인 정보가 없습니다.");
+        if (!isValid(deadline)) {
+          setRefundable(false);
+          return alert("환불 가능 기간이 아닙니다.");
+        }
+      },
       onError: (err) => {
         console.error(err);
         let result = err?.response?.data;
@@ -320,14 +368,52 @@ function AfterPay({ setHeader, user }) {
     }
   );
 
+  const { mutate } = useMutation(
+    (uid) =>
+      axios
+        .post(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/pay/${paymentId}/cancel`,
+          uid,
+          setHeader(user?.token, user?.authType)
+        )
+        .then((res) => res.data),
+    {
+      onSuccess: (data) => {
+        if (data?.status === 200) {
+          queryClient.invalidateQueries(["getPaymentInfo", paymentId]);
+        }
+      },
+      onError: (err) => {},
+      onSettled: (data, err) => {},
+    }
+  );
+
+  const handelClickCancel = () => {
+    if (!Refundable) return;
+    if (!classData?.deadline) return alert("에러: 데드라인 정보가 없습니다.");
+    if (!isValid(classData?.deadline)) {
+      setRefundable(false);
+      return alert("환불 가능 기간이 아닙니다.");
+    }
+
+    let merchant_uid = paymentData?.payment?.merchant_uid;
+    mutate({ reason: "원데이 클래스 신청 취소", merchant_uid });
+  };
+
   if (isLoading) return <div>loading...</div>;
   if (isError) return <div>error...</div>;
 
   return (
     <AfterContainer>
       <p>구매가 완료되었습니다.</p>
-      <span>{data?.payment?.created_at}</span>
-      <button>구매 취소</button>
+      <span>{paymentData?.payment?.created_at}</span>
+      <button
+        onClick={handelClickCancel}
+        disabled={!Refundable}
+        className={Refundable ? "" : "inactive"}
+      >
+        {Refundable ? "구매 취소" : "구매 취소 불가"}
+      </button>
     </AfterContainer>
   );
 }
@@ -359,8 +445,15 @@ const AfterContainer = styled.li`
     padding: 5px 10px;
     font-size: 0.9rem;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
     &:hover {
       box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
+    }
+    &.inactive {
+      cursor: not-allowed;
+      &:hover {
+        box-shadow: inset 0 0 0px rgba(0, 0, 0, 0.1);
+      }
     }
   }
 `;

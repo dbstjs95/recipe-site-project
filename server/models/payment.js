@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       merchant_uid: DataTypes.STRING,
       pay_method: DataTypes.STRING,
       paid_amount: DataTypes.INTEGER,
+      cancel_amount: DataTypes.INTEGER,
       status: DataTypes.STRING,
     },
     {

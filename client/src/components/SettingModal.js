@@ -51,7 +51,7 @@ function SettingModal() {
   const user = queryClient.getQueryData("login");
 
   const handleGoLogin = () => {
-    let current = location.pathname;
+    let current = location.pathname + location?.search;
     localStorage.setItem("beforeLogin", current);
     navigate("/user/login");
   };
