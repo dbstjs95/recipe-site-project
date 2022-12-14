@@ -208,19 +208,28 @@ function PurchasePage({ setHeader }) {
   const setAuth = useSetAuth();
 
   const { classId } = useParams();
-  // let purpose = location?.state?.use;
-  let purpose = "afterPay";
+  let purpose = location?.state?.use;
 
-  const classData = queryClient.getQueryData(["class", classId]);
   const user = queryClient.getQueryData("login");
 
+  const [ClassData, setClassData] = useState({});
   const [PaymentData, setPaymentData] = useState({
-    amount: classData?.price,
+    amount: ClassData?.price,
     name: `원데이 클래스-${classId}`,
     buyer_name: user?.userInfo?.nickname,
     buyer_tel: "",
     buyer_email: user?.userInfo?.email,
   });
+
+  useEffect(() => {
+    const classData = queryClient.getQueryData(["class", classId]);
+    if (classData) {
+      setClassData({ ...classData });
+    } else {
+      let classData = location?.state?.classData;
+      setClassData({ ...classData });
+    }
+  }, []);
 
   const convertString = (num) => Number(num).toLocaleString();
 
@@ -233,11 +242,11 @@ function PurchasePage({ setHeader }) {
             <em>클래스</em> 정보
           </h2>
           <div className="class">
-            <img src={classData?.header_img} alt="클래스 이미지" />
+            <img src={ClassData?.header_img} alt="클래스 이미지" />
             <div>
-              <h3>{classData?.header_title}</h3>
+              <h3>{ClassData?.header_title}</h3>
               <span>
-                <em>{convertString(classData?.price)}</em>원
+                <em>{convertString(ClassData?.price)}</em>원
               </span>
             </div>
           </div>
@@ -286,7 +295,7 @@ function PurchasePage({ setHeader }) {
           </>
         ) : (
           purpose === "afterPay" && (
-            <AfterPay setHeader={setHeader} user={user} classData={classData} />
+            <AfterPay setHeader={setHeader} user={user} classData={ClassData} />
           )
         )}
       </InnerContainer>
@@ -310,9 +319,14 @@ function AfterPay({ setHeader, user, classData }) {
 
   let paymentId = location?.state?.paymentId;
   const [Refundable, setRefundable] = useState(true);
+  const [Status, setStatus] = useState("paid");
 
-  const isValid = (deadline) => {
-    let diff_ms = new Date(deadline).getTime() - new Date().getTime();
+  const isValid = (dateTime) => {
+    let now = new Date().getTime();
+    let deadline = new Date(dateTime).getTime();
+    if (now >= deadline) return false;
+
+    let diff_ms = deadline - now;
     let diff_d = Math.floor(diff_ms / (1000 * 60 * 60 * 24));
     if (diff_d < 1) return false;
     return true;
@@ -334,12 +348,16 @@ function AfterPay({ setHeader, user, classData }) {
       return result;
     },
     {
-      onSuccess: () => {
-        let deadline = classData?.deadline;
-        if (!deadline) return console.error("에러: 데드라인 정보가 없습니다.");
-        if (!isValid(deadline)) {
-          setRefundable(false);
-          return alert("환불 가능 기간이 아닙니다.");
+      onSuccess: (data) => {
+        let status = data?.payment?.status;
+        setStatus(status);
+        if (status === "paid") {
+          let deadline = classData?.deadline;
+          if (!deadline)
+            return console.error("에러: 데드라인 정보가 없습니다.");
+          if (!isValid(deadline)) {
+            setRefundable(false);
+          }
         }
       },
       onError: (err) => {
@@ -405,15 +423,26 @@ function AfterPay({ setHeader, user, classData }) {
 
   return (
     <AfterContainer>
-      <p>구매가 완료되었습니다.</p>
-      <span>{paymentData?.payment?.created_at}</span>
-      <button
-        onClick={handelClickCancel}
-        disabled={!Refundable}
-        className={Refundable ? "" : "inactive"}
-      >
-        {Refundable ? "구매 취소" : "구매 취소 불가"}
-      </button>
+      {Status === "paid" ? (
+        <>
+          <p>구매가 완료되었습니다.</p>
+          <span>{paymentData?.payment?.created_at}</span>
+          <button
+            onClick={handelClickCancel}
+            disabled={!Refundable}
+            className={Refundable ? "" : "inactive"}
+          >
+            {Refundable ? "구매 취소" : "구매 취소 불가"}
+          </button>
+        </>
+      ) : (
+        Status === "cancelled" && (
+          <>
+            <p>구매 취소 완료</p>
+            <span>{paymentData?.payment?.updated_at}</span>
+          </>
+        )
+      )}
     </AfterContainer>
   );
 }

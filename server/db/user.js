@@ -1,4 +1,4 @@
-const { User, Recipe, Like } = require("../models");
+const { User, Recipe, Like, Class, Payment } = require("../models");
 const { Op, fn, col, literal } = require("sequelize");
 
 async function findUserById(type, id) {
@@ -163,6 +163,54 @@ async function getMyLikes(userId, offset, limit) {
   }
 }
 
+async function getPaidClassList(userId, offset, limit) {
+  // Payment에서 user_id가 userId, status가 'paid'인 class_id를 최신순으로... (id, class_id)
+  // 추출한 class_id의 Class 정보 추출하기(src, title, price)
+  // offset이 0일 때, count 보내기
+  try {
+    let paymentRst = await Payment.findAll({
+      where: { user_id: userId, status: "paid" },
+      attributes: ["class_id", ["id", "payment_id"]],
+      order: [["id", "DESC"]],
+    });
+
+    if (!paymentRst) return "error: paymentRst";
+
+    let classIds = paymentRst.map((item) => item?.dataValues?.class_id);
+
+    let classRst = await Class.findAll({
+      where: { id: classIds },
+      attributes: [
+        ["header_img", "src"],
+        ["header_title", "title"],
+        "price",
+        "deadline",
+      ],
+      order: [[fn("field", col("id"), ...classIds), "ASC"]],
+      offset,
+      limit,
+    });
+
+    if (!classRst) return "error: classRst";
+
+    let result = classRst.map((item, idx) => {
+      let temp = item?.dataValues;
+      temp = { ...paymentRst[idx]?.dataValues, ...temp };
+      return temp;
+    });
+
+    if (offset === 0) {
+      let count = result.length;
+      return { message: "success", count, list: result };
+    } else {
+      return { message: "success", list: result };
+    }
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 module.exports = {
   findUserById,
   findUserByUserId,
@@ -171,4 +219,5 @@ module.exports = {
   deleteUser,
   getMyRecipeList,
   getMyLikes,
+  getPaidClassList,
 };

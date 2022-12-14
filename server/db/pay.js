@@ -29,6 +29,10 @@ async function findPaymentData(id, merchant_uid = null) {
           fn("DATE_FORMAT", col("Payment.createdAt"), "%Y-%m-%d %H:%i:%s"),
           "created_at",
         ],
+        [
+          fn("DATE_FORMAT", col("Payment.updatedAt"), "%Y-%m-%d %H:%i:%s"),
+          "updated_at",
+        ],
       ],
     });
 

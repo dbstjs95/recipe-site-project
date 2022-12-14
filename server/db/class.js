@@ -6,6 +6,7 @@ const {
   Class_food,
   Class_party,
   Class_comment,
+  Payment,
 } = require("../models");
 const moment = require("moment");
 
@@ -23,7 +24,7 @@ async function getClassList(category, offset, limit) {
       });
     }
 
-    let result = await Class.findAll({
+    let temp = await Class.findAll({
       where: {
         category: {
           [Op.like]: category === "전체" ? "%" : `%${category}%`,
@@ -35,18 +36,23 @@ async function getClassList(category, offset, limit) {
         ["header_title", "title"],
         "price",
         "deadline",
-        [fn("COUNT", col("Class.id")), "sales"],
       ],
       include: [
         {
-          model: Class_party,
-          attributes: [],
+          model: Payment,
+          attributes: ["id"],
         },
       ],
-      group: ["Class.id"],
       order: [["deadline"]],
       offset: offset,
       limit: limit,
+    });
+
+    let result = temp.map((item) => {
+      let classItem = item.dataValues;
+      let sales = item?.Payments?.length;
+      delete classItem?.Payments;
+      return { ...classItem, sales };
     });
 
     if (offset === 0) {
@@ -62,7 +68,7 @@ async function getClassList(category, offset, limit) {
 // https://sebhastian.com/sequelize-date-format/
 async function getClass(id, user_id) {
   try {
-    let parties = await Class_party.findAll({
+    let parties = await Payment.findAll({
       where: {
         class_id: id,
       },

@@ -10,11 +10,13 @@ import class09 from "../assets/class_img/9.jpg";
 
 export const classes = [
   {
+    id: 1,
     src: class01,
     title:
       "감각적인 나만의 디저트! 빵선생의 홈베이킹 클래스 [캐러멜무스타르트 편]",
     price: 30000,
     sales: 90,
+    paymentId: 1,
   },
   {
     src: class02,

@@ -150,7 +150,8 @@ function ClassImgBox({ data, user }) {
       return navigate("/user/login");
     }
 
-    return navigate("pay", { state: { use: "pay" } });
+    // return navigate("pay", { state: { use: "pay" } });
+    return navigate("pay", { state: { use: "afterPay", paymentId: 1 } });
   };
 
   let price = Number(data?.price).toLocaleString();

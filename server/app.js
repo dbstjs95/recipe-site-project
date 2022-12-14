@@ -1,5 +1,5 @@
 const express = require("express");
-const { sequelize } = require("./models");
+const { sequelize, User } = require("./models");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
@@ -43,14 +43,23 @@ app.use(
 app.use(cookieParser());
 
 app.use("/v1", require("./routes"));
-app.get("/test", (req, res) => {
-  // https에서만 가능(SameSite=None;Secure)
-  // res.setHeader("Set-Cookie", "test=1234;HttpOnly;SameSite=None;Secure");
-  let { data } = req.query;
-  setTimeout(() => res.status(200).json({ test: 123, data }), 3000);
+// app.get("/test", async (req, res) => {
+//   // https에서만 가능(SameSite=None;Secure)
+//   // res.setHeader("Set-Cookie", "test=1234;HttpOnly;SameSite=None;Secure");
+//   let user_id = 1;
+//   let result = await User.findByPk(user_id);
+//   res.status(200).json({ message: "success", result });
+// });
+// app.post("/test", async (req, res) => {
+//   let user_id = 1;
+//   let { nickname } = req.body;
+//   if (!nickname) return res.status(400).json({ message: "nickname 없음" });
 
-  // res.status(400).json({ test: 568 });
-});
+//   let result = await User.update({ nickname }, { where: { id: user_id } });
+//   if (!result) return res.status(500).json({ message: "update 실패" });
+
+//   res.status(200).json({ message: "success" });
+// });
 
 app.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);

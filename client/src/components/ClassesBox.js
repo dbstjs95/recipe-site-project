@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
 import { classes } from "../mockData/class_list";
 import { Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "react-query";
+import { useSetAuth } from "../contexts/AuthContext";
+import axios from "axios";
 
 export const LiStyleForClass = css`
   > div.container {
@@ -145,11 +148,53 @@ export function ClassesInnerBox({ data = [] }) {
   );
 }
 
-function ClassesBox({ children }) {
-  const totalSlide = classes.length;
+function ClassesBox({ children, setHeader }) {
+  const queryClient = useQueryClient();
+  const setAuth = useSetAuth();
+
   const classRef = useRef(null);
+  const [TotalSlide, setTotalSlide] = useState(0);
   const [SlideState, setSlideState] = useState(0);
   const [MaxState, setMaxState] = useState(null);
+
+  const user = queryClient.getQueryData("login");
+
+  const {
+    data: listData,
+    isLoading,
+    isError,
+  } = useQuery(
+    ["classList", "main"],
+    async () => {
+      let result = await axios
+        .get(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/class?category=전체&offset=0&limit=12`,
+          setHeader(user?.token, user?.authType)
+        )
+        .then((res) => res.data);
+
+      if (user && result?.authInfo) {
+        let { isAuth, newToken } = result?.authInfo;
+        if (!isAuth) {
+          setAuth((prev) => false);
+          queryClient.removeQueries("login");
+        } else if (isAuth && newToken) {
+          queryClient.setQueryData("login", (prev) => ({
+            ...prev,
+            token: newToken,
+          }));
+        }
+      }
+
+      if (result?.status === 200) {
+        let count = result?.list?.length;
+        setTotalSlide(count);
+        return result?.list;
+      }
+      return null;
+    },
+    { refetchOnWindowFocus: false }
+  );
 
   const handlePrev = () =>
     setSlideState((prev) => {
@@ -172,11 +217,11 @@ function ClassesBox({ children }) {
     let size = window.innerWidth;
 
     if (size <= 600) {
-      setMaxState(totalSlide - 1);
+      setMaxState(TotalSlide - 1);
     } else if (size <= 960) {
-      setMaxState(Math.ceil(totalSlide / 2) - 1);
+      setMaxState(Math.ceil(TotalSlide / 2) - 1);
     } else {
-      setMaxState(Math.ceil(totalSlide / 3) - 1);
+      setMaxState(Math.ceil(TotalSlide / 3) - 1);
     }
   };
 
@@ -193,7 +238,10 @@ function ClassesBox({ children }) {
     return () => {
       window.removeEventListener("resize", resizeEvent);
     };
-  }, []);
+  });
+
+  if (isLoading) return <div>loading...</div>;
+  if (isError) return <div>error...</div>;
 
   return (
     <ClassSection>
@@ -214,7 +262,7 @@ function ClassesBox({ children }) {
           &gt;
         </button>
         <UlContainer ref={classRef}>
-          <ClassesInnerBox />
+          <ClassesInnerBox data={listData} />
         </UlContainer>
       </div>
     </ClassSection>

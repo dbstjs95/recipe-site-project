@@ -110,13 +110,13 @@ function HomePage({ setHeader }) {
       <ClassifyBox>
         <ClassifyHeader>레시피 분류</ClassifyHeader>
       </ClassifyBox>
-      {/* <RecipeListBox data={rcpData} use="best">
+      <RecipeListBox data={rcpData} use="best">
         <BestHeader>
           베스트 레시피
           <Link to="/recipes?type=best">더보기</Link>
         </BestHeader>
-      </RecipeListBox> */}
-      <ClassesBox>
+      </RecipeListBox>
+      <ClassesBox setHeader={setHeader}>
         <ClassesBoxHeader>
           요리 클래스
           <Link to="/classes">더보기</Link>

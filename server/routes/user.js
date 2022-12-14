@@ -281,4 +281,28 @@ router.post("/logout", userAuth, async (req, res) => {
   return res.status(200).json({ message: "success", status: 200 });
 });
 
+// 클래스 구매 목록
+router.get("/classes", userAuth, async (req, res) => {
+  let authInfo = req?.authInfo;
+  let userId = req?.user?.id;
+
+  let { offset = 0, limit = 15 } = req.query;
+
+  let result = await userDB.getPaidClassList(
+    userId,
+    Number(offset),
+    Number(limit)
+  );
+
+  if (!result)
+    return res.status(500).json({ message: "server error", authInfo });
+
+  if (typeof result === "string" && result?.startsWith("error"))
+    return res.status(400).json({ message: "fail", result, authInfo });
+
+  result.status = 200;
+  result.authInfo = authInfo;
+  return res.status(200).json(result);
+});
+
 module.exports = router;
