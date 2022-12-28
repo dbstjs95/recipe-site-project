@@ -23,6 +23,32 @@ export default function (SpecificComponent, option = null) {
     };
 
     useEffect(() => {
+      let current = location.pathname;
+      let search = location.search;
+
+      if (current !== "/classes") {
+        queryClient.removeQueries(["classList"]);
+      }
+
+      if (current !== "/recipes") {
+        queryClient.removeQueries(["recipeList"]);
+      }
+
+      if (current !== "mypage/like") {
+        queryClient.removeQueries(["myLikeList"]);
+      }
+
+      if (current !== "/mypage/class") {
+        queryClient.removeQueries(["getPurchasedList"]);
+      }
+
+      if (current + search !== "/mypage/recipe?type=public") {
+        queryClient.removeQueries(["myRecipeList", "public"]);
+      }
+      if (current + search !== "/mypage/recipe?type=private") {
+        queryClient.removeQueries(["myRecipeList", "private"]);
+      }
+
       if (loginData?.token) {
         setAuth((prev) => true);
       }
@@ -36,8 +62,7 @@ export default function (SpecificComponent, option = null) {
           );
 
           if (check) {
-            let current = location.pathname;
-            localStorage.setItem("beforeLogin", current);
+            localStorage.setItem("beforeLogin", current + search);
             return navigate("/user/login");
           } else {
             return navigate(-1);

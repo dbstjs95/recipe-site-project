@@ -7,9 +7,9 @@ import ClassifyBox from "../components/ClassifyBox";
 import RecipeListBox from "../components/RecipeListBox";
 import ClassesBox from "../components/ClassesBox";
 import { LayoutSize } from "../css";
-import recipeList from "../mockData/recipe_list";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { useSetAuth } from "../contexts/AuthContext";
+import { Loading, Error } from "../components/States";
 
 const ENV = process.env;
 
@@ -70,8 +70,9 @@ function HomePage({ setHeader }) {
     data: rcpData,
     isLoading,
     isError,
+    isFetching,
   } = useQuery(
-    ["recipeList", "best"],
+    ["bestRecipes"],
     async () => {
       let result = await axios
         .get(
@@ -101,8 +102,8 @@ function HomePage({ setHeader }) {
     { refetchOnWindowFocus: false }
   );
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (isLoading) return <Loading height="75vh" type="dots" />;
+  if (isError) return <Error />;
 
   return (
     <Container>
@@ -110,7 +111,7 @@ function HomePage({ setHeader }) {
       <ClassifyBox>
         <ClassifyHeader>레시피 분류</ClassifyHeader>
       </ClassifyBox>
-      <RecipeListBox data={rcpData} use="best">
+      <RecipeListBox data={rcpData} use="best" isFetching={isFetching}>
         <BestHeader>
           베스트 레시피
           <Link to="/recipes?type=best">더보기</Link>

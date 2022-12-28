@@ -30,7 +30,7 @@ const PayButton = styled.div`
 `;
 
 // https://github.com/iamport/iamport-react-example/blob/master/manuals/PAYMENT.md
-function Payment({ PaymentData = {}, setHeader, classId, user }) {
+function Payment({ PaymentData = {}, setHeader, classId, user, handleLoader }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
@@ -38,6 +38,7 @@ function Payment({ PaymentData = {}, setHeader, classId, user }) {
   const { amount, name, buyer_name, buyer_tel, buyer_email } = PaymentData;
 
   const handleCheck = async () => {
+    handleLoader(true);
     let emailCheck =
       /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -45,10 +46,12 @@ function Payment({ PaymentData = {}, setHeader, classId, user }) {
     let telCheck = /^01([0|1|6|7|8|9])([0-9]{7,8})$/;
 
     if (!buyer_email || !emailCheck.test(buyer_email)) {
+      handleLoader(false);
       return alert("올바른 이메일 형식이 아닙니다.");
     }
 
     if (!buyer_tel || !telCheck.test(buyer_tel)) {
+      handleLoader(false);
       return alert("올바른 핸드폰 번호 형식이 아닙니다.");
     }
 
@@ -72,6 +75,7 @@ function Payment({ PaymentData = {}, setHeader, classId, user }) {
         setAuth((prev) => false);
         queryClient.removeQueries("login");
         alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+        handleLoader(false);
         return navigate("/user/login");
       } else if (isAuth && newToken) {
         queryClient.setQueryData("login", (prev) => ({
@@ -81,8 +85,9 @@ function Payment({ PaymentData = {}, setHeader, classId, user }) {
       }
     }
 
-    if (response?.status !== 200) return;
+    if (response?.status !== 200) return handleLoader(false);
     if (!response?.isChecked) {
+      handleLoader(false);
       return alert("가격 위조 시도가 발생했습니다.");
     }
 
@@ -135,9 +140,7 @@ function Payment({ PaymentData = {}, setHeader, classId, user }) {
         .then((res) => res.data)
         .catch((err) => {
           console.error(err);
-          let result = err?.response?.data;
-          alert(`결제정보 저장 실패: ${result?.message}`);
-          return result;
+          return err?.response?.data;
         });
 
       if (user && response?.authInfo) {
@@ -146,6 +149,7 @@ function Payment({ PaymentData = {}, setHeader, classId, user }) {
           setAuth((prev) => false);
           queryClient.removeQueries("login");
           alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+          handleLoader(false);
           return navigate("/user/login");
         } else if (isAuth && newToken) {
           queryClient.setQueryData("login", (prev) => ({
@@ -157,12 +161,38 @@ function Payment({ PaymentData = {}, setHeader, classId, user }) {
 
       if (response?.status === 200) {
         // 결제정보가 잘 저장되었으니, 결제완료페이지로 이동해야함.
+        handleLoader(false);
         return navigate("", {
           state: { use: "afterPay", paymentId: response?.paymentId },
         });
+      } else {
+        // 결제정보 저장 실패 --> 결제취소하기
+        let failMsg = response?.message;
+        alert(`결제정보 저장 실패: ${failMsg}`);
+
+        let cancelRes = await axios
+          .post(`${process.env.REACT_APP_OUR_SERVER_URI}/pay/fail/${classId}`, {
+            reason: "클래스 결제정보 서버 저장 실패",
+            imp_uid,
+            amount: paid_amount,
+          })
+          .then((res) => res.data)
+          .catch((err) => {
+            console.error(err);
+            return err?.response?.data;
+          });
+
+        if (cancelRes?.message === "success") {
+          handleLoader(false);
+          alert("결제가 취소되었습니다.");
+        } else {
+          handleLoader(false);
+          alert(`결제취소 실패: ${cancelRes?.message}`);
+        }
       }
     } else {
-      alert(`결제 실패: ${error_msg}`);
+      handleLoader(false);
+      alert(`카카오페이 결제 실패: ${error_msg}`);
     }
   }
 

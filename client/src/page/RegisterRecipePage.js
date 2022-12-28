@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import styled, { css } from "styled-components";
 import { LayoutSize, ContainerStyle } from "../css";
 import {
@@ -329,15 +329,22 @@ function RegisterRecipePage({ setHeader, myRecipeData, modifyMode }) {
     });
   };
 
+  // 확인용
+  // useEffect(() => {
+  //   console.log("InputData: ", InputData);
+  //   console.log("Files: ", Files);
+  //   console.log("BeforeDelete: ", BeforeDelete);
+  // }, [InputData, Files, BeforeDelete]);
+
   return (
     <Container>
       <h1>레시피 등록</h1>
       <InputBox>
         <IntroContainer
           mainSrc={
-            InputData.mainSrc.startsWith(FileFirst)
-              ? `${bucketUrl}${InputData.mainSrc}`
-              : InputData.mainSrc
+            InputData?.mainSrc?.startsWith(FileFirst)
+              ? `${bucketUrl}${InputData?.mainSrc}`
+              : InputData?.mainSrc
           }
         >
           <ul id="input_info">
@@ -347,7 +354,7 @@ function RegisterRecipePage({ setHeader, myRecipeData, modifyMode }) {
                 type="text"
                 name="title"
                 placeholder="예) 매콤 달달 부산 떡볶이 만들기"
-                defaultValue={InputData.title}
+                defaultValue={InputData?.title}
                 onChange={handleInputChange}
               />
             </li>
@@ -355,7 +362,7 @@ function RegisterRecipePage({ setHeader, myRecipeData, modifyMode }) {
               <h2>요리 간단소개</h2>
               <textarea
                 name="intro"
-                defaultValue={InputData.intro}
+                defaultValue={InputData?.intro}
                 onChange={handleInputChange}
               />
             </li>
@@ -365,7 +372,7 @@ function RegisterRecipePage({ setHeader, myRecipeData, modifyMode }) {
                 <select
                   key={idx}
                   name="category"
-                  defaultValue={InputData.category[idx]}
+                  defaultValue={InputData?.category[idx]}
                   onChange={(e) => handleInputChange(e, idx)}
                 >
                   {data[prop].map((item, idx) => (
@@ -382,7 +389,7 @@ function RegisterRecipePage({ setHeader, myRecipeData, modifyMode }) {
                 <select
                   key={idx}
                   name="details"
-                  defaultValue={InputData.details[idx]}
+                  defaultValue={InputData?.details[idx]}
                   onChange={(e) => handleInputChange(e, idx)}
                 >
                   {data[prop].map((item, idx) => (

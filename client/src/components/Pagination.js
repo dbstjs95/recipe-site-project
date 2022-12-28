@@ -46,6 +46,7 @@ function Pagination({
   dataLimit = 20,
   pageLimit = 10,
   setPagingInfo,
+  PagingInfo,
 }) {
   const [Offset, setOffset] = useState(0);
   const [Selected, setSelected] = useState(1);
@@ -53,7 +54,9 @@ function Pagination({
   const PAGE_LIMIT = pageLimit;
   const TOTAL_PAGE = Math.ceil(Number(totalData) / DATA_LIMIT);
   const LAST_PAGE =
-    (Math.ceil(Number(TOTAL_PAGE) / PAGE_LIMIT) - 1) * PAGE_LIMIT;
+    TOTAL_PAGE === 0
+      ? 0
+      : (Math.ceil(Number(TOTAL_PAGE) / PAGE_LIMIT) - 1) * PAGE_LIMIT;
 
   const num_list = Array(TOTAL_PAGE)
     .fill(0)
@@ -82,6 +85,11 @@ function Pagination({
     let offset = DATA_LIMIT * (Number(Selected) - 1);
     setPagingInfo((prev) => ({ ...prev, offset }));
   }, [Selected]);
+
+  useEffect(() => {
+    if (!PagingInfo) return;
+    if (PagingInfo?.offset === 0) setSelected(1);
+  }, [PagingInfo]);
 
   return (
     <>

@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
-import { classes } from "../mockData/class_list";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "react-query";
 import { useSetAuth } from "../contexts/AuthContext";
 import axios from "axios";
+import { bucketUrl } from "../api/fileUpload";
+import { Fetching, Loading, Error } from "./States";
 
 export const LiStyleForClass = css`
   > div.container {
@@ -51,6 +52,7 @@ export const LiStyleForClass = css`
 `;
 
 const ClassSection = styled.section`
+  position: relative;
   div.hide-box {
     width: 95%;
     margin: 0 auto;
@@ -133,7 +135,7 @@ export function ClassesInnerBox({ data = [] }) {
           <li key={idx}>
             <div className="container">
               <Link to={`/classes/${item?.class_id}`}>
-                <ImgBox imgSrc={item?.src} />
+                <ImgBox imgSrc={bucketUrl + item?.src} />
                 <p className="title">{item?.title}</p>
                 <p className="details">
                   <span className="price">{refinedPrice}원</span>
@@ -163,8 +165,9 @@ function ClassesBox({ children, setHeader }) {
     data: listData,
     isLoading,
     isError,
+    isFetching,
   } = useQuery(
-    ["classList", "main"],
+    ["mainClasses"],
     async () => {
       let result = await axios
         .get(
@@ -240,11 +243,14 @@ function ClassesBox({ children, setHeader }) {
     };
   });
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (isLoading) return <Loading height="30vh" size="70" type="dots" />;
+  if (isError) return <Error height="40vh" />;
 
   return (
     <ClassSection>
+      {isFetching && (
+        <Fetching position="absolute" size="50" color="lightgray" bgColor="" />
+      )}
       {children}
       <div className="hide-box">
         <button

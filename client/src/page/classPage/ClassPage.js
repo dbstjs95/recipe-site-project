@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -9,7 +9,6 @@ import {
   faClock,
 } from "@fortawesome/free-solid-svg-icons";
 import { DetailPageLayout } from "../recipepage/RecipePage";
-import { class_info } from "../../mockData/class_detail";
 import ClassImgBox from "../../components/ClassImgBox";
 import {
   ClassMainIntro,
@@ -20,6 +19,7 @@ import CommentDetailCommnets from "../../components/RecipeDetailComments";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../../contexts/AuthContext";
+import { Error, Loading } from "../../components/States";
 
 const Container = styled.div`
   > div {
@@ -98,9 +98,10 @@ function AdditionalInfo({ data }) {
 }
 
 function ClassPage({ setHeader }) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
-  const { classId } = useParams();
+  const classId = Number(useParams()?.classId);
 
   const user = queryClient.getQueryData("login");
 
@@ -108,6 +109,7 @@ function ClassPage({ setHeader }) {
     data: classData,
     isLoading,
     isError,
+    isFetching,
   } = useQuery(
     ["class", classId],
     async () => {
@@ -116,7 +118,8 @@ function ClassPage({ setHeader }) {
           `${process.env.REACT_APP_OUR_SERVER_URI}/class/${classId}`,
           setHeader(user?.token, user?.authType)
         )
-        .then((res) => res.data);
+        .then((res) => res.data)
+        .catch((err) => err?.response?.data);
 
       if (user && result?.authInfo) {
         let { isAuth, newToken } = result?.authInfo;
@@ -133,17 +136,19 @@ function ClassPage({ setHeader }) {
 
       if (result?.status === 200) {
         return result?.class;
+      } else {
+        alert(result?.message || "에러가 발생했습니다.");
+        navigate(-1);
+        throw new Error("에러 발생");
       }
-
-      return null;
     },
     {
       refetchOnWindowFocus: false,
     }
   );
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (isFetching) return <Loading type="dots" height="75vh" />;
+  if (isError) return <Error />;
 
   return (
     <Container>

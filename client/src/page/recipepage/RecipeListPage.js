@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import CategoryBox from "../../components/CategoryBox";
 import { LayoutSize, ContainerStyle } from "../../css";
-import recipeList from "../../mockData/recipe_list";
 import RecipeListBox from "../../components/RecipeListBox";
 import Pagination from "../../components/Pagination";
 import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../../contexts/AuthContext";
+import { Nodata, Loading, Fetching, Error } from "../../components/States";
 
 const Container = styled.div`
   ${LayoutSize}
@@ -76,22 +76,26 @@ function RecipeListPage({ setHeader }) {
   });
 
   const handleSortClick = (order) =>
-    setPagingInfo((prev) => ({ ...prev, order_by: order }));
+    setPagingInfo((prev) => ({ ...prev, order_by: order, offset: 0 }));
 
-  const {
-    data: listData,
-    isLoading,
-    isError,
-  } = useQuery(
+  const { data, isLoading, isError, isFetching } = useQuery(
     ["recipeList", PagingInfo],
     async ({ queryKey }) => {
       let { order_by, offset, limit, keyword, category } = queryKey[1];
+
+      let isExisted = queryClient.getQueryData(queryKey);
+      if (isExisted) {
+        if (offset === 0) setCount(isExisted?.count);
+        return isExisted;
+      }
+
       let result = await axios
         .get(
           `${process.env.REACT_APP_OUR_SERVER_URI}/recipe?list_type=classification&order_by=${order_by}&keyword=${keyword}&category=${category}&offset=${offset}&limit=${limit}`,
           setHeader(user?.token, user?.authType)
         )
-        .then((res) => res.data);
+        .then((res) => res.data)
+        .catch((err) => err?.response?.data);
 
       if (user && result?.authInfo) {
         let { isAuth, newToken } = result?.authInfo;
@@ -108,7 +112,10 @@ function RecipeListPage({ setHeader }) {
 
       if (result?.status === 200) {
         if (offset === 0) setCount(result?.count);
-        return result?.list;
+        return result;
+      } else {
+        alert(result?.message || "에러가 발생했습니다.");
+        throw new Error("에러 발생");
       }
     },
     { refetchOnWindowFocus: false, keepPreviousData: true }
@@ -143,50 +150,64 @@ function RecipeListPage({ setHeader }) {
     }));
   }, [search]);
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (isLoading) return <Loading height="75vh" type="dots" />;
+  if (isError) return <Error />;
 
   return (
-    <Container>
-      <div className="category">
-        <CategoryBox
-          state={IsOpen}
-          InitialCategory={InitialCategory}
-          setPagingInfo={setPagingInfo}
-        />
-      </div>
-      <div className="recipe_list">
-        <ul className="sort">
-          <li
-            className={`newest ${
-              PagingInfo?.order_by === "created_at" ? "selected" : ""
-            }`}
-            onClick={() => handleSortClick("created_at")}
-          >
-            최신순
-          </li>
-          <li
-            className={`like ${
-              PagingInfo?.order_by === "like" ? "selected" : ""
-            }`}
-            onClick={() => handleSortClick("like")}
-          >
-            추천순
-          </li>
-        </ul>
-        <ul id="recipe_list">
-          {/* <RecipeListBox data={recipeList} use="list" /> */}
-          <RecipeListBox data={listData} use="list" />
-        </ul>
-        <div id="pagination">
-          <Pagination
-            totalData={Count}
-            dataLimit={LIMIT}
+    <>
+      {isFetching && <Fetching size="90" />}
+      <Container>
+        <div className="category">
+          <CategoryBox
+            state={IsOpen}
+            InitialCategory={InitialCategory}
             setPagingInfo={setPagingInfo}
           />
         </div>
-      </div>
-    </Container>
+        <div className="recipe_list">
+          {Count > 0 ? (
+            <>
+              <ul className="sort">
+                <li
+                  className={`newest ${
+                    PagingInfo?.order_by === "created_at" ? "selected" : ""
+                  }`}
+                  onClick={() => handleSortClick("created_at")}
+                >
+                  최신순
+                </li>
+                <li
+                  className={`like ${
+                    PagingInfo?.order_by === "like" ? "selected" : ""
+                  }`}
+                  onClick={() => handleSortClick("like")}
+                >
+                  추천순
+                </li>
+              </ul>
+              <ul id="recipe_list">
+                <RecipeListBox data={data?.list} use="list" />
+              </ul>
+              <div id="pagination">
+                <Pagination
+                  totalData={Count}
+                  dataLimit={LIMIT}
+                  setPagingInfo={setPagingInfo}
+                  PagingInfo={PagingInfo}
+                />
+              </div>
+            </>
+          ) : (
+            <Nodata
+              height="50vh"
+              imgSize={{ w: "200px", h: "200px" }}
+              text="해당하는 레시피가 없습니다."
+              interval="20px"
+            />
+          )}
+        </div>
+      </Container>
+    </>
   );
 }
 

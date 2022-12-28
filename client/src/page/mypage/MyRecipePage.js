@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
-import recipeList from "../../mockData/recipe_list";
 import { Link, useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
 import queryString from "query-string";
@@ -10,8 +9,8 @@ import { useLocation, useOutletContext } from "react-router-dom";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../../contexts/AuthContext";
-
-const myRecipeData = [...recipeList].slice(0, 5);
+import { bucketUrl } from "../../api/fileUpload";
+import { Error, Nodata, Loading, Fetching } from "../../components/States";
 
 const barColor = "lightgray";
 
@@ -200,26 +199,39 @@ function MyRecipePage() {
   const { setHeader, user } = useOutletContext();
 
   const LIMIT = 10;
-  const [Count, setCount] = useState(0);
-  const [PagingInfo, setPagingInfo] = useState({
+  const INITIAL_PAGE_INFO = {
     order_by: "created_at",
     offset: 0,
     limit: LIMIT,
-  });
+  };
 
-  // const [Selected, setSelected] = useState(0);
-  // const [IsOpen, setIsOpen] = useState(false);
+  const [Count, setCount] = useState(0);
+  const [PagingInfo, setPagingInfo] = useState(INITIAL_PAGE_INFO);
 
   const handleOrderSelect = (value) =>
-    setPagingInfo((prev) => ({ ...prev, order_by: value }));
+    setPagingInfo({ order_by: value, offset: 0, limit: LIMIT });
+
+  const handleChangeType = (type) => {
+    setPagingInfo(INITIAL_PAGE_INFO);
+    navigate(`/mypage/recipe?type=${type}`);
+  };
 
   const LocaleStringfn = (num) => Number(num).toLocaleString();
 
-  const { data, isLoading, isError } = useQuery(
-    ["myRecipeList", PagingInfo, type],
+  const { data, isLoading, isError, isFetching } = useQuery(
+    ["myRecipeList", type, PagingInfo],
     async ({ queryKey }) => {
-      let { order_by, offset, limit } = queryKey[1];
-      let type = queryKey[2] === "public" ? 1 : 0;
+      if (queryKey[1] === "public") {
+        queryClient.removeQueries(["myRecipeList", "private"]);
+      } else {
+        queryClient.removeQueries(["myRecipeList", "public"]);
+      }
+
+      let isExisted = queryClient.getQueryData(queryKey);
+      if (isExisted) return isExisted;
+
+      let type = queryKey[1] === "public" ? 1 : 0;
+      let { order_by, offset, limit } = queryKey[2];
 
       let result = await axios
         .get(
@@ -228,100 +240,131 @@ function MyRecipePage() {
         )
         .then((res) => res.data);
 
-      if (user && result?.authInfo) {
-        let { isAuth, newToken } = result?.authInfo;
-        if (!isAuth) {
-          setAuth((prev) => false);
-          queryClient.removeQueries("login");
-        } else if (isAuth && newToken) {
-          queryClient.setQueryData("login", (prev) => ({
-            ...prev,
-            token: newToken,
-          }));
-        }
-      }
-
-      if (result?.status === 200) {
-        if (offset === 0) setCount(result?.count);
-        return result?.list;
-      }
+      return result;
     },
-    { refetchOnWindowFocus: false, keepPreviousData: true }
+    {
+      onSuccess: (data) => {
+        if (data?.status === 200 && PagingInfo?.offset === 0)
+          setCount(data?.count);
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+      onSettled: (data, error) => {
+        let result = data || error?.response?.data;
+        if (result?.authInfo) {
+          let { isAuth, newToken } = result?.authInfo;
+          if (!isAuth) {
+            setAuth((prev) => false);
+            queryClient.removeQueries("login");
+            alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+            return navigate("/user/login");
+          } else if (isAuth && newToken) {
+            queryClient.setQueryData("login", (prev) => ({
+              ...prev,
+              token: newToken,
+            }));
+          }
+        }
+      },
+      refetchOnWindowFocus: false,
+      keepPreviousData: true,
+    }
   );
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (PagingInfo?.offset === 0 && isFetching)
+    return <Loading height="75vh" type="dots" size="50" />;
+  if (isError) return <Error />;
 
   return (
-    <Container>
-      <Bar order={type === "public" ? [1, 2] : [2, 1]}>
-        <li onClick={() => navigate("/mypage/recipe?type=public")}>
-          <a>공개중</a>
-        </li>
-        <li onClick={() => navigate("/mypage/recipe?type=private")}>
-          <a>작성중</a>
-        </li>
-        {type === "public" && (
-          <div>
-            {["created_at", "like"].map((item, idx) => (
-              <span
-                key={idx}
-                className={PagingInfo?.order_by === item ? "active" : ""}
-                onClick={() => handleOrderSelect(item)}
-              >
-                {item === "like" ? "인기순" : "최신순"}
-                <em>
-                  <FontAwesomeIcon icon={faCheck} />
-                </em>
-              </span>
-            ))}
-          </div>
+    <>
+      <Container>
+        {isFetching && <Fetching />}
+        <Bar order={type === "public" ? [1, 2] : [2, 1]}>
+          <li onClick={() => handleChangeType("public")}>
+            <a>공개중</a>
+          </li>
+          <li onClick={() => handleChangeType("private")}>
+            <a>작성중</a>
+          </li>
+          {type === "public" && (
+            <div>
+              {["created_at", "like"].map((item, idx) => (
+                <span
+                  key={idx}
+                  className={PagingInfo?.order_by === item ? "active" : ""}
+                  onClick={() => handleOrderSelect(item)}
+                >
+                  {item === "like" ? "인기순" : "최신순"}
+                  <em>
+                    <FontAwesomeIcon icon={faCheck} />
+                  </em>
+                </span>
+              ))}
+            </div>
+          )}
+        </Bar>
+        {Count === 0 ? (
+          <Nodata
+            height="68vh"
+            imgSize={{ w: "200px", h: "200px" }}
+            text={
+              type === "public"
+                ? "공개 중인 레시피가 없습니다 :("
+                : "작성 중인 레시피가 없습니다 :("
+            }
+            interval="30px"
+          />
+        ) : (
+          <>
+            {type === "public" ? (
+              <ContentPublic>
+                {data?.list?.map((item, idx) => {
+                  return (
+                    <li key={idx}>
+                      <img src={item?.src ? bucketUrl + item?.src : ""} />
+                      <div>
+                        <Link to={`/recipes/${item?.recipe_id}`}>
+                          <h2>{item?.title}</h2>
+                        </Link>
+                        <p className="detail">
+                          <span>조회수 {LocaleStringfn(item?.view)}</span>
+                          <span>좋아요 {LocaleStringfn(item?.like)}</span>
+                          <span></span>
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ContentPublic>
+            ) : (
+              <ContentPrivate>
+                {data?.list?.map((item, idx) => {
+                  return (
+                    <li key={idx}>
+                      <img src={item?.src ? bucketUrl + item?.src : ""} />
+                      <div>
+                        <Link to={`/modify/${item?.recipe_id}`}>
+                          <h2>{item?.title}</h2>
+                        </Link>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ContentPrivate>
+            )}
+            <div id="pagination">
+              <Pagination
+                totalData={Count}
+                dataLimit={LIMIT}
+                setPagingInfo={setPagingInfo}
+                PagingInfo={PagingInfo}
+              />
+            </div>
+          </>
         )}
-      </Bar>
-      {type === "public" ? (
-        <ContentPublic>
-          {myRecipeData.map((item, idx) => {
-            return (
-              <li key={idx}>
-                <img src={item?.src} />
-                <div>
-                  <Link to={`/recipes/${item?.recipe_id}`}>
-                    <h2>{item?.title}</h2>
-                  </Link>
-                  <p className="detail">
-                    <span>조회수 {LocaleStringfn(item?.view)}</span>
-                    <span>좋아요 {LocaleStringfn(item?.like)}</span>
-                    <span></span>
-                  </p>
-                </div>
-              </li>
-            );
-          })}
-        </ContentPublic>
-      ) : (
-        <ContentPrivate>
-          {myRecipeData.map((item, idx) => {
-            return (
-              <li key={idx}>
-                <img src={item?.src} />
-                <div>
-                  <Link to={`/modify/${item?.recipe_id}`}>
-                    <h2>{item?.title}</h2>
-                  </Link>
-                </div>
-              </li>
-            );
-          })}
-        </ContentPrivate>
-      )}
-      <div id="pagination">
-        <Pagination
-          totalData={Count}
-          dataLimit={LIMIT}
-          setPagingInfo={setPagingInfo}
-        />
-      </div>
-    </Container>
+      </Container>
+    </>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import styled from "styled-components";
 import { H2Style } from "./RecipeDetailIngr";
 import { colors } from "../css";
@@ -7,6 +7,7 @@ import userImg from "../assets/logo_img/user.png";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../contexts/AuthContext";
+import { Error, Loading } from "./States";
 
 const Container = styled.div`
   width: 80%;
@@ -173,7 +174,13 @@ const CommentInputBox = styled.form`
   }
 `;
 
-function RecipeDetailComments({ ID, use = "recipe", user, setHeader }) {
+function RecipeDetailComments({
+  ID,
+  use = "recipe",
+  user,
+  setHeader,
+  handleCmtCnt,
+}) {
   const textRef = useRef();
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
@@ -186,67 +193,64 @@ function RecipeDetailComments({ ID, use = "recipe", user, setHeader }) {
     limit: 3,
   });
 
-  const { isLoading } = useQuery(
+  const { isLoading, isError, isFetching } = useQuery(
     [`getComment_${use}`, PagingInfo, ID],
     async ({ queryKey }) => {
+      let { targetId, limit } = queryKey[1];
       let result = await axios
         .get(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment?targetId=${queryKey[1]?.targetId}&limit=${queryKey[1]?.limit}`
+          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment?targetId=${targetId}&limit=${limit}`
         )
         .then((res) => res.data);
 
       if (result?.status === 200) {
-        setCount((prev) =>
-          queryKey[1]?.targetId ? prev : result?.comments?.count
-        );
+        if (targetId === null) {
+          let cnt = result?.comments?.count;
+          setCount(cnt);
+          if (handleCmtCnt) {
+            handleCmtCnt(cnt);
+          }
+        }
+
         setCommentList((prev) =>
-          queryKey[1]?.targetId
-            ? [...prev, ...result?.comments?.rows]
-            : [...result?.comments?.rows]
+          targetId === null
+            ? [...result?.comments?.rows]
+            : [...prev, ...result?.comments?.rows]
         );
         return result.comments;
       }
-      return null;
     },
     { refetchOnWindowFocus: false, keepPreviousData: true }
   );
 
-  const { mutate } = useMutation(
+  const { mutate, isLoading: cmtIsLoading } = useMutation(
     (data) => {
       if (data?.api === "delete") {
-        return axios.delete(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment/${data?.value}`,
-          setHeader(user?.token, user?.authType)
-        );
+        return axios
+          .delete(
+            `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment/${data?.value}`,
+            setHeader(user?.token, user?.authType)
+          )
+          .then((res) => res.data);
       } else if (data?.api === "add") {
-        return axios.post(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment`,
-          data?.value,
-          setHeader(user?.token, user?.authType)
-        );
+        return axios
+          .post(
+            `${process.env.REACT_APP_OUR_SERVER_URI}/${use}/${ID}/comment`,
+            data?.value,
+            setHeader(user?.token, user?.authType)
+          )
+          .then((res) => res.data);
       }
     },
     {
       onSuccess: async (data) => {
-        let result = data?.data;
-        if (user && result?.authInfo) {
-          let { isAuth, newToken } = result?.authInfo;
-          if (isAuth) {
-            queryClient.setQueryData("login", (prev) => {
-              let token = newToken || prev?.token;
-              return { ...prev, token };
-            });
-          }
-        }
-        if (result?.status === 200) {
-          textRef.current.value = "";
-
+        if (data?.status === 200) {
+          // textRef.current.value = "";
           let isUsed = queryClient.getQueryData([
             `getComment_${use}`,
             { targetId: null, limit: ShowNum },
             ID,
           ]);
-
           if (isUsed) {
             await queryClient.invalidateQueries([
               `getComment_${use}`,
@@ -262,20 +266,34 @@ function RecipeDetailComments({ ID, use = "recipe", user, setHeader }) {
         console.error(error);
         let result = error?.response?.data;
         alert(result?.message);
-        if (!result?.authInfo?.isAuth) {
-          setAuth((prev) => false);
-          queryClient.removeQueries("login");
-          alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+      },
+      onSettled: (data, error) => {
+        let result = data || error?.response?.data;
+        if (result?.authInfo) {
+          let { isAuth, newToken } = result?.authInfo;
+          if (!isAuth) {
+            setAuth((prev) => false);
+            queryClient.removeQueries("login");
+            alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+          } else if (isAuth && newToken) {
+            queryClient.setQueryData("login", (prev) => {
+              return { ...prev, token: newToken };
+            });
+          }
         }
       },
     }
   );
 
-  const handleClickMore = () => {
-    let targetId = CommentList[ShowNum - 1]?.id;
-    setPagingInfo({ targetId, limit: 10 });
-    setShowNum((prev) => prev + 10);
-  };
+  const handleClickMore = useCallback(() => {
+    if (CommentList?.length > ShowNum) {
+      setShowNum((prev) => prev + 10);
+    } else {
+      let targetId = CommentList[ShowNum - 1]?.id;
+      setPagingInfo({ targetId, limit: 10 });
+      setShowNum((prev) => prev + 10);
+    }
+  }, [CommentList, ShowNum, setPagingInfo, setShowNum]);
 
   const handleClickShorten = useCallback(() => {
     setShowNum(3);
@@ -302,7 +320,9 @@ function RecipeDetailComments({ ID, use = "recipe", user, setHeader }) {
     [queryClient]
   );
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isFetching || cmtIsLoading)
+    return <Loading height="30vh" type="comment" />;
+  if (isError) return <Error height="30vh" imgSize="200px" fontSize="25px" />;
 
   return (
     <Container>
@@ -342,10 +362,12 @@ function RecipeDetailComments({ ID, use = "recipe", user, setHeader }) {
           );
         })}
         {Count > 0 &&
-          (CommentList.slice(0, ShowNum).length >= Count ? (
-            <ShortenBtn onClick={handleClickShorten}>줄여보기</ShortenBtn>
-          ) : (
+          (CommentList.slice(0, ShowNum).length < Count ? (
             <MoreBtn onClick={handleClickMore}>더 보기</MoreBtn>
+          ) : (
+            CommentList.slice(0, ShowNum).length > 3 && (
+              <ShortenBtn onClick={handleClickShorten}>줄여보기</ShortenBtn>
+            )
           ))}
       </CommentsBox>
       <CommentInputBox>

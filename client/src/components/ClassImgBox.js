@@ -145,13 +145,13 @@ function ClassImgBox({ data, user }) {
       );
       if (!confirm) return;
       let current = location.pathname + location?.search;
-
       localStorage.setItem("beforeLogin", current);
       return navigate("/user/login");
     }
 
-    // return navigate("pay", { state: { use: "pay" } });
-    return navigate("pay", { state: { use: "afterPay", paymentId: 1 } });
+    if (data?.isPurchased) return alert("이미 구매한 클래스입니다.");
+
+    return navigate("pay", { state: { use: "pay" } });
   };
 
   let price = Number(data?.price).toLocaleString();

@@ -3,6 +3,7 @@ import { useQueryClient, useMutation } from "react-query";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { Fetching, Error } from "../components/States";
 
 const Container = styled.div`
   min-height: 50vh;
@@ -69,7 +70,7 @@ function SignUpPage() {
   });
   const [Msg, setMsg] = useState("");
 
-  const { mutate } = useMutation(
+  const { mutate, isLoading, isError } = useMutation(
     (data) =>
       axios.post(
         `${process.env.REACT_APP_OUR_SERVER_URI}/user/register`,
@@ -128,30 +129,35 @@ function SignUpPage() {
     setMsg("");
   };
 
+  if (isError) return <Error />;
+
   return (
-    <Container>
-      <div>
-        <h1>회원가입</h1>
-        <input
-          type="text"
-          placeholder="닉네임"
-          defaultValue={InputVal?.nickname}
-          onChange={(e) =>
-            setInputVal((prev) => ({ ...prev, nickname: e.target.value }))
-          }
-        />
-        <input
-          type="email"
-          placeholder="example@email.com"
-          defaultValue={InputVal?.email}
-          onChange={(e) =>
-            setInputVal((prev) => ({ ...prev, email: e.target.value }))
-          }
-        />
-        <p className="message">{Msg}</p>
-        <button onClick={handleSubmit}>회원가입</button>
-      </div>
-    </Container>
+    <>
+      {isLoading && <Fetching type="rotate" />}
+      <Container>
+        <div>
+          <h1>회원가입</h1>
+          <input
+            type="text"
+            placeholder="닉네임"
+            defaultValue={InputVal?.nickname}
+            onChange={(e) =>
+              setInputVal((prev) => ({ ...prev, nickname: e.target.value }))
+            }
+          />
+          <input
+            type="email"
+            placeholder="example@email.com"
+            defaultValue={InputVal?.email}
+            onChange={(e) =>
+              setInputVal((prev) => ({ ...prev, email: e.target.value }))
+            }
+          />
+          <p className="message">{Msg}</p>
+          <button onClick={handleSubmit}>회원가입</button>
+        </div>
+      </Container>
+    </>
   );
 }
 

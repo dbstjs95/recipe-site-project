@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { recipe_info } from "../../mockData/recipe_detail";
 import { LayoutSize, ContainerStyle } from "../../css";
 import RecipeDetailIntro from "../../components/RecipeDetailIntro";
 import RecipeDetailIngr from "../../components/RecipeDetailIngr";
@@ -11,6 +10,7 @@ import RecipeDetailComments from "../../components/RecipeDetailComments";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../../contexts/AuthContext";
+import { Error, Loading } from "../../components/States";
 
 export const DetailPageLayout = css`
   ${LayoutSize}
@@ -29,14 +29,19 @@ function RecipePage({ setHeader }) {
   const setAuth = useSetAuth();
 
   const navigate = useNavigate();
-  const { recipeId } = useParams();
+  const recipeId = Number(useParams()?.recipeId);
 
   const user = queryClient.getQueryData("login");
+
+  const [CmtCount, setCmtCount] = useState(0);
+
+  const handleCmtCnt = (cnt) => setCmtCount(cnt);
 
   const {
     data: recipeData,
     isLoading,
     isError,
+    isFetching,
   } = useQuery(
     ["getRecipe", recipeId],
     async () => {
@@ -45,7 +50,8 @@ function RecipePage({ setHeader }) {
           `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}`,
           setHeader(user?.token, user?.authType)
         )
-        .then((res) => res.data);
+        .then((res) => res.data)
+        .catch((err) => err?.response?.data);
 
       if (user && result?.authInfo) {
         let { isAuth, newToken } = result?.authInfo;
@@ -60,27 +66,26 @@ function RecipePage({ setHeader }) {
         }
       }
 
-      if (result?.status === 200) return result?.recipe;
-      return null;
-    },
-    {
-      onError: ({ response }) => {
-        let {
-          data: { recipe },
-        } = response;
+      if (result?.status === 200) {
+        return result?.recipe;
+      } else {
+        let recipe = result?.recipe;
         if (recipe === "error: not exist") {
           alert("존재하지 않는 게시물입니다.");
         } else if (recipe === "error: private") {
           alert("비공개중인 게시물입니다.");
         }
         navigate(-1);
-      },
+        throw new Error("에러 발생");
+      }
+    },
+    {
       refetchOnWindowFocus: false,
     }
   );
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (isFetching) return <Loading type="dots" height="75vh" />;
+  if (isError) return <Error />;
 
   return (
     <Container>
@@ -90,6 +95,7 @@ function RecipePage({ setHeader }) {
           setHeader={setHeader}
           user={user}
           ID={recipeId}
+          CmtCount={CmtCount}
         />
       </div>
       <div className="ingredients">
@@ -107,6 +113,7 @@ function RecipePage({ setHeader }) {
           use="recipe"
           user={user}
           setHeader={setHeader}
+          handleCmtCnt={handleCmtCnt}
         />
       </div>
     </Container>

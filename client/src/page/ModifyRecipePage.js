@@ -1,22 +1,20 @@
 import React from "react";
 import RegisterRecipePage from "./RegisterRecipePage";
-import { my_recipe_data } from "../mockData/recipe_detail";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useSetAuth } from "../contexts/AuthContext";
-
-const myRecipeData = { ...my_recipe_data };
+import { Error, Loading } from "../components/States";
 
 function ModifyRecipePage({ setHeader }) {
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
   const navigate = useNavigate();
 
-  const { recipeId } = useParams();
+  const recipeId = Number(useParams()?.recipeId);
   const user = queryClient.getQueryData("login");
 
-  const { data, isLoading, isError } = useQuery(
+  const { data, isFetching, isError } = useQuery(
     ["getMyRecipe", recipeId],
     async () => {
       let result = await axios
@@ -24,9 +22,13 @@ function ModifyRecipePage({ setHeader }) {
           `${process.env.REACT_APP_OUR_SERVER_URI}/recipe/${recipeId}/modify`,
           setHeader(user?.token, user?.authType)
         )
-        .then((res) => res.data);
+        .then((res) => res.data)
+        .catch((err) => {
+          console.error(err);
+          return err?.response?.data;
+        });
 
-      if (user && result?.authInfo) {
+      if (result?.authInfo) {
         let { isAuth, newToken } = result?.authInfo;
         if (!isAuth) {
           setAuth((prev) => false);
@@ -43,13 +45,15 @@ function ModifyRecipePage({ setHeader }) {
 
       if (result?.status === 200) {
         return result?.recipe;
+      } else {
+        throw new Error("에러 발생");
       }
     },
     { refetchOnWindowFocus: false }
   );
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (isFetching) return <Loading height="75vh" type="dots" />;
+  if (isError) return <Error />;
 
   return (
     <RegisterRecipePage

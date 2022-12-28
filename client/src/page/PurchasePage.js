@@ -3,13 +3,13 @@ import styled from "styled-components";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import kakaoPay from "../assets/kakaoPay.png";
 import { ContainerStyle } from "../css";
-import { class_info } from "../mockData/class_detail";
-import { user_info } from "../mockData/user_data";
 import Payment from "../components/Payment";
 import Certification from "../components/Certification";
 import { useQueryClient, useQuery, useMutation } from "react-query";
 import { useSetAuth } from "../contexts/AuthContext";
 import axios from "axios";
+import { bucketUrl } from "../api/fileUpload";
+import { Fetching, Loading } from "../components/States";
 
 const headerColor = "#444";
 
@@ -205,109 +205,136 @@ function PurchasePage({ setHeader }) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const setAuth = useSetAuth();
 
-  const { classId } = useParams();
+  const classId = Number(useParams()?.classId);
   let purpose = location?.state?.use;
 
   const user = queryClient.getQueryData("login");
 
+  const [IsLoading, setIsLoading] = useState(false);
   const [ClassData, setClassData] = useState({});
   const [PaymentData, setPaymentData] = useState({
-    amount: ClassData?.price,
+    amount: 0,
     name: `원데이 클래스-${classId}`,
     buyer_name: user?.userInfo?.nickname,
     buyer_tel: "",
     buyer_email: user?.userInfo?.email,
   });
 
+  const handleLoader = (val) => setIsLoading(val);
+
   useEffect(() => {
-    const classData = queryClient.getQueryData(["class", classId]);
-    if (classData) {
-      setClassData({ ...classData });
-    } else {
-      let classData = location?.state?.classData;
-      setClassData({ ...classData });
+    const classData =
+      queryClient.getQueryData(["class", classId]) ||
+      location?.state?.classData;
+
+    if (!classData) {
+      alert("클래스 데이터가 없습니다. 다시 시도해주세요.");
+      let current = location.pathname;
+      if (purpose === "pay" && current?.includes(`/classes/${classId}/pay`)) {
+        return navigate(`/classes/${classId}`);
+      } else if (
+        purpose === "afterPay" &&
+        current?.includes(`/classes/${classId}/pay`)
+      ) {
+        return navigate("/mypage/class");
+      } else {
+        return navigate("/");
+      }
     }
+
+    setClassData({ ...classData });
+    setPaymentData((prev) => ({ ...prev, amount: classData?.price }));
   }, []);
 
   const convertString = (num) => Number(num).toLocaleString();
 
   return (
-    <Container>
-      <h1>{`클래스 신청 ${purpose === "afterPay" ? "완료" : ""}`}</h1>
-      <InnerContainer>
-        <li>
-          <h2>
-            <em>클래스</em> 정보
-          </h2>
-          <div className="class">
-            <img src={ClassData?.header_img} alt="클래스 이미지" />
-            <div>
-              <h3>{ClassData?.header_title}</h3>
-              <span>
-                <em>{convertString(ClassData?.price)}</em>원
-              </span>
+    <>
+      {IsLoading && <Fetching type="rotate" />}
+      <Container>
+        <h1>{`클래스 신청 ${purpose === "afterPay" ? "완료" : ""}`}</h1>
+        <InnerContainer>
+          <li>
+            <h2>
+              <em>클래스</em> 정보
+            </h2>
+            <div className="class">
+              <img
+                src={bucketUrl + ClassData?.header_img}
+                alt="클래스 이미지"
+              />
+              <div>
+                <h3>{ClassData?.header_title}</h3>
+                <span>
+                  <em>{convertString(ClassData?.price)}</em>원
+                </span>
+              </div>
             </div>
-          </div>
-        </li>
-        {purpose === "pay" ? (
-          <>
-            <li>
-              <h2>
-                <em>주문자</em> 정보
-              </h2>
-              <div className="orderer">
-                <div className="telBox">
+          </li>
+          {purpose === "pay" ? (
+            <>
+              <li>
+                <h2>
+                  <em>주문자</em> 정보
+                </h2>
+                <div className="orderer">
+                  <div className="telBox">
+                    <input
+                      type="tel"
+                      placeholder="핸드폰번호(ex: 01012345678)"
+                      onChange={(e) =>
+                        setPaymentData((prev) => ({
+                          ...prev,
+                          buyer_tel: String(e.target.value),
+                        }))
+                      }
+                    />
+                    {/* <Certification /> */}
+                  </div>
                   <input
-                    type="tel"
-                    placeholder="핸드폰번호(ex: 01012345678)"
+                    type="email"
+                    placeholder="이메일"
+                    defaultValue={PaymentData?.buyer_email}
                     onChange={(e) =>
                       setPaymentData((prev) => ({
                         ...prev,
-                        buyer_tel: String(e.target.value),
+                        buyer_email: e.target.value,
                       }))
                     }
                   />
-                  <Certification />
                 </div>
-                <input
-                  type="email"
-                  placeholder="이메일"
-                  defaultValue={PaymentData?.buyer_email}
-                  onChange={(e) =>
-                    setPaymentData((prev) => ({
-                      ...prev,
-                      buyer_email: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </li>
-            <li>
-              <h2>
-                <em>결제</em> 방식
-              </h2>
-              <div className="pay">
-                <img src={kakaoPay} alt="카카오페이" />
-              </div>
-            </li>
-          </>
-        ) : (
-          purpose === "afterPay" && (
-            <AfterPay setHeader={setHeader} user={user} classData={ClassData} />
-          )
+              </li>
+              <li>
+                <h2>
+                  <em>결제</em> 방식
+                </h2>
+                <div className="pay">
+                  <img src={kakaoPay} alt="카카오페이" />
+                </div>
+              </li>
+            </>
+          ) : (
+            purpose === "afterPay" && (
+              <AfterPay
+                setHeader={setHeader}
+                user={user}
+                classData={ClassData}
+              />
+            )
+          )}
+        </InnerContainer>
+        {purpose === "pay" && (
+          <Payment
+            PaymentData={PaymentData}
+            setHeader={setHeader}
+            classId={classId}
+            user={user}
+            handleLoader={handleLoader}
+          />
         )}
-      </InnerContainer>
-      {purpose === "pay" && (
-        <Payment
-          PaymentData={PaymentData}
-          setHeader={setHeader}
-          classId={classId}
-          user={user}
-        />
-      )}
-    </Container>
+      </Container>
+    </>
   );
 }
 
@@ -334,8 +361,8 @@ function AfterPay({ setHeader, user, classData }) {
 
   const {
     data: paymentData,
-    isLoading,
     isError,
+    isFetching,
   } = useQuery(
     ["getPaymentInfo", paymentId],
     async () => {
@@ -386,7 +413,7 @@ function AfterPay({ setHeader, user, classData }) {
     }
   );
 
-  const { mutate } = useMutation(
+  const { mutate, isLoading: cancelLoading } = useMutation(
     (uid) =>
       axios
         .post(
@@ -414,40 +441,55 @@ function AfterPay({ setHeader, user, classData }) {
       return alert("환불 가능 기간이 아닙니다.");
     }
 
+    let confirm = window.confirm("구매를 취소하겠습니까?");
+
+    if (!confirm) return;
+
     let merchant_uid = paymentData?.payment?.merchant_uid;
     mutate({ reason: "원데이 클래스 신청 취소", merchant_uid });
   };
 
-  if (isLoading) return <div>loading...</div>;
+  if (isFetching) return <Loading height="20vh" size="50" />;
   if (isError) return <div>error...</div>;
 
   return (
-    <AfterContainer>
-      {Status === "paid" ? (
-        <>
-          <p>구매가 완료되었습니다.</p>
-          <span>{paymentData?.payment?.created_at}</span>
-          <button
-            onClick={handelClickCancel}
-            disabled={!Refundable}
-            className={Refundable ? "" : "inactive"}
-          >
-            {Refundable ? "구매 취소" : "구매 취소 불가"}
-          </button>
-        </>
-      ) : (
-        Status === "cancelled" && (
+    <>
+      <AfterContainer>
+        {cancelLoading && (
+          <Fetching
+            size="40"
+            type="rotate"
+            position="absolute"
+            bgColor="rgba(0,0,0,0.03)"
+          />
+        )}
+        {Status === "paid" ? (
           <>
-            <p>구매 취소 완료</p>
-            <span>{paymentData?.payment?.updated_at}</span>
+            <p>구매가 완료되었습니다.</p>
+            <span>{paymentData?.payment?.created_at}</span>
+            <button
+              onClick={handelClickCancel}
+              disabled={!Refundable}
+              className={Refundable ? "" : "inactive"}
+            >
+              {Refundable ? "구매 취소" : "구매 취소 불가"}
+            </button>
           </>
-        )
-      )}
-    </AfterContainer>
+        ) : (
+          Status === "cancelled" && (
+            <>
+              <p>구매 취소 완료</p>
+              <span>{paymentData?.payment?.updated_at}</span>
+            </>
+          )
+        )}
+      </AfterContainer>
+    </>
   );
 }
 
 const AfterContainer = styled.li`
+  position: relative;
   border: 1px dashed lightgray;
   display: flex;
   flex-direction: column;

@@ -1,11 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import recipeList from "../mockData/recipe_list";
 import { bucketUrl } from "../api/fileUpload";
 import userImg from "../assets/logo_img/user.png";
+import { Fetching } from "./States";
 
 const BestSection = styled.section`
+  position: relative;
   ul {
     width: 95%;
     margin: 2rem auto;
@@ -117,12 +118,15 @@ const DetailStyle = styled.p`
   }
 `;
 
-function RecipeListBox({ children, data, use }) {
+function RecipeListBox({ children, data, use, isFetching }) {
   const navigate = useNavigate();
   const handleMovePage = (id) => navigate(`/recipes/${id}`);
 
   return (
     <BestSection>
+      {isFetching && (
+        <Fetching position="absolute" color="lightgray" bgColor="" />
+      )}
       {children}
       <ul>
         {data.map((item, idx) => {

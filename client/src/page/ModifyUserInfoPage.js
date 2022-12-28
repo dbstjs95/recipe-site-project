@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { user_info as data } from "../mockData/user_data";
 import { useMutation, useQueryClient } from "react-query";
 import { useSetAuth } from "../contexts/AuthContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Fetching } from "../components/States";
 
 const Container = styled.div`
   width: 600px;
@@ -159,45 +159,55 @@ function ModifyUserInfoPage({ setHeader }) {
     delete: "",
   });
 
-  const userInfoChange = useMutation(
+  //userInfoChange
+  const { mutate: cgMutate, isLoading: cgLoading } = useMutation(
     (data) =>
-      axios.put(
-        `${process.env.REACT_APP_OUR_SERVER_URI}/user`,
-        data,
-        setHeader(user?.token, user?.authType)
-      ),
+      axios
+        .put(
+          `${process.env.REACT_APP_OUR_SERVER_URI}/user`,
+          data,
+          setHeader(user?.token, user?.authType)
+        )
+        .then((res) => res.data),
     {
       onSuccess: (data, val) => {
-        let result = data?.data;
-        if (user && result?.authInfo) {
-          let { isAuth, newToken } = result?.authInfo;
-          if (isAuth) {
-            queryClient.setQueryData("login", (prev) => {
-              let token = newToken || prev?.token;
-              let userInfo = prev?.userInfo;
-              if (result?.status === 200) {
-                userInfo = { ...userInfo, ...val };
-              }
-              return { ...prev, userInfo, token };
-            });
-          }
+        if (data?.status === 200) {
+          queryClient.setQueryData("login", (prev) => {
+            let userInfo = { ...prev?.userInfo, ...val };
+            return { ...prev, userInfo };
+          });
+
+          alert("회원정보수정 성공");
+          return navigate("/");
         }
       },
-      onError: (error, val) => {
+      onError: (error) => {
         console.error(error);
         let result = error?.response?.data;
-        alert(result?.message);
-        if (!result?.authInfo?.isAuth) {
-          setAuth((prev) => false);
-          queryClient.removeQueries("login");
-          alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
-          return navigate("/user/login");
+        return alert(result?.message || "에러가 발생했습니다.");
+      },
+      onSettled: (data, error) => {
+        let result = data || error?.response?.data;
+        if (result?.authInfo) {
+          let { isAuth, newToken } = result?.authInfo;
+          if (!isAuth) {
+            setAuth((prev) => false);
+            queryClient.removeQueries("login");
+            alert("올바른 회원 경로가 아닙니다. 다시 로그인 해주세요.");
+            return navigate("/user/login");
+          } else if (isAuth && newToken) {
+            queryClient.setQueryData("login", (prev) => ({
+              ...prev,
+              token: newToken,
+            }));
+          }
         }
       },
     }
   );
 
-  const userDelete = useMutation(
+  // userDelete
+  const { mutate: delMutate, isLoading: delLoading } = useMutation(
     () =>
       axios.delete(
         `${process.env.REACT_APP_OUR_SERVER_URI}/user`,
@@ -244,92 +254,98 @@ function ModifyUserInfoPage({ setHeader }) {
       if (!emailCheck.test(value)) {
         return alert("올바른 이메일 형식이 아닙니다.");
       }
-      userInfoChange.mutate(data);
+      cgMutate(data);
     } else if (type === "nickname") {
       let nicknameCheck = /[~!@#$%^&*()_+|<>?:{}]/;
       if (value.search(/\s/) !== -1 || nicknameCheck.test(value)) {
         return alert("닉네임에 띄어쓰기, 특수문자 사용은 불가합니다.");
       }
-      userInfoChange.mutate(data);
+      cgMutate(data);
     } else if (type === "delete") {
       if (value !== "회원탈퇴") return;
-      userDelete.mutate();
+      delMutate();
     }
   };
 
   return (
-    <Container>
-      <h1>회원정보수정</h1>
-      <ul>
-        <li>
-          <div className="modify">
-            <span>{user?.userInfo?.email}</span>
-            <button onClick={() => handleClickModify("email")}>
-              이메일 수정
-            </button>
-          </div>
-          {IsOpen.email && (
-            <div className="submit">
-              <input
-                type="email"
-                placeholder="이메일"
-                defaultValue={InputVal?.email}
-                onChange={(e) =>
-                  setInputVal((prev) => ({ ...prev, email: e.target.value }))
-                }
-              />
-              <button onClick={() => handleSubmit("email")}>변경</button>
+    <>
+      {(cgLoading || delLoading) && <Fetching type="rotate" />}
+      <Container>
+        <h1>회원정보수정</h1>
+        <ul>
+          <li>
+            <div className="modify">
+              <span>{user?.userInfo?.email}</span>
+              <button onClick={() => handleClickModify("email")}>
+                이메일 수정
+              </button>
             </div>
-          )}
-        </li>
-        <li>
-          <div className="modify">
-            <span>{user?.userInfo?.nickname}</span>
-            <button onClick={() => handleClickModify("nickname")}>
-              닉네임 수정
-            </button>
-          </div>
-          {IsOpen.nickname && (
-            <div className="submit">
-              <input
-                type="text"
-                placeholder="닉네임"
-                defaultValue={InputVal?.nickname}
-                onChange={(e) =>
-                  setInputVal((prev) => ({ ...prev, nickname: e.target.value }))
-                }
-              />
-              <button onClick={() => handleSubmit("nickname")}>변경</button>
+            {IsOpen.email && (
+              <div className="submit">
+                <input
+                  type="email"
+                  placeholder="이메일"
+                  defaultValue={InputVal?.email}
+                  onChange={(e) =>
+                    setInputVal((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                />
+                <button onClick={() => handleSubmit("email")}>변경</button>
+              </div>
+            )}
+          </li>
+          <li>
+            <div className="modify">
+              <span>{user?.userInfo?.nickname}</span>
+              <button onClick={() => handleClickModify("nickname")}>
+                닉네임 수정
+              </button>
             </div>
-          )}
-        </li>
-        <li>
-          <div className="modify">
-            <span>회원탈퇴</span>
-            <button onClick={() => handleClickModify("delete")}>
-              탈퇴하기
-            </button>
-          </div>
-          {IsOpen.delete && (
-            <div className="submit">
-              <p id="delete">
-                정말 탈퇴를 원하신다면 <em>회원탈퇴</em>를 입력하세요.
-              </p>
-              <input
-                type="text"
-                placeholder="회원탈퇴"
-                maxLength={4}
-                defaultValue={InputVal?.delete}
-                onChange={(e) =>
-                  setInputVal((prev) => ({ ...prev, delete: e.target.value }))
-                }
-              />
-              <button onClick={() => handleSubmit("delete")}>입력</button>
+            {IsOpen.nickname && (
+              <div className="submit">
+                <input
+                  type="text"
+                  placeholder="닉네임"
+                  defaultValue={InputVal?.nickname}
+                  onChange={(e) =>
+                    setInputVal((prev) => ({
+                      ...prev,
+                      nickname: e.target.value,
+                    }))
+                  }
+                />
+                <button onClick={() => handleSubmit("nickname")}>변경</button>
+              </div>
+            )}
+          </li>
+          <li>
+            <div className="modify">
+              <span>회원탈퇴</span>
+              <button onClick={() => handleClickModify("delete")}>
+                탈퇴하기
+              </button>
             </div>
-          )}
-        </li>
-      </ul>
-    </Container>
+            {IsOpen.delete && (
+              <div className="submit">
+                <p id="delete">
+                  정말 탈퇴를 원하신다면 <em>회원탈퇴</em>를 입력하세요.
+                </p>
+                <input
+                  type="text"
+                  placeholder="회원탈퇴"
+                  maxLength={4}
+                  defaultValue={InputVal?.delete}
+                  onChange={(e) =>
+                    setInputVal((prev) => ({ ...prev, delete: e.target.value }))
+                  }
+                />
+                <button onClick={() => handleSubmit("delete")}>입력</button>
+              </div>
+            )}
+          </li>
+        </ul>
+      </Container>
+    </>
   );
 }
 

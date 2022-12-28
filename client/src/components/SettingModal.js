@@ -102,7 +102,7 @@ function SettingModal() {
       {IsAuth ? (
         <MenuModal className="modal">
           <li>
-            <Link to="/mypage/recipe">나의 레시피</Link>
+            <Link to="/mypage/recipe?type=public">나의 레시피</Link>
           </li>
           <li>
             <Link to="/mypage/like">좋아요 리스트</Link>

@@ -195,8 +195,10 @@ const DetailBox2 = styled.ul`
     border-radius: 50%;
     font-size: 1.5rem;
     padding: 1rem;
-    cursor: pointer;
     position: relative;
+    &.like {
+      cursor: pointer;
+    }
     span {
       font-size: 14px;
       transform: translate(-50%, 100%);
@@ -219,7 +221,7 @@ const DetailBox2 = styled.ul`
   }
 `;
 
-function RecipeDetailIntro({ data, setHeader, user, ID }) {
+function RecipeDetailIntro({ data, setHeader, user, ID, CmtCount }) {
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
   const navigate = useNavigate();
@@ -230,48 +232,54 @@ function RecipeDetailIntro({ data, setHeader, user, ID }) {
   const { mutate } = useMutation(
     (api) => {
       if (api === "add") {
-        return axios.post(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/like/${ID}`,
-          {},
-          setHeader(user?.token, user?.authType)
-        );
+        return axios
+          .post(
+            `${process.env.REACT_APP_OUR_SERVER_URI}/like/${ID}`,
+            {},
+            setHeader(user?.token, user?.authType)
+          )
+          .then((res) => res.data);
       } else {
-        return axios.delete(
-          `${process.env.REACT_APP_OUR_SERVER_URI}/like/${ID}`,
-          setHeader(user?.token, user?.authType)
-        );
+        return axios
+          .delete(
+            `${process.env.REACT_APP_OUR_SERVER_URI}/like/${ID}`,
+            setHeader(user?.token, user?.authType)
+          )
+          .then((res) => res.data);
       }
     },
     {
       onSuccess: (data) => {
-        let result = data?.data;
-        if (user && result?.authInfo) {
-          let { isAuth, newToken } = result?.authInfo;
-          if (isAuth) {
-            queryClient.setQueryData("login", (prev) => {
-              let token = newToken || prev?.token;
-              return { ...prev, token };
-            });
-          }
-        }
-
-        if (result?.status === 200 && typeof result?.like === "number") {
-          setLikeNum((prev) => result?.like);
+        if (data?.status === 200) {
+          setLikeNum(data?.like);
           setIsLiked((prev) => !prev);
+          queryClient.setQueryData(["getRecipe", ID], (prev) => ({
+            ...prev,
+            isLiked: !IsLiked,
+            like: data?.like,
+          }));
         }
       },
       onError: async (error, variable, context) => {
         console.error(error);
-        let result = error?.response?.data;
-        alert(result?.message);
-        if (!result?.authInfo?.isAuth) {
-          setIsLiked(false);
-          setAuth((prev) => false);
-          queryClient.removeQueries("login");
-          queryClient.setQueryData(["getRecipe", ID], (prev) => ({
-            ...prev,
-            isLiked: false,
-          }));
+        alert("좋아요 기능에 오류가 있습니다.");
+      },
+      onSettled: (data, error) => {
+        let result = data || error?.response?.data;
+        if (user && result?.authInfo) {
+          let { isAuth, newToken } = result?.authInfo;
+          if (!isAuth) {
+            setAuth((prev) => false);
+            queryClient.removeQueries("login");
+            queryClient.setQueryData(["getRecipe", ID], (prev) => ({
+              ...prev,
+              isLiked: false,
+            }));
+          } else if (isAuth && newToken) {
+            queryClient.setQueryData("login", (prev) => {
+              return { ...prev, token: newToken };
+            });
+          }
         }
       },
     }
@@ -279,6 +287,11 @@ function RecipeDetailIntro({ data, setHeader, user, ID }) {
 
   const handleClickLike = () => {
     if (!user?.token) return alert("로그인 후 이용가능합니다.");
+
+    if (user?.userInfo?.id === data?.writer?.id) {
+      return alert("자신의 게시물에는 좋아요를 누를 수 없습니다.");
+    }
+
     if (IsLiked) {
       mutate("delete");
     } else {
@@ -304,10 +317,12 @@ function RecipeDetailIntro({ data, setHeader, user, ID }) {
         <figure>
           <span className="nickname">
             {data?.writer?.nickname}
-            <span className="setting" onClick={handleModify}>
-              <FontAwesomeIcon icon={faGear} />
-              <em>수정</em>
-            </span>
+            {user?.userInfo?.id === data?.writer?.id && (
+              <span className="setting" onClick={handleModify}>
+                <FontAwesomeIcon icon={faGear} />
+                <em>수정</em>
+              </span>
+            )}
           </span>
         </figure>
       </MainImgBox>
@@ -329,16 +344,16 @@ function RecipeDetailIntro({ data, setHeader, user, ID }) {
         })}
       </DetailBox1>
       <DetailBox2>
-        <li>
+        <li className="like">
           <FontAwesomeIcon
             onClick={handleClickLike}
             icon={IsLiked ? like : faHeart}
           />
           <span>{Number(LikeNum).toLocaleString()}</span>
         </li>
-        <li>
+        <li className="comment">
           <FontAwesomeIcon icon={faComment} />
-          <span>{data?.commentsNum}</span>
+          <span>{CmtCount}</span>
         </li>
       </DetailBox2>
     </Container>

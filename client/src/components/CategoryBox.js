@@ -95,7 +95,7 @@ function CategoryBox({ state, InitialCategory, setPagingInfo }) {
           category += ",";
         }
       }
-      setPagingInfo((prev) => ({ ...prev, category }));
+      setPagingInfo((prev) => ({ ...prev, category, offset: 0 }));
       return newState;
     });
 

@@ -24,8 +24,6 @@ export function fileUpload(file, folderName) {
       .toString()
       .replaceAll("-", "")}.${file.type.split("/")[1]}`;
 
-    console.log("fileName: ", fileName);
-
     const upload = new AWS.S3.ManagedUpload({
       params: {
         Bucket: S3_BUCKET, // 버킷 이름

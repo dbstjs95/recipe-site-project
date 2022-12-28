@@ -7,6 +7,7 @@ import Pagination from "../../components/Pagination";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../../contexts/AuthContext";
+import { Fetching, Loading, Nodata, Error } from "../../components/States";
 
 const Container = styled.div`
   ${LayoutSize};
@@ -128,22 +129,26 @@ function ClassListPage({ setHeader }) {
   });
 
   const handleMenuClick = (val) =>
-    setPagingInfo((prev) => ({ ...prev, category: val }));
+    setPagingInfo((prev) => ({ ...prev, offset: 0, category: val }));
 
-  const {
-    data: listData,
-    isLoading,
-    isError,
-  } = useQuery(
+  const { data, isLoading, isError, isFetching } = useQuery(
     ["classList", PagingInfo],
     async ({ queryKey }) => {
       let { category, offset, limit } = queryKey[1];
+
+      let isExisted = queryClient.getQueryData(queryKey);
+      if (isExisted) {
+        if (offset === 0) setCount(isExisted?.count);
+        return isExisted;
+      }
+
       let result = await axios
         .get(
           `${process.env.REACT_APP_OUR_SERVER_URI}/class?category=${category}&offset=${offset}&limit=${limit}`,
           setHeader(user?.token, user?.authType)
         )
-        .then((res) => res.data);
+        .then((res) => res.data)
+        .catch((err) => err?.response?.data);
 
       if (user && result?.authInfo) {
         let { isAuth, newToken } = result?.authInfo;
@@ -160,7 +165,10 @@ function ClassListPage({ setHeader }) {
 
       if (result?.status === 200) {
         if (offset === 0) setCount(result?.count);
-        return result?.list;
+        return result;
+      } else {
+        alert(result?.message || "에러가 발생했습니다.");
+        throw new Error("에러 발생");
       }
     },
     {
@@ -169,36 +177,51 @@ function ClassListPage({ setHeader }) {
     }
   );
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (isLoading) return <Loading height="75vh" type="dots" />;
+  if (isError) return <Error />;
 
   return (
-    <Container>
-      <MenuContainer>
-        {classMenuIcons.map((item, idx) => (
-          <li
-            key={idx}
-            className={PagingInfo?.category === item?.name ? "selected" : ""}
-            onClick={() => handleMenuClick(item.name)}
-          >
-            <img src={item.src} alt={item.name} />
-            <span>{item.name}</span>
-          </li>
-        ))}
-      </MenuContainer>
-      <ListContainer>
-        <ul>
-          <ClassesInnerBox data={listData} />
-        </ul>
-      </ListContainer>
-      <div id="paginationLayout">
-        <Pagination
-          totalData={Count}
-          dataLimit={LIMIT}
-          setPagingInfo={setPagingInfo}
-        />
-      </div>
-    </Container>
+    <>
+      {isFetching && <Fetching size="90" />}
+      <Container>
+        <MenuContainer>
+          {classMenuIcons.map((item, idx) => (
+            <li
+              key={idx}
+              className={PagingInfo?.category === item?.name ? "selected" : ""}
+              onClick={() => handleMenuClick(item.name)}
+            >
+              <img src={item?.src} alt={item?.name} />
+              <span>{item?.name}</span>
+            </li>
+          ))}
+        </MenuContainer>
+        {Count > 0 ? (
+          <>
+            <ListContainer>
+              <ul>
+                <ClassesInnerBox data={data?.list} />
+              </ul>
+            </ListContainer>
+            <div id="paginationLayout">
+              <Pagination
+                totalData={Count}
+                dataLimit={LIMIT}
+                setPagingInfo={setPagingInfo}
+                PagingInfo={PagingInfo}
+              />
+            </div>
+          </>
+        ) : (
+          <Nodata
+            height="65vh"
+            imgSize={{ w: "200px", h: "200px" }}
+            text="해당하는 클래스가 없습니다."
+            interval="20px"
+          />
+        )}
+      </Container>
+    </>
   );
 }
 

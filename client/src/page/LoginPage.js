@@ -4,6 +4,7 @@ import styled, { css } from "styled-components";
 import google from "../assets/oauth_site_logo/google.png";
 import naver from "../assets/oauth_site_logo/naver.png";
 import { useQuery } from "react-query";
+import { Loading, Error } from "../components/States";
 
 const ENV = process.env;
 
@@ -112,8 +113,8 @@ function LoginPage() {
     // suspense: true,
   });
 
-  if (isLoading) return <div>loading...</div>;
-  if (isError) return <div>error...</div>;
+  if (isLoading) return <Loading type="dots" />;
+  if (isError) return <Error />;
 
   return (
     <Background>

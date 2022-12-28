@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { colors } from "../css";
+import { Fetching } from "./States";
 
 const Container = styled.div`
   width: 700px;
@@ -50,33 +51,37 @@ const Container = styled.div`
   }
 `;
 
-function UserInfoModal({ setIsOpen, value, userInfoMutation }) {
+function UserInfoModal({ setIsOpen, value, mutate, isLoading }) {
   const inputRef = useRef();
   const [Desc, setDesc] = useState(value);
 
   const handleSubmit = () => {
-    userInfoMutation.mutate({ profile_desc: Desc });
+    mutate({ profile_desc: Desc });
   };
 
   useEffect(() => {
-    inputRef.current.focus();
-  }, []);
+    if (!isLoading) inputRef.current.focus();
+    if (isLoading) inputRef.current.blur();
+  }, [isLoading]);
 
   return (
-    <Container onClick={(e) => e.stopPropagation()}>
-      <span onClick={() => setIsOpen(false)}>
-        <FontAwesomeIcon icon={faCircleXmark} />
-      </span>
-      <input
-        ref={inputRef}
-        type="text"
-        placeholder="100자 이내로 작성해주세요."
-        maxLength="100"
-        defaultValue={Desc}
-        onChange={(e) => setDesc(e.target.value)}
-      />
-      <button onClick={handleSubmit}>저장</button>
-    </Container>
+    <>
+      {isLoading && <Fetching type="rotate" size="40" />}
+      <Container onClick={(e) => e.stopPropagation()}>
+        <span onClick={() => setIsOpen(false)}>
+          <FontAwesomeIcon icon={faCircleXmark} />
+        </span>
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="100자 이내로 작성해주세요."
+          maxLength="100"
+          defaultValue={Desc}
+          onChange={(e) => setDesc(e.target.value)}
+        />
+        <button onClick={handleSubmit}>저장</button>
+      </Container>
+    </>
   );
 }
 

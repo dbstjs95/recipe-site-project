@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import profileImg from "../assets/profile_bg.jpg";
-import { user_info as data } from "../mockData/user_data";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import UserInfoModal from "./UserInfoModal";
@@ -88,11 +87,16 @@ function Profile({ setHeader }) {
   const setAuth = useSetAuth();
 
   const user = queryClient.getQueryData("login");
+
+  const PROFILE_IMG_FIRST = "upload/user/";
+
+  const [ProfileImg, setProfileImg] = useState("");
   const [IsOpen, setIsOpen] = useState(false);
 
   //https://kyounghwan01.github.io/blog/React/react-query/basic/#usemutation
   //https://jforj.tistory.com/244
-  const userInfoMutation = useMutation(
+
+  const { mutate, isLoading } = useMutation(
     (data) =>
       axios.post(
         `${process.env.REACT_APP_OUR_SERVER_URI}/user/change`,
@@ -104,7 +108,7 @@ function Profile({ setHeader }) {
       onError: (error, variable, context) => {
         console.error(error);
         let result = error?.response?.data;
-        alert(result?.message);
+        alert(result?.message || "에러가 발생했습니다.");
         if (!result?.authInfo?.isAuth) {
           setAuth((prev) => false);
           queryClient.removeQueries("login");
@@ -151,7 +155,7 @@ function Profile({ setHeader }) {
     );
 
     if (fileName) {
-      userInfoMutation.mutate({ profile_img: fileName });
+      mutate({ profile_img: fileName });
     } else {
       alert("프로필 이미지 변경에 실패했습니다.");
     }
@@ -159,7 +163,7 @@ function Profile({ setHeader }) {
 
   useEffect(() => {
     if (!IsOpen) return;
-
+    if (isLoading) return;
     const handleClickOutside = () => setIsOpen(false);
     window.addEventListener("click", handleClickOutside);
 
@@ -168,13 +172,27 @@ function Profile({ setHeader }) {
     };
   }, [IsOpen]);
 
+  useEffect(() => {
+    let imgSrc = user?.userInfo?.profile_img;
+    if (!imgSrc) {
+      setProfileImg(userImg);
+    } else {
+      if (imgSrc.startsWith(PROFILE_IMG_FIRST)) {
+        setProfileImg(bucketUrl + imgSrc);
+      } else {
+        setProfileImg(imgSrc);
+      }
+    }
+  }, [user]);
+
   return (
     <Container>
       {IsOpen && (
         <UserInfoModal
           setIsOpen={setIsOpen}
           value={user?.userInfo?.profile_desc || ""}
-          userInfoMutation={userInfoMutation}
+          mutate={mutate}
+          isLoading={isLoading}
         />
       )}
       <div className="container">
@@ -182,14 +200,7 @@ function Profile({ setHeader }) {
       </div>
       <ProfileBox>
         <div>
-          <BackgroundImg
-            bgSrc={profileImg}
-            userSrc={
-              user?.userInfo?.profile_img
-                ? `${bucketUrl}${user?.userInfo?.profile_img}`
-                : userImg
-            }
-          >
+          <BackgroundImg bgSrc={profileImg} userSrc={ProfileImg}>
             <label htmlFor="file"></label>
             <input type="file" id="file" onChange={handleChangePhoto} />
           </BackgroundImg>

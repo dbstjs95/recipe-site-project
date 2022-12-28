@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Container as EntireBox, ContentPrivate } from "../mypage/MyRecipePage";
-import { classes } from "../../mockData/class_list";
 import Pagination from "../../components/Pagination";
 import { HeaderStyle } from "./MyLikePage";
 import { useQuery, useQueryClient } from "react-query";
 import { useSetAuth } from "../../contexts/AuthContext";
 import axios from "axios";
+import { bucketUrl } from "../../api/fileUpload";
+import { Error, Fetching, Loading, Nodata } from "../../components/States";
 
-const purchasedClasses = [...classes].slice(0, 5);
 const Container = styled(EntireBox)`
   h1 {
     ${HeaderStyle};
@@ -17,6 +17,12 @@ const Container = styled(EntireBox)`
 `;
 
 const ListContainer = styled(ContentPrivate)`
+  li {
+    cursor: pointer;
+    > div h2:hover {
+      text-decoration: none;
+    }
+  }
   p.detail {
     display: flex;
     flex-direction: column;
@@ -52,9 +58,12 @@ function PurchasedClassPage() {
 
   const LocaleStringfn = (num) => Number(num).toLocaleString();
 
-  const { data, isLoading, isError } = useQuery(
+  const { data, isLoading, isError, isFetching } = useQuery(
     ["getPurchasedList", PagingInfo],
     async ({ queryKey }) => {
+      let isExisted = queryClient.getQueryData(queryKey);
+      if (isExisted) return isExisted;
+
       let { offset, limit } = queryKey[1];
       let result = await axios
         .get(
@@ -71,7 +80,9 @@ function PurchasedClassPage() {
     },
     {
       onSuccess: (data) => {},
-      onError: (err) => {},
+      onError: (err) => {
+        console.error(err);
+      },
       onSettled: (data, err) => {
         let result = data?.authInfo || err?.response?.data?.authInfo;
         if (result) {
@@ -90,6 +101,7 @@ function PurchasedClassPage() {
         }
       },
       refetchOnWindowFocus: false,
+      keepPreviousData: true,
     }
   );
 
@@ -101,38 +113,58 @@ function PurchasedClassPage() {
     });
   };
 
+  if (isLoading) return <Loading height="75vh" type="dots" size="50" />;
+  if (isError) return <Error />;
+
   return (
-    <Container>
-      <h1>
-        <p>
-          구매한 클래스 목록
-          <div className="underline"></div>
-        </p>
-      </h1>
-      <ListContainer>
-        {data?.list?.map((item, idx) => {
-          return (
-            <li key={idx} onClick={() => handleClickItem(item)}>
-              <img src={item?.src} />
-              <div>
-                <h2>{item?.title}</h2>
-                <p className="detail">
-                  <span className="price">{LocaleStringfn(item?.price)}원</span>
-                  <span>구매완료</span>
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ListContainer>
-      <div id="pagination">
-        <Pagination
-          totalData={Count}
-          dataLimit={LIMIT}
-          setPagingInfo={setPagingInfo}
-        />
-      </div>
-    </Container>
+    <>
+      {isFetching && <Fetching />}
+      <Container>
+        <h1>
+          <div>
+            구매한 클래스 목록
+            <div className="underline"></div>
+          </div>
+        </h1>
+        {Count === 0 ? (
+          <Nodata
+            height="68vh"
+            imgSize={{ w: "200px", h: "200px" }}
+            text="구매한 클래스가 없습니다 :("
+            interval="30px"
+          />
+        ) : (
+          <>
+            <ListContainer>
+              {data?.list?.map((item, idx) => {
+                return (
+                  <li key={idx} onClick={() => handleClickItem(item)}>
+                    <img src={bucketUrl + item?.src} />
+                    <div>
+                      <h2>{item?.title}</h2>
+                      <p className="detail">
+                        <span className="price">
+                          {LocaleStringfn(item?.price)}원
+                        </span>
+                        <span>구매완료</span>
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ListContainer>
+            <div id="pagination">
+              <Pagination
+                totalData={Count}
+                dataLimit={LIMIT}
+                setPagingInfo={setPagingInfo}
+                PagingInfo={PagingInfo}
+              />
+            </div>
+          </>
+        )}
+      </Container>
+    </>
   );
 }
 
