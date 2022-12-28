@@ -33,6 +33,7 @@ module.exports = {
         },
         imp_uid: {
           type: Sequelize.STRING,
+          unique: "actions_unique",
         },
         merchant_uid: {
           type: Sequelize.STRING,
@@ -64,7 +65,7 @@ module.exports = {
       {
         uniqueKeys: {
           actions_unique: {
-            fields: ["user_id", "class_id"],
+            fields: ["user_id", "class_id", "imp_uid"],
           },
         },
       }

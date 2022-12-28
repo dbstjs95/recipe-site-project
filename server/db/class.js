@@ -4,7 +4,6 @@ const {
   Class_host,
   Class,
   Class_food,
-  Class_party,
   Class_comment,
   Payment,
 } = require("../models");
@@ -40,7 +39,8 @@ async function getClassList(category, offset, limit) {
       include: [
         {
           model: Payment,
-          attributes: ["id"],
+          // where: { status: "paid" },
+          attributes: ["id", "status"],
         },
       ],
       order: [["deadline"]],
@@ -48,9 +48,15 @@ async function getClassList(category, offset, limit) {
       limit: limit,
     });
 
+    if (!temp) return "error: temp";
+    if (temp?.length === 0) return { message: "success", count: 0, list: [] };
+
     let result = temp.map((item) => {
       let classItem = item.dataValues;
-      let sales = item?.Payments?.length;
+      let paidClasses = item?.Payments?.filter(
+        (item) => item?.dataValues?.status === "paid"
+      );
+      let sales = paidClasses?.length;
       delete classItem?.Payments;
       return { ...classItem, sales };
     });
@@ -68,18 +74,22 @@ async function getClassList(category, offset, limit) {
 // https://sebhastian.com/sequelize-date-format/
 async function getClass(id, user_id) {
   try {
-    let parties = await Payment.findAll({
+    let sales = await Payment.count({
       where: {
         class_id: id,
+        status: "paid",
       },
-      attributes: ["user_id"],
     });
 
-    if (!parties) return "error: parties";
-
-    let partyUsers = parties?.map((item) => item?.dataValues?.user_id);
-    let sales = partyUsers.length;
-    let isPurchased = partyUsers.some((item) => item === user_id);
+    let isPurchased = user_id
+      ? await Payment.findOne({
+          where: {
+            class_id: id,
+            user_id,
+            status: "paid",
+          },
+        }).then((data) => (data ? true : false))
+      : false;
 
     let result = await Class.findByPk(id, {
       attributes: [

@@ -5,6 +5,7 @@ require("dotenv").config();
 const userDB = require("../db/user");
 const { googleVerify, naverVerify, userAuth } = require("../middleware/auth");
 
+// 구글 로그인
 router.post("/login/google", (req, res) => {
   const authHeader = req.get("Authorization");
 
@@ -40,9 +41,6 @@ router.post("/login/google", (req, res) => {
       });
     }
 
-    // if (!userInfo)
-    //   return res.status(500).json({ message: "fail to get userInfo from DB" });
-
     return res
       .status(200)
       .json({ message: "success", userInfo: isUser, status: 200 });
@@ -56,6 +54,7 @@ router.post("/login/google", (req, res) => {
   });
 });
 
+// 네이버 로그인
 router.post("/login/naver", async (req, res) => {
   try {
     const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
@@ -84,7 +83,7 @@ router.post("/login/naver", async (req, res) => {
     if (!response)
       return res.status(400).json({ message: "fail to verify naver token" });
 
-    const { id, nickname, email } = response;
+    const { id, nickname, email, profile_image = "" } = response;
 
     if (!id) return res.status(400).json("fail to get external_id");
 
@@ -147,15 +146,17 @@ router.post("/register", async (req, res) => {
     external_id: external_type === "google" ? userData?.sub : userData?.id,
     nickname,
     email,
-    profileImg: userData?.picture,
+    profile_img:
+      external_type === "google" ? userData?.picture : userData?.profile_image,
   });
 
   if (!userInfo) return res.status(500).json({ message: "server error" });
   if (typeof userInfo === "string" && userInfo?.startsWith("error"))
     return res.status(400).json({ message: "fail", userInfo });
 
-  //  res.cookie("token", refresh_token, { httpOnly: true, secure: true });
-  if (refresh_token) res.cookie("token", refresh_token);
+  if (refresh_token)
+    // res.cookie("token", refresh_token, { httpOnly: true, secure: true });
+    res.cookie("token", refresh_token);
   return res.status(200).json({ message: "success", status: 200, userInfo });
 });
 
@@ -244,6 +245,7 @@ router.put("/", userAuth, async (req, res) => {
     return res.status(400).json({ message: "fail", result, authInfo });
 
   result.status = 200;
+  result.authInfo = authInfo;
   return res.status(200).json(result);
 });
 
@@ -253,11 +255,35 @@ router.delete("/", userAuth, async (req, res) => {
   let userId = req?.user?.id;
   let cookie = req?.cookies?.token;
 
-  if (!userId)
-    return res.status(400).json({ message: "fail to get userId", authInfo });
+  let external_type = req?.user?.external_type;
+  let accToken = authInfo?.newToken || req.get("Authorization")?.split(" ")[1];
+
+  if (!userId || !external_type)
+    return res
+      .status(400)
+      .json({ message: "fail to get userId or external_type", authInfo });
+
+  if (external_type === "naver") {
+    // 네이버
+    let url = `https://nid.naver.com/oauth2.0/token?grant_type=delete&client_id=${process.env.NAVER_CLIENT_ID}&client_secret=${process.env.NAVER_CLIENT_SECRET}&access_token=${accToken}&service_provider=NAVER`;
+
+    let deleteResult = await axios
+      .get(url)
+      .then((res) => res.data)
+      .catch((err) => {
+        console.error(err);
+        return null;
+      });
+
+    if (!deleteResult || deleteResult?.result !== "success")
+      return res
+        .status(500)
+        .json({ message: "엑세스 토큰 삭제 요청 실패", authInfo });
+  } else {
+    // 구글
+  }
 
   let result = await userDB.deleteUser(userId);
-
   if (!result)
     return res.status(500).json({ message: "server error", authInfo });
 

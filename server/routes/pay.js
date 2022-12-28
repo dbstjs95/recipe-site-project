@@ -59,7 +59,7 @@ router.get("/:paymentId", async (req, res) => {
     .json({ message: "success", status: 200, payment: result, authInfo });
 });
 
-// 환불
+// 결제정보저장후 환불
 router.post("/:paymentId/cancel", async (req, res) => {
   let authInfo = req?.authInfo;
 
@@ -142,6 +142,60 @@ router.post("/:paymentId/cancel", async (req, res) => {
     return res.status(400).json({ message: "fail", result, authInfo });
 
   return res.status(200).json({ message: "success", status: 200, authInfo });
+});
+
+// 결제정보저장 실패후 결제 취소
+router.post("/fail/:classId", async (req, res) => {
+  let { classId } = req.params;
+  let { reason, imp_uid, amount } = req.body;
+
+  if (!reason || !imp_uid || !amount)
+    return res.status(400).json({
+      message: "reason, imp_uid, amount의 정보가 모두 있어야 합니다.",
+    });
+
+  // 액세스 토큰(access token) 발급 받기
+  const getToken = await axios({
+    url: "https://api.iamport.kr/users/getToken",
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    data: {
+      imp_key: process.env.IAMPORT_IMP_KEY,
+      imp_secret: process.env.IAMPORT_IMP_SECRET,
+    },
+  });
+
+  const { access_token } = getToken.data.response; // 인증 토큰
+
+  // DB에서 클래스 가격 추출
+  let price = await payDB.findClassPrice(classId);
+  if (price !== 0 && !price)
+    return res
+      .status(500)
+      .json({ message: "클래스의 가격을 찾을 수 없습니다." });
+
+  const getCancelData = await axios({
+    url: "https://api.iamport.kr/payments/cancel",
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: access_token, // 아임포트 서버로부터 발급받은 엑세스 토큰
+    },
+    data: {
+      reason, // 가맹점 클라이언트로부터 받은 환불사유
+      imp_uid, // imp_uid를 환불 `unique key`로 입력
+      amount, // 가맹점 클라이언트로부터 받은 환불금액
+      checksum: price,
+    },
+  });
+
+  const { response } = getCancelData.data;
+  const { status } = response;
+
+  if (status === "cancelled")
+    return res.status(200).json({ message: "success" });
+
+  return res.status(500).json({ message: "fail" });
 });
 
 module.exports = router;

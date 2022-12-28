@@ -1,3 +1,10 @@
+const https = require("https");
+const fs = require("fs");
+const options = {
+  key: fs.readFileSync(__dirname + "/keys/key.pem", "utf-8"),
+  cert: fs.readFileSync(__dirname + "/keys/cert.pem", "utf-8"),
+};
+
 const express = require("express");
 const { sequelize, User } = require("./models");
 const cors = require("cors");
@@ -29,12 +36,13 @@ app.use(
     // 출처 허용 옵션
     origin: [
       process.env.OUR_CLIENT_URI,
+      "http://myrecipetest.tk.s3-website.ap-northeast-2.amazonaws.com",
+      "http://localhost:3000",
       "https://nid.naver.com",
       "https://openapi.naver.com",
-      "http://my-recipe-front.s3-website.ap-northeast-2.amazonaws.com",
       "https://api.iamport.kr",
     ],
-    methods: "GET,PUT,POST,OPTIONS,DELETE",
+    methods: "GET,PUT,POST,OPTIONS,DELETE,HEAD",
     // 사용자 인증이 필요한 리소스(쿠키 ..등) 접근(credentials 스펠링 주의!!!!)
     credentials: true,
   })
@@ -43,24 +51,13 @@ app.use(
 app.use(cookieParser());
 
 app.use("/v1", require("./routes"));
-// app.get("/test", async (req, res) => {
-//   // https에서만 가능(SameSite=None;Secure)
-//   // res.setHeader("Set-Cookie", "test=1234;HttpOnly;SameSite=None;Secure");
-//   let user_id = 1;
-//   let result = await User.findByPk(user_id);
-//   res.status(200).json({ message: "success", result });
-// });
-// app.post("/test", async (req, res) => {
-//   let user_id = 1;
-//   let { nickname } = req.body;
-//   if (!nickname) return res.status(400).json({ message: "nickname 없음" });
-
-//   let result = await User.update({ nickname }, { where: { id: user_id } });
-//   if (!result) return res.status(500).json({ message: "update 실패" });
-
-//   res.status(200).json({ message: "success" });
-// });
 
 app.listen(PORT, () => {
-  console.log(`listening on port ${PORT}`);
+  console.log("HTTP server listening on port " + PORT);
 });
+
+// const server = https.createServer(options, app);
+
+// server.listen(PORT, () => {
+//   console.log("HTTPS server listening on port " + PORT);
+// });

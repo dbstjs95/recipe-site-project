@@ -109,7 +109,7 @@ router.post("/:classId/comment", userAuth, async (req, res) => {
   if (typeof result === "string" && result.startsWith("error"))
     return res.status(400).json({ message: "fail", result, authInfo });
 
-  return res.status(201).json({ message: "success", status: 201, authInfo });
+  return res.status(201).json({ message: "success", status: 200, authInfo });
 });
 
 // 클래스 추가

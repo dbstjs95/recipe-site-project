@@ -53,9 +53,15 @@ async function getMyRecipeList(userId, public, order_by, offset, limit) {
   try {
     let customOrder;
     if (!public || order_by === "created_at") {
-      customOrder = ["createdAt", "DESC"];
+      customOrder = [
+        ["createdAt", "DESC"],
+        ["id", "DESC"],
+      ];
     } else {
-      customOrder = ["like", "DESC"];
+      customOrder = [
+        ["like", "DESC"],
+        ["id", "ASC"],
+      ];
     }
 
     let count;
@@ -76,7 +82,7 @@ async function getMyRecipeList(userId, public, order_by, offset, limit) {
         [fn("COUNT", col("Likes.recipe_id")), "like"],
       ],
       include: [{ model: Like, attributes: [] }],
-      order: [customOrder],
+      order: customOrder,
       offset: offset,
       group: "Recipe.id",
     });
@@ -101,17 +107,25 @@ async function getMyLikes(userId, offset, limit) {
     let rowData = await Like.findAll({
       where: { user_id: userId },
       attributes: ["recipe_id"],
-      order: [["createdAt", "DESC"]],
+      order: [
+        ["createdAt", "DESC"],
+        ["id", "DESC"],
+      ],
     });
 
-    let count = rowData.length;
+    if (!rowData) {
+      return "error: count";
+    }
+
+    let count = rowData?.length;
+    if (count === 0) return { count, list: [] };
 
     let likedRecipeIds;
     if (count > 0) {
       likedRecipeIds = rowData.map((item) => item?.dataValues?.recipe_id);
-    } else {
-      return { list: [] };
     }
+
+    if (!likedRecipeIds) return "error: likedRecipeIds";
 
     let data = await Recipe.findAll({
       where: { id: likedRecipeIds },
@@ -134,7 +148,7 @@ async function getMyLikes(userId, offset, limit) {
         {
           model: User,
           as: "writer",
-          attributes: ["profile_img", "nickname"],
+          attributes: ["nickname", "profile_img"],
         },
       ],
       order: [[fn("field", col("Recipe.id"), ...likedRecipeIds), "ASC"]],
@@ -147,7 +161,7 @@ async function getMyLikes(userId, offset, limit) {
     let limitedData = data?.slice(0, limit);
 
     let result = limitedData.map(({ dataValues: item }) => {
-      let { profile_img, nickname } = item?.writer;
+      let { nickname, profile_img } = item?.writer;
       let temp = [profile_img, nickname];
       delete item.writer;
       return { ...item, userInfo: temp };
@@ -176,7 +190,10 @@ async function getPaidClassList(userId, offset, limit) {
 
     if (!paymentRst) return "error: paymentRst";
 
-    let classIds = paymentRst.map((item) => item?.dataValues?.class_id);
+    if (paymentRst?.length === 0)
+      return { message: "success", count: 0, list: [] };
+
+    let classIds = paymentRst?.map((item) => item?.dataValues?.class_id);
 
     let classRst = await Class.findAll({
       where: { id: classIds },
@@ -200,7 +217,7 @@ async function getPaidClassList(userId, offset, limit) {
     });
 
     if (offset === 0) {
-      let count = result.length;
+      let count = result?.length;
       return { message: "success", count, list: result };
     } else {
       return { message: "success", list: result };

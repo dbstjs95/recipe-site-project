@@ -1,5 +1,5 @@
 const { Op, fn, col, literal } = require("sequelize");
-const { Payment } = require("../models");
+const { Payment, Class } = require("../models");
 
 async function createPayment(data) {
   try {
@@ -59,4 +59,24 @@ async function updatePaymentData(merchant_uid, data) {
   }
 }
 
-module.exports = { createPayment, findPaymentData, updatePaymentData };
+async function findClassPrice(classId) {
+  try {
+    let price = await Class.findOne({
+      where: { id: classId },
+      attributes: ["price"],
+    }).then((data) => data?.price);
+
+    if (price !== 0 && !price) return "error: price";
+    return price;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+module.exports = {
+  createPayment,
+  findPaymentData,
+  updatePaymentData,
+  findClassPrice,
+};

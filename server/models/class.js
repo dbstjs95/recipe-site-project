@@ -17,12 +17,6 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: "CASCADE",
         as: "classFoods",
       });
-      Class.hasMany(models.Class_party, {
-        foreignKey: "class_id",
-        sourceKey: "id",
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
-      });
       Class.hasMany(models.Class_comment, {
         foreignKey: "class_id",
         sourceKey: "id",

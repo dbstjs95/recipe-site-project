@@ -171,23 +171,14 @@ async function addComment(data) {
   }
 }
 
-async function createRecipe(data) {
-  let {
-    user_id,
-    public,
-    title,
-    mainSrc,
-    intro,
-    category,
-    details,
-    ingredients,
-    steps,
-  } = data;
+async function createRecipe(userId, data) {
+  let { public, title, mainSrc, intro, category, details, ingredients, steps } =
+    data;
 
   let str_category = category.join();
 
   let recipeData = {
-    user_id,
+    user_id: userId,
     public,
     category: str_category,
     header_img: mainSrc,
@@ -269,7 +260,15 @@ async function getRecipeList(
 ) {
   try {
     let customOrder =
-      order_by === "like" ? ["like", "DESC"] : ["createdAt", "DESC"];
+      order_by === "like"
+        ? [
+            ["like", "DESC"],
+            ["id", "ASC"],
+          ]
+        : [
+            ["createdAt", "DESC"],
+            ["id", "DESC"],
+          ];
 
     let customLimit = list_type === "best" ? 10 : limit;
 
@@ -289,6 +288,7 @@ async function getRecipeList(
     }
 
     const STD = std.join("");
+    console.log("STD: ", STD);
 
     if (keyword) {
       keyword = `%${keyword}%`;
@@ -298,16 +298,27 @@ async function getRecipeList(
 
     let count;
     if ((list_type === "classification") & (offset === 0)) {
-      count = await Recipe.count();
+      count = await Recipe.count({
+        where: {
+          public: 1,
+          category: {
+            [Op.like]: STD,
+          },
+          header_title: {
+            [Op.like]: keyword,
+          },
+        },
+      });
     }
 
     let data = await Recipe.findAll({
       where: {
         public: 1,
         category: {
-          [Op.and]: {
-            [Op.like]: STD,
-          },
+          // [Op.and]: {
+          //   [Op.like]: STD,
+          // },
+          [Op.like]: STD,
         },
         header_title: {
           [Op.like]: keyword,
@@ -335,12 +346,13 @@ async function getRecipeList(
           attributes: ["profile_img", "nickname"],
         },
       ],
-      order: [customOrder],
+      order: customOrder,
       group: "Recipe.id",
       offset: offset,
     });
 
     if (!data) return "error: data";
+    if (data?.length === 0) return { count: 0, list: [] };
 
     let limitedData = data?.slice(0, customLimit);
     let result = limitedData.map(({ dataValues: item }) => {
@@ -364,6 +376,7 @@ async function getMyRecipe(id) {
   try {
     let recipeResult = await Recipe.findByPk(id, {
       attributes: [
+        "id",
         ["header_title", "title"],
         ["header_img", "mainSrc"],
         ["header_desc", "intro"],

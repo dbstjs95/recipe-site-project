@@ -56,10 +56,11 @@ let example = {
 // 레시피 등록
 router.post("/", userAuth, async (req, res) => {
   let authInfo = req?.authInfo;
+  let userId = req?.user?.id;
 
-  // const data = req.body;
-  let data = { ...example };
-  let isRegistered = await recipeDB.createRecipe(data);
+  const data = req.body;
+
+  let isRegistered = await recipeDB.createRecipe(userId, data);
 
   if (!isRegistered)
     return res.status(500).json({ message: "server error", authInfo });
@@ -164,7 +165,7 @@ router.get("/", auth, async (req, res) => {
 
   result.status = 200;
   result.authInfo = authInfo;
-  res.clearCookie("test");
+
   return res.status(200).json(result);
 });
 
