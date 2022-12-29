@@ -48,6 +48,7 @@ app.use(
   })
 );
 
+// 테스트
 app.use(cookieParser());
 
 app.use("/v1", require("./routes"));
