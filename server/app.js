@@ -51,7 +51,7 @@ app.use(
 app.use(cookieParser());
 
 app.use("/v1", require("./routes"));
-app.use("/test", (req, res) => {
+app.get("/test", (req, res) => {
   console.log("hello~!");
   res.send("connection success");
 });
