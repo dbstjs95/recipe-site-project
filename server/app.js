@@ -1,9 +1,9 @@
-const https = require("https");
-const fs = require("fs");
-const options = {
-  key: fs.readFileSync(__dirname + "/keys/key.pem", "utf-8"),
-  cert: fs.readFileSync(__dirname + "/keys/cert.pem", "utf-8"),
-};
+//const https = require("https");
+//const fs = require("fs");
+// const options = {
+//   key: fs.readFileSync(__dirname + "/keys/key.pem", "utf-8"),
+//   cert: fs.readFileSync(__dirname + "/keys/cert.pem", "utf-8"),
+// };
 
 const express = require("express");
 const { sequelize, User } = require("./models");
@@ -48,10 +48,13 @@ app.use(
   })
 );
 
-// 테스트
 app.use(cookieParser());
 
 app.use("/v1", require("./routes"));
+app.use("/test", (req, res) => {
+  console.log("hello~!");
+  res.send("connection success");
+});
 
 app.listen(PORT, () => {
   console.log("HTTP server listening on port " + PORT);
