@@ -12,7 +12,7 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 // api: https://docs.google.com/spreadsheets/d/1PdOtnxet5QdoUqcemtTGM1Ek04Q5mQK-WpDonJqDNLA/edit#gid=0
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 80;
 
 const app = express();
 
@@ -36,8 +36,6 @@ app.use(
     // 출처 허용 옵션
     origin: [
       process.env.OUR_CLIENT_URI,
-      "http://myrecipetest.tk.s3-website.ap-northeast-2.amazonaws.com",
-      "http://localhost:3000",
       "https://nid.naver.com",
       "https://openapi.naver.com",
       "https://api.iamport.kr",
