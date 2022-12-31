@@ -35,7 +35,8 @@ app.use(
     preflightContinue: true,
     // 출처 허용 옵션
     origin: [
-      process.env.OUR_CLIENT_URI,
+      process.env.OUR_CLIENT_URI_1,
+      process.env.OUR_CLIENT_URI_2,
       "https://nid.naver.com",
       "https://openapi.naver.com",
       "https://api.iamport.kr",

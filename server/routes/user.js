@@ -103,7 +103,11 @@ router.post("/login/naver", async (req, res) => {
       });
     }
 
-    res.cookie("token", refresh_token, { httpOnly: true, secure: true });
+    res.cookie("token", refresh_token, {
+      sameSite: "none",
+      secure: true,
+      httpOnly: true,
+    });
     return res.json({
       message: "success",
       token: access_token,
@@ -154,7 +158,11 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "fail", userInfo });
 
   if (refresh_token)
-    res.cookie("token", refresh_token, { httpOnly: true, secure: true });
+    res.cookie("token", refresh_token, {
+      sameSite: "none",
+      secure: true,
+      httpOnly: true,
+    });
   return res.status(200).json({ message: "success", status: 200, userInfo });
 });
 
@@ -278,7 +286,7 @@ router.delete("/", userAuth, async (req, res) => {
         .status(500)
         .json({ message: "엑세스 토큰 삭제 요청 실패", authInfo });
   } else {
-    // 구글
+    // 구글: https://developers.google.com/identity/protocols/oauth2/web-server#tokenrevoke
   }
 
   let result = await userDB.deleteUser(userId);
