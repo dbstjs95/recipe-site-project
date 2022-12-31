@@ -103,8 +103,7 @@ router.post("/login/naver", async (req, res) => {
       });
     }
 
-    // res.cookie("token", refresh_token, { httpOnly: true, secure: true });
-    res.cookie("token", refresh_token);
+    res.cookie("token", refresh_token, { httpOnly: true, secure: true });
     return res.json({
       message: "success",
       token: access_token,
@@ -155,8 +154,7 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "fail", userInfo });
 
   if (refresh_token)
-    // res.cookie("token", refresh_token, { httpOnly: true, secure: true });
-    res.cookie("token", refresh_token);
+    res.cookie("token", refresh_token, { httpOnly: true, secure: true });
   return res.status(200).json({ message: "success", status: 200, userInfo });
 });
 
