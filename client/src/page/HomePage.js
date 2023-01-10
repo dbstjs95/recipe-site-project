@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -80,7 +80,6 @@ function HomePage({ setHeader }) {
           setHeader(user?.token, user?.authType)
         )
         .then((res) => res.data);
-
       if (user && result?.authInfo) {
         let { isAuth, newToken } = result?.authInfo;
         if (!isAuth) {
@@ -93,7 +92,6 @@ function HomePage({ setHeader }) {
           }));
         }
       }
-
       if (result?.status === 200) {
         return result?.list;
       }
