@@ -25,9 +25,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "HTTPS=true SSL_CRT_FILE=./keys/cert.pem SSL_KEY_FILE=./keys/key.pem react-scripts start",
+    "build1": "env-cmd -f .env.prod_ys react-scripts build",
+    "build2": "env-cmd -f .env.prod_hh react-scripts build",
+    "test": "env-cmd -f .env.test npm start",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -47,5 +48,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "env-cmd": "^10.1.0"
   }
 }
