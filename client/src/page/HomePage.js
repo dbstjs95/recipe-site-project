@@ -11,8 +11,6 @@ import { useQuery, useQueryClient } from "react-query";
 import { useSetAuth } from "../contexts/AuthContext";
 import { Loading, Error } from "../components/States";
 
-const ENV = process.env;
-
 //헤더 디자인~
 const HeaderStyle = styled.h1`
   font-weight: bold;
