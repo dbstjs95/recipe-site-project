@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import CategoryBox from "../../components/CategoryBox";
 import { LayoutSize, ContainerStyle } from "../../css";
@@ -121,7 +121,8 @@ function RecipeListPage({ setHeader }) {
     { refetchOnWindowFocus: false, keepPreviousData: true }
   );
 
-  useState(() => {
+  // 홈화면에 있는 [카테고리란, 검색창, 베스트 더보기]로 들어올 때만 유효함
+  useEffect(() => {
     if (!search) return;
     let type = new URLSearchParams(search).get("type");
 
@@ -147,6 +148,7 @@ function RecipeListPage({ setHeader }) {
       ...prev,
       keyword: keyword || "",
       category: category || "전체,전체,전체",
+      offset: 0,
     }));
   }, [search]);
 
