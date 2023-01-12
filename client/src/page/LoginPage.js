@@ -29,21 +29,32 @@ function LoginPage() {
 
     if (authState) {
       //네이버
+      // let headerData;
       let result = await axios
         .post(
-          `${ENV.REACT_APP_OUR_SERVER_URI}/user/login/naver`,
+          `${ENV.REACT_APP_OUR_SERVER_URI}/user/login`,
           {
             code: authCode,
             state: authState,
           },
-          { withCredentials: true }
+          {
+            headers: {
+              AuthType: "naver",
+            },
+            withCredentials: true,
+          }
         )
-        .then((res) => res.data);
+        .then((res) => {
+          // let { authtype, act, rft } = res.headers;
+          // headerData = { authtype, act, rft };
+          return res.data;
+        });
 
       if (result?.status === 200) {
         return { ...result, authType: "naver", isLogin: true };
       } else if (result?.status === 202 && !result?.isRegistered) {
         navigate("/user/signup");
+        // return { ...result?.userInfo, ...headerData };
         return { ...result?.userInfo };
       }
       return null;
@@ -69,10 +80,13 @@ function LoginPage() {
       //헤더로...
       let result = await axios
         .post(
-          `${ENV.REACT_APP_OUR_SERVER_URI}/user/login/google`,
+          `${ENV.REACT_APP_OUR_SERVER_URI}/user/login`,
           {},
           {
-            headers: { Authorization: `Bearer ${id_token}` },
+            headers: {
+              Authorization: `Bearer ${id_token}`,
+              AuthType: "google",
+            },
           }
         )
         .then((res) => res.data);
