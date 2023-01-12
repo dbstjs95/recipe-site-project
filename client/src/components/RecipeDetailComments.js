@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../contexts/AuthContext";
 import { Error, Loading } from "./States";
+import { PROFILE_IMG_FIRST } from "./Profile";
 
 const Container = styled.div`
   width: 80%;
@@ -331,13 +332,15 @@ function RecipeDetailComments({
       </h2>
       <CommentsBox>
         {CommentList.slice(0, ShowNum).map((item) => {
+          let profileImg = item?.writer?.profile_img;
+
           return (
             <li key={item?.id}>
               <img
                 src={
-                  item?.writer?.profile_img
-                    ? `${bucketUrl}${item?.writer?.profile_img}`
-                    : userImg
+                  profileImg?.startsWith(PROFILE_IMG_FIRST)
+                    ? `${bucketUrl}${profileImg}`
+                    : profileImg || userImg
                 }
                 alt="프로필 이미지"
               />

@@ -11,6 +11,8 @@ import userImg from "../assets/logo_img/user.png";
 import { bucketUrl, fileUpload, fileDelete } from "../api/fileUpload";
 import { useSetAuth } from "../contexts/AuthContext";
 
+export const PROFILE_IMG_FIRST = "upload/user/";
+
 const Container = styled.div`
   width: 80%;
   min-height: 50vh;
@@ -87,8 +89,6 @@ function Profile({ setHeader }) {
   const setAuth = useSetAuth();
 
   const user = queryClient.getQueryData("login");
-
-  const PROFILE_IMG_FIRST = "upload/user/";
 
   const [ProfileImg, setProfileImg] = useState("");
   const [IsOpen, setIsOpen] = useState(false);
