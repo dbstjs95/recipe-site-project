@@ -66,7 +66,7 @@ function SignUpPage() {
 
   const loginData = queryClient.getQueryData("login");
   const [InputVal, setInputVal] = useState({
-    ...loginData,
+    ...loginData?.userInfo,
   });
   const [Msg, setMsg] = useState("");
 
@@ -75,14 +75,20 @@ function SignUpPage() {
       axios.post(
         `${process.env.REACT_APP_OUR_SERVER_URI}/user/register`,
         data,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${loginData?.token?.act}`,
+            Rft: loginData?.token?.rft,
+          },
+          withCredentials: true,
+        }
       ),
     {
       onSuccess: (data) => {
         let result = data?.data;
         if (result?.status === 200) {
           queryClient.setQueryData("login", (prev) => {
-            let token = prev?.token;
+            let token = prev?.token?.act;
             return {
               ...result,
               token,
