@@ -90,13 +90,29 @@ router.post("/login/naver", async (req, res) => {
     let isUser = await userDB.findUserById("naver", id);
     if (!isUser) {
       //회원이 아닌 경우 --> 회원가입
+      // res.header({
+      //   authtype: "naver",
+      //   act: access_token,
+      //   rft: refresh_token,
+      // });
+
+      // res.set("Access-Control-Expose-Headers", ["authtype", "act", "rft"]);
+      // return res.status(202).json({
+      //   isRegistered: false,
+      //   status: 202,
+      //   userInfo: {
+      //     nickname,
+      //     email,
+      //   },
+      // });
+
       return res.status(202).json({
         isRegistered: false,
         status: 202,
         userInfo: {
           nickname,
           email,
-          external_type: "naver",
+          external_type,
           token: access_token,
           refresh_token,
         },

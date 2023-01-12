@@ -40,34 +40,28 @@ router.post("/:classId", userAuth, async (req, res) => {
   return res.status(200).json(result);
 });
 
-// 결제완료정보 불어오기
+// 결제완료정보 불러오기
 router.get("/:paymentId", async (req, res) => {
-  let authInfo = req?.authInfo;
   let { paymentId } = req.params;
 
   let result = await payDB.findPaymentData(paymentId);
 
-  if (!result)
-    return res.status(500).json({ message: "server error", authInfo });
+  if (!result) return res.status(500).json({ message: "server error" });
 
   if (typeof result === "string" && result.startsWith("error")) {
-    return res.status(400).json({ message: "fail", result, authInfo });
+    return res.status(400).json({ message: "fail", result });
   }
 
   return res
     .status(200)
-    .json({ message: "success", status: 200, payment: result, authInfo });
+    .json({ message: "success", status: 200, payment: result });
 });
 
 // 결제정보저장후 환불
 router.post("/:paymentId/cancel", async (req, res) => {
-  let authInfo = req?.authInfo;
-
   let body = req.body;
   if (!body || !body?.reason || !body?.merchant_uid)
-    return res
-      .status(400)
-      .json({ message: "can't find the refund data.", authInfo });
+    return res.status(400).json({ message: "can't find the refund data." });
 
   let { reason, merchant_uid } = body;
   let { paymentId } = req.params;
@@ -90,19 +84,16 @@ router.post("/:paymentId/cancel", async (req, res) => {
   if (!dbData)
     return res.status(500).json({
       message: "디비에서 결제 정보 조회 실패: server error",
-      authInfo,
     });
   if (typeof dbData === "string" && dbData.startsWith("error"))
     return res
       .status(400)
-      .json({ message: "디비에서 결제 정보 조회 실패", dbData, authInfo });
+      .json({ message: "디비에서 결제 정보 조회 실패", dbData });
 
   const { imp_uid, paid_amount, cancel_amount, status: dbStatus } = dbData;
   const cancelableAmount = Number(paid_amount) - Number(cancel_amount);
   if (dbStatus === "cancelled" || cancelableAmount <= 0) {
-    return res
-      .status(400)
-      .json({ message: "이미 환불된 결제건 입니다.", authInfo });
+    return res.status(400).json({ message: "이미 환불된 결제건 입니다." });
   }
 
   const getCancelData = await axios({
@@ -127,7 +118,6 @@ router.post("/:paymentId/cancel", async (req, res) => {
     return res.status(500).json({
       message:
         "환불결과: DB merchant_uid와 iamport merchant_uid가 일치하지 않습니다.",
-      authInfo,
     });
   }
 
@@ -139,9 +129,9 @@ router.post("/:paymentId/cancel", async (req, res) => {
   let result = await payDB.updatePaymentData(merchant_uid, dataToUpdate);
   if (!result) return res.status(500).json({ message: "server error" });
   if (typeof result === "string" && result.startsWith("error"))
-    return res.status(400).json({ message: "fail", result, authInfo });
+    return res.status(400).json({ message: "fail", result });
 
-  return res.status(200).json({ message: "success", status: 200, authInfo });
+  return res.status(200).json({ message: "success", status: 200 });
 });
 
 // 결제정보저장 실패후 결제 취소

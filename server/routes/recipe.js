@@ -4,7 +4,6 @@ const recipeDB = require("../db/recipe");
 const { auth, userAuth } = require("../middleware/auth");
 
 let example = {
-  user_id: 2,
   public: 1,
   title: "사라다빵 만들기",
   mainSrc: "upload/recipe/06056db288ae4f4fb90d8a3c1a642f8f.jpeg",

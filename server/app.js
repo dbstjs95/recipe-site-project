@@ -1,9 +1,9 @@
-//const https = require("https");
-//const fs = require("fs");
-// const options = {
-//   key: fs.readFileSync(__dirname + "/keys/key.pem", "utf-8"),
-//   cert: fs.readFileSync(__dirname + "/keys/cert.pem", "utf-8"),
-// };
+const https = require("https");
+const fs = require("fs");
+const options = {
+  key: fs.readFileSync(__dirname + "/keys/key.pem", "utf-8"),
+  cert: fs.readFileSync(__dirname + "/keys/cert.pem", "utf-8"),
+};
 
 const express = require("express");
 const { sequelize, User } = require("./models");
@@ -37,6 +37,7 @@ app.use(
     origin: [
       process.env.OUR_CLIENT_URI_1,
       process.env.OUR_CLIENT_URI_2,
+      process.env.OUR_CLIENT_URI_3,
       "https://nid.naver.com",
       "https://openapi.naver.com",
       "https://api.iamport.kr",
@@ -55,12 +56,13 @@ app.get("/", (req, res) => {
   res.send("connection success");
 });
 
-app.listen(PORT, () => {
-  console.log("HTTP server listening on port " + PORT);
-});
-
-// const server = https.createServer(options, app);
-
-// server.listen(PORT, () => {
-//   console.log("HTTPS server listening on port " + PORT);
+// // http 통신
+// app.listen(PORT, () => {
+//   console.log("HTTP server listening on port " + PORT);
 // });
+
+const server = https.createServer(options, app);
+
+server.listen(PORT, () => {
+  console.log("HTTPS server listening on port " + PORT);
+});
