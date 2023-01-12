@@ -90,31 +90,17 @@ router.post("/login/naver", async (req, res) => {
     let isUser = await userDB.findUserById("naver", id);
     if (!isUser) {
       //회원이 아닌 경우 --> 회원가입
-      // res.header({
-      //   authtype: "naver",
-      //   act: access_token,
-      //   rft: refresh_token,
-      // });
-
-      // res.set("Access-Control-Expose-Headers", ["authtype", "act", "rft"]);
-      // return res.status(202).json({
-      //   isRegistered: false,
-      //   status: 202,
-      //   userInfo: {
-      //     nickname,
-      //     email,
-      //   },
-      // });
-
       return res.status(202).json({
         isRegistered: false,
         status: 202,
         userInfo: {
           nickname,
           email,
-          external_type,
-          token: access_token,
-          refresh_token,
+          external_type: "naver",
+        },
+        token: {
+          act: access_token,
+          rft: refresh_token,
         },
       });
     }
@@ -141,10 +127,17 @@ router.post("/login/naver", async (req, res) => {
 // 회원가입
 router.post("/register", async (req, res) => {
   let data = req.body;
-  if (!data)
-    return res.status(400).json({ message: "can't find the data to register" });
+  let authHd = req.get("Authorization");
 
-  let { external_type, token, refresh_token, nickname, email } = data;
+  if (!data || !authHd)
+    return res
+      .status(400)
+      .json({ message: "can't find data to register or Authorization header" });
+
+  let token = authHd?.split(" ")[1];
+  let rft = req.get("Rft");
+
+  let { external_type, nickname, email } = data;
 
   if (!token || !external_type)
     return res
@@ -173,8 +166,8 @@ router.post("/register", async (req, res) => {
   if (typeof userInfo === "string" && userInfo?.startsWith("error"))
     return res.status(400).json({ message: "fail", userInfo });
 
-  if (refresh_token)
-    res.cookie("token", refresh_token, {
+  if (rft)
+    res.cookie("token", rft, {
       sameSite: "none",
       secure: true,
       httpOnly: true,

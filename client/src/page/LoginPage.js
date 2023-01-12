@@ -44,7 +44,7 @@ function LoginPage() {
         return { ...result, authType: "naver", isLogin: true };
       } else if (result?.status === 202 && !result?.isRegistered) {
         navigate("/user/signup");
-        return { ...result?.userInfo };
+        return { userInfo: result?.userInfo, token: result?.token };
       }
       return null;
     } else {
@@ -86,7 +86,7 @@ function LoginPage() {
         };
       } else if (result?.status === 202 && !result?.isRegistered) {
         navigate("/user/signup");
-        return { ...result?.userInfo, token: id_token };
+        return { userInfo: result?.userInfo, token: { act: id_token } };
       }
       return null;
     }
