@@ -102,6 +102,7 @@ function SignUpPage() {
       },
       onError: (error) => {
         console.error(error);
+        queryClient.removeQueries("login");
         alert("회원가입에 실패했습니다.");
         navigate(nextPage || "/");
         return localStorage.removeItem("beforeLogin");
