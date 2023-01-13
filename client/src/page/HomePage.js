@@ -101,7 +101,10 @@ function HomePage({ setHeader }) {
   useEffect(() => {
     axios
       .get("https://7flgv44w30.execute-api.us-east-1.amazonaws.com/check")
-      .then((res) => console.log("쿠키확인: ", res.data));
+      .then((res) => {
+        console.log("쿠키확인: ", res.data);
+        return res.data;
+      });
   }, []);
 
   if (isLoading) return <Loading height="75vh" type="dots" />;
