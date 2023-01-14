@@ -111,7 +111,7 @@ const Banner = styled.section`
 
 const HideBox = styled.div`
   width: 90%;
-  height: 100px;
+  height: 200px;
   overflow: hidden;
   ul.banner_images {
     width: 100%;
