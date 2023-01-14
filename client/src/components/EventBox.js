@@ -115,7 +115,7 @@ const HideBox = styled.div`
   overflow: hidden;
   ul.banner_images {
     width: 100%;
-    height: 100%;
+    height: 200px;
     display: flex;
     transform: translate(0, 0);
     li.item {
