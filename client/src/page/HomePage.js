@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -97,17 +97,6 @@ function HomePage({ setHeader }) {
     },
     { refetchOnWindowFocus: false }
   );
-
-  useEffect(() => {
-    axios
-      .get("https://7flgv44w30.execute-api.us-east-1.amazonaws.com/check", {
-        withCredentials: true,
-      })
-      .then((res) => {
-        console.log("쿠키확인: ", res.data);
-        return res.data;
-      });
-  }, []);
 
   if (isLoading) return <Loading height="75vh" type="dots" />;
   if (isError) return <Error />;
