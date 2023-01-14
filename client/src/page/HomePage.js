@@ -72,6 +72,7 @@ function HomePage({ setHeader }) {
   } = useQuery(
     ["bestRecipes"],
     async () => {
+      console.log("made by ys");
       let result = await axios
         .get(
           `${process.env.REACT_APP_OUR_SERVER_URI}/recipe?list_type=best`,
