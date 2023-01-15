@@ -1,8 +1,3 @@
-// import event1 from "../components/event_img/1.png";
-// import event2 from "../components/event_img/2.png";
-// import event3 from "../components/event_img/3.png";
-// import event4 from "../components/event_img/4.png";
-
 import event1 from "../components/event_img/img01.png";
 import event2 from "../components/event_img/img02.png";
 import event3 from "../components/event_img/img03.png";
