@@ -31,7 +31,7 @@ const AuthProfile = Auth(Profile, true);
 const AuthRegisterRecipePage = Auth(RegisterRecipePage, true);
 const AuthModifyRecipePage = Auth(ModifyRecipePage, true);
 const AuthModifyUserInfoPage = Auth(ModifyUserInfoPage, true);
-
+// fetch 테스트
 function Main() {
   return (
     <BrowserRouter>
