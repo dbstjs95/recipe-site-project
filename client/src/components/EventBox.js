@@ -111,11 +111,11 @@ const Banner = styled.section`
 
 const HideBox = styled.div`
   width: 90%;
-  height: 100px;
+  height: 200px;
   overflow: hidden;
   ul.banner_images {
     width: 100%;
-    height: 200px;
+    height: 100%;
     display: flex;
     transform: translate(0, 0);
     li.item {
