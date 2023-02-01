@@ -9,6 +9,9 @@ const Container = styled.footer`
   display: flex;
   flex-direction: column;
   overflow: auto;
+  * {
+    /* border: 1px solid red; */
+  }
   > div {
     display: flex;
     justify-content: space-between;
@@ -16,6 +19,13 @@ const Container = styled.footer`
     padding: 20px 30px;
     @media screen and (max-width: 1024px) {
       flex-direction: column;
+    }
+    @media screen and (max-width: 290px) {
+      > ul.developer-info {
+        em {
+          display: none;
+        }
+      }
     }
   }
 
@@ -33,6 +43,9 @@ const Container = styled.footer`
 
 const SiteInfo = styled.ul`
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   li {
     padding: 0 5px;
     &:not(:last-child) {
@@ -71,8 +84,10 @@ function Footer() {
         </SiteInfo>
 
         <ul className="developer-info">
-          <li>프론트 개발자: 최윤선 | &lt;yunseon95@gmail.com&gt; </li>
-          <li>백엔트 개발자: 홍현희 | &lt;a1guskn7@gmail.com&gt;</li>
+          <li>
+            개발자: <em>최윤선 |</em> &lt;yunseon95@gmail.com&gt;{" "}
+          </li>
+          {/* <li>백엔트 개발자: 홍현희 | &lt;a1guskn7@gmail.com&gt;</li> */}
         </ul>
       </div>
 
