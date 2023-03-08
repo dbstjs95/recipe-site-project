@@ -64,7 +64,7 @@ function RecipeListPage({ setHeader }) {
     ingredient: "전체",
   });
 
-  const [Count, setCount] = useState(20);
+  const [Count, setCount] = useState(0);
   const [IsOpen, setIsOpen] = useState(true);
 
   const [PagingInfo, setPagingInfo] = useState({

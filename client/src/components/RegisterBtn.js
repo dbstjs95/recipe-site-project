@@ -75,6 +75,13 @@ function RegisterBtn({
   const user = queryClient.getQueryData("login");
 
   const saveApi = async ({ fileKeys, type }) => {
+    let filterdIngr = InputData?.ingredients?.map((item) => {
+      let list = item?.contents?.filter((data) => data[0]);
+      return { ...item, contents: list };
+    });
+
+    filterdIngr = filterdIngr.filter((item) => item?.contents?.length > 0);
+
     let newSteps = InputData?.steps?.map((item, idx) => {
       let imgKey = item[1];
       if (!imgKey?.startsWith(FileFirst)) {
@@ -89,6 +96,7 @@ function RegisterBtn({
 
     let body = {
       ...InputData,
+      ingredients: filterdIngr,
       mainSrc,
       steps: newSteps,
       public: type === "public" ? 1 : 0,
