@@ -203,6 +203,10 @@ function IngredientInnerBox({
       newData = { ...data, [key]: e.target.value };
     } else {
       let newContents = [...ingrContents];
+
+      if (!newContents[index]) {
+        newContents[index] = ["", ""];
+      }
       newContents[index][order] = e.target.value;
       newData = { ...data, [key]: newContents };
     }
@@ -267,13 +271,13 @@ function IngredientInnerBox({
               <input
                 type="text"
                 placeholder={example[idx % 5][0]}
-                defaultValue={ingrContents[idx][0]}
+                defaultValue={ingrContents[idx] && ingrContents[idx][0]}
                 onChange={(e) => handleChangeValue(e, "contents", idx, 0)}
               />
               <input
                 type="text"
                 placeholder={example[idx % 5][1]}
-                defaultValue={ingrContents[idx][1]}
+                defaultValue={ingrContents[idx] && ingrContents[idx][1]}
                 onChange={(e) => handleChangeValue(e, "contents", idx, 1)}
               />
               <span className="delete" onClick={() => handleDeleteItem(idx)}>
