@@ -37,6 +37,7 @@ const Container = styled.div`
 `;
 
 const ListContainer = styled.li`
+  border: 1px solid blue;
   width: 45%;
   margin-bottom: 20px;
   h3 {
@@ -65,17 +66,16 @@ const ListContainer = styled.li`
     }
   }
 
-  ${({ isOdd }) =>
+  ${({ isOdd, little }) =>
     isOdd &&
     `
     &:last-of-type {
       width: 100%;
       ul{
-        max-height: 200px;
         display: flex;
-        flex-direction: column;
+        flex-direction: ${little ? "column" : "row"};
         flex-wrap: wrap;
-        align-content: space-between;
+        justify-content: space-between;
         li{
           width: 45%;
           @media screen and (max-width: 600px) {
@@ -88,6 +88,7 @@ const ListContainer = styled.li`
 `;
 
 const ItemContainer = styled.ul`
+  border: 1px solid red;
   li {
     display: flex;
     justify-content: space-between;
@@ -111,8 +112,9 @@ function RecipeDetailIngr({ data }) {
       <h2>재료</h2>
       <ul>
         {data?.ingredients.map((obj, idx) => {
+          let little = obj?.contents?.length <= 5;
           return (
-            <ListContainer key={idx} isOdd={isOdd}>
+            <ListContainer key={idx} isOdd={isOdd} little={little}>
               <h3>[{obj?.title || "재료"}]</h3>
               <ItemContainer>
                 {obj?.contents.map((item, idx) => {
