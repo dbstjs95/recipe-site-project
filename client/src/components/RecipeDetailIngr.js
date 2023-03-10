@@ -37,7 +37,6 @@ const Container = styled.div`
 `;
 
 const ListContainer = styled.li`
-  border: 1px solid blue;
   width: 45%;
   margin-bottom: 20px;
   h3 {
@@ -88,7 +87,6 @@ const ListContainer = styled.li`
 `;
 
 const ItemContainer = styled.ul`
-  border: 1px solid red;
   li {
     display: flex;
     justify-content: space-between;
