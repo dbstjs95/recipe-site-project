@@ -274,7 +274,23 @@ function RegisterRecipePage({ setHeader, myRecipeData, modifyMode }) {
 
   // states
   const [InputData, setInputData] = useState(
-    modifyMode ? { ...myRecipeData } : { ...emptyData }
+    modifyMode
+      ? {
+          ...myRecipeData,
+          ingredients: !myRecipeData?.ingredients?.length
+            ? [
+                {
+                  name: "",
+                  contents: [
+                    ["", ""],
+                    ["", ""],
+                    ["", ""],
+                  ],
+                },
+              ]
+            : myRecipeData?.ingredients,
+        }
+      : { ...emptyData }
   );
 
   const [Files, setFiles] = useState(initialFiles);

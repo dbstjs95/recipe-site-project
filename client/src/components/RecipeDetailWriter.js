@@ -78,14 +78,18 @@ const Container = styled.div`
 `;
 
 function RecipeDetailWriter({ data }) {
+  const changeUrl = (url = "") => {
+    if (!url) return userImg;
+    if (url?.startsWith("upload/user/")) {
+      return bucketUrl + url;
+    } else return url;
+  };
+
   return (
     <Container>
       <h2>레시피 작성자</h2>
       <div>
-        <img
-          src={data?.profile_img ? `${bucketUrl}${data?.profile_img}` : userImg}
-          alt="프로필 이미지"
-        />
+        <img src={changeUrl(data?.profile_img)} alt="프로필 이미지" />
         <p>
           <span className="nickname">{data?.nickname}</span>
           <span className="greetings">{data?.profile_desc}</span>

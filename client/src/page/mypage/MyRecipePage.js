@@ -11,6 +11,7 @@ import axios from "axios";
 import { useSetAuth } from "../../contexts/AuthContext";
 import { bucketUrl } from "../../api/fileUpload";
 import { Error, Nodata, Loading, Fetching } from "../../components/States";
+import emptyMain from "../../assets/empty.png";
 
 const barColor = "lightgray";
 
@@ -342,7 +343,9 @@ function MyRecipePage() {
                 {data?.list?.map((item, idx) => {
                   return (
                     <li key={idx}>
-                      <img src={item?.src ? bucketUrl + item?.src : ""} />
+                      <img
+                        src={item?.src ? bucketUrl + item?.src : emptyMain}
+                      />
                       <div>
                         <Link to={`/modify/${item?.recipe_id}`}>
                           <h2>{item?.title}</h2>

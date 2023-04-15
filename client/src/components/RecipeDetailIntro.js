@@ -301,15 +301,18 @@ function RecipeDetailIntro({ data, setHeader, user, ID, CmtCount }) {
 
   const handleModify = () => navigate(`/modify/${data?.id}`);
 
+  const changeUrl = (url = "") => {
+    if (!url) return userImg;
+    if (url?.startsWith("upload/user/")) {
+      return bucketUrl + url;
+    } else return url;
+  };
+
   return (
     <Container>
       <MainImgBox
         main={`${bucketUrl}${data?.mainSrc}`}
-        writer={
-          data?.writer?.profile_img
-            ? `${bucketUrl}${data?.writer?.profile_img}`
-            : userImg
-        }
+        writer={changeUrl(data?.writer?.profile_img)}
       >
         <span className="view_icon">
           <FontAwesomeIcon icon={faEye} /> {Number(data?.view).toLocaleString()}
