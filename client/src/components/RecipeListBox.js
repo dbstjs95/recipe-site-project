@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { bucketUrl } from "../api/fileUpload";
 import userImg from "../assets/logo_img/user.png";
+import emptyMain from "../assets/empty.png";
 import { Fetching } from "./States";
 
 const BestSection = styled.section`
@@ -131,15 +132,8 @@ function RecipeListBox({ children, data, use, isFetching }) {
       <ul>
         {data.map((item, idx) => {
           const { recipe_id, src, title, userInfo, view, like } = item;
-          let simpleView = (Number(view) / 10000).toFixed(1);
-
-          // 테스트용
-          let mainImg = "";
-          if (src && src.startsWith("https://")) {
-            mainImg = src;
-          } else if (src) {
-            mainImg = `${bucketUrl}${src}`;
-          }
+          // let simpleView = (Number(view) / 10000).toFixed(1);
+          let mainImg = src ? `${bucketUrl}${src}` : "";
 
           return (
             <li key={idx} onClick={() => handleMovePage(recipe_id)}>

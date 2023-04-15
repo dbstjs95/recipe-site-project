@@ -232,7 +232,17 @@ function RegisterBtn({
 
   const handleSave = async (e, type) => {
     e.preventDefault();
-    let confirm = window.confirm("저장하시겠습니까?");
+
+    let text = "저장하시겠습니까?";
+    if (type === "public") {
+      if (!InputData?.mainSrc) {
+        return alert("대표 이미지를 업로드 해주세요.");
+      } else {
+        text = "레시피를 공개하시겠습니까?";
+      }
+    }
+
+    let confirm = window.confirm(text);
     if (confirm) {
       // steps 파일들 정리하기
       let { main, steps, stepIdArr } = Files;
