@@ -123,6 +123,13 @@ function RecipeListBox({ children, data, use, isFetching }) {
   const navigate = useNavigate();
   const handleMovePage = (id) => navigate(`/recipes/${id}`);
 
+  const changeUrl = (url = "") => {
+    if (!url) return userImg;
+    if (url?.startsWith("upload/user/")) {
+      return bucketUrl + url;
+    } else return url;
+  };
+
   return (
     <BestSection>
       {isFetching && (
@@ -143,9 +150,7 @@ function RecipeListBox({ children, data, use, isFetching }) {
               </ImgBox>
               <p className="title">{title}</p>
               <p className="user">
-                <img
-                  src={userInfo[0] ? `${bucketUrl}${userInfo[0]}` : userImg}
-                />
+                <img src={changeUrl(userInfo[0])} />
                 <span>{userInfo[1]}</span>
               </p>
               <DetailStyle best={use === "best"}>
