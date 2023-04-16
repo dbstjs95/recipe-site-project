@@ -8,6 +8,8 @@ export default function (SpecificComponent, option = null) {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const location = useLocation();
+    let current = location.pathname;
+    let search = location.search;
 
     const setAuth = useSetAuth();
     const loginData = queryClient.getQueryData("login");
@@ -23,17 +25,6 @@ export default function (SpecificComponent, option = null) {
     };
 
     useEffect(() => {
-      let current = location.pathname;
-      let search = location.search;
-
-      if (current !== "/classes") {
-        queryClient.removeQueries(["classList"]);
-      }
-
-      if (current !== "/recipes") {
-        queryClient.removeQueries(["recipeList"]);
-      }
-
       if (current !== "mypage/like") {
         queryClient.removeQueries(["myLikeList"]);
       }
@@ -47,6 +38,16 @@ export default function (SpecificComponent, option = null) {
       }
       if (current + search !== "/mypage/recipe?type=private") {
         queryClient.removeQueries(["myRecipeList", "private"]);
+      }
+    }, [current, search]);
+
+    useEffect(() => {
+      if (current !== "/classes") {
+        queryClient.removeQueries(["classList"]);
+      }
+
+      if (current !== "/recipes") {
+        queryClient.removeQueries(["recipeList"]);
       }
 
       if (loginData?.token) {

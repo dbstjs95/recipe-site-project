@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import { Container as EntireBox, ContentPublic } from "../mypage/MyRecipePage";
@@ -102,12 +102,12 @@ function MyLikePage() {
   });
 
   const { data, isLoading, isError, isFetching } = useQuery(
-    ["myLikeList", PagingInfo],
+    ["myLikeList", PagingInfo?.offset],
     async ({ queryKey }) => {
       let isExisted = queryClient.getQueryData(queryKey);
       if (isExisted) return isExisted;
 
-      let { offset, limit } = queryKey[1];
+      let { offset, limit } = PagingInfo;
       let result = await axios
         .get(
           `${process.env.REACT_APP_OUR_SERVER_URI}/user/likes?offset=${offset}&limit=${limit}`,
