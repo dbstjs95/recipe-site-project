@@ -1,7 +1,7 @@
 ### My Recipe
 > *나만의 레시피를 다른 사람들과 공유할 수 있어요.*
 
-![logo](https://raw.githubusercontent.com/dbstjs95/recipe-site-project/main/client/src/assets/logo_img/logo1.png)
+![logo](https://raw.githubusercontent.com/dbstjs95/recipe-site-project/main/client/src/assets/logo_img/logo3.png)
 
 ## 🌟 Feature
 이 프로젝트는 레시피 공유 사이트인 ‘만개의 레시피’의 기능과 디자인을 참고했습니다.
