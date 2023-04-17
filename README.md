@@ -20,22 +20,28 @@
 
 ## 🛠️ Development
 ### Front
-* Html
-* JavaScript
-* React
-* React Query
-* Styled-components
-* Axios
-* aws-sdk
+<div align="left">
+  <img src="https://img.shields.io/badge/-HTML-E34F26?logo=html5&logoColor=white&style=flat">
+  <img src="https://img.shields.io/badge/-JavaScript-F7DF1E?logo=javascript&logoColor=black&style=flat">
+  <img src="https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white&style=flat">
+  <img src="https://img.shields.io/badge/-React%20Query-ff4154?logo=react&logoColor=white&style=flat">
+  <br>
+  <img src="https://img.shields.io/badge/-Styled--components-DB7093?logo=styled-components&logoColor=white&style=flat">
+  <img src="https://img.shields.io/badge/-Axios-36868f?logo=axios&logoColor=white&style=flat">
+  <img src="https://img.shields.io/badge/-AWS%20SDK-FF9900?logo=amazon-aws&logoColor=white&style=flat">
+</div>
 
 ### Back
-* JavaScript 
-* Express 
-* Node.js 
-* Jsonwebtoken  
-* Sequelize 
-* Mysql
-* Axios
+<div align="left">
+  <img src="https://img.shields.io/badge/-JavaScript-F7DF1E?logo=javascript&logoColor=black&style=flat">
+  <img src="https://img.shields.io/badge/-Express-d11573?style=flat&logo=Express&logoColor=white">
+  <img src="https://img.shields.io/badge/Node.js-v16.17.1-228B22?logo=node.js&logoColor=white">
+  <br>
+  <img src="https://img.shields.io/badge/-Jsonwebtoken-purple?style=flat&logo=jsonwebtokens&logoColor=white">
+  <img src="https://img.shields.io/badge/-Sequelize-red?style=flat&logo=Sequelize&logoColor=white">
+  <img src="https://img.shields.io/badge/-MySQL-blue?style=flat&logo=MySQL&logoColor=white">
+  <img src="https://img.shields.io/badge/-Axios-36868f?style=flat&logo=axios&logoColor=white">
+</div>
 
 <br/>
 
