@@ -1,8 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { H2Style } from "./RecipeDetailIngr";
-import { bucketUrl } from "../api/fileUpload";
-import userImg from "../assets/logo_img/user.png";
+import { useChangeUrl } from "../api/changeUrl";
 
 const Container = styled.div`
   padding: 20px 15px;
@@ -78,12 +77,7 @@ const Container = styled.div`
 `;
 
 function RecipeDetailWriter({ data }) {
-  const changeUrl = (url = "") => {
-    if (!url) return userImg;
-    if (url?.startsWith("upload/user/")) {
-      return bucketUrl + url;
-    } else return url;
-  };
+  const changeUrl = useChangeUrl();
 
   return (
     <Container>

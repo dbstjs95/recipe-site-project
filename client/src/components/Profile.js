@@ -7,11 +7,10 @@ import { faPen } from "@fortawesome/free-solid-svg-icons";
 import UserInfoModal from "./UserInfoModal";
 import { useQueryClient, useMutation } from "react-query";
 import axios from "axios";
-import userImg from "../assets/logo_img/user.png";
-import { bucketUrl, fileUpload, fileDelete } from "../api/fileUpload";
+import { fileUpload, fileDelete } from "../api/fileUpload";
+import { useChangeUrl, PROFILE_IMG_FIRST } from "../api/changeUrl";
 import { useSetAuth } from "../contexts/AuthContext";
-
-export const PROFILE_IMG_FIRST = "upload/user/";
+import { Loading } from "./States";
 
 const Container = styled.div`
   width: 80%;
@@ -87,10 +86,11 @@ function Profile({ setHeader }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
+  const changeUrl = useChangeUrl();
 
   const user = queryClient.getQueryData("login");
 
-  const [ProfileImg, setProfileImg] = useState("");
+  // const [ProfileImg, setProfileImg] = useState("");
   const [IsOpen, setIsOpen] = useState(false);
 
   //https://kyounghwan01.github.io/blog/React/react-query/basic/#usemutation
@@ -151,7 +151,7 @@ function Profile({ setHeader }) {
 
     let fileName = await fileUpload(
       e.target.files[0],
-      `upload/user/${user?.userInfo?.id}/`
+      `${PROFILE_IMG_FIRST}${user?.userInfo?.id}/`
     );
 
     if (fileName) {
@@ -172,18 +172,7 @@ function Profile({ setHeader }) {
     };
   }, [IsOpen]);
 
-  useEffect(() => {
-    let imgSrc = user?.userInfo?.profile_img;
-    if (!imgSrc) {
-      setProfileImg(userImg);
-    } else {
-      if (imgSrc.startsWith(PROFILE_IMG_FIRST)) {
-        setProfileImg(bucketUrl + imgSrc);
-      } else {
-        setProfileImg(imgSrc);
-      }
-    }
-  }, [user]);
+  if (isLoading) return <Loading type="rotate" height="70vh" />;
 
   return (
     <Container>
@@ -200,7 +189,10 @@ function Profile({ setHeader }) {
       </div>
       <ProfileBox>
         <div>
-          <BackgroundImg bgSrc={profileImg} userSrc={ProfileImg}>
+          <BackgroundImg
+            bgSrc={profileImg}
+            userSrc={changeUrl(user?.userInfo?.profile_img)}
+          >
             <label htmlFor="file"></label>
             <input type="file" id="file" onChange={handleChangePhoto} />
           </BackgroundImg>

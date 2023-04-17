@@ -2,9 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { bucketUrl } from "../api/fileUpload";
-import userImg from "../assets/logo_img/user.png";
-import emptyMain from "../assets/empty.png";
 import { Fetching } from "./States";
+import { useChangeUrl } from "../api/changeUrl";
 
 const BestSection = styled.section`
   position: relative;
@@ -121,14 +120,9 @@ const DetailStyle = styled.p`
 
 function RecipeListBox({ children, data, use, isFetching }) {
   const navigate = useNavigate();
-  const handleMovePage = (id) => navigate(`/recipes/${id}`);
+  const changeUrl = useChangeUrl();
 
-  const changeUrl = (url = "") => {
-    if (!url) return userImg;
-    if (url?.startsWith("upload/user/")) {
-      return bucketUrl + url;
-    } else return url;
-  };
+  const handleMovePage = (id) => navigate(`/recipes/${id}`);
 
   return (
     <BestSection>
