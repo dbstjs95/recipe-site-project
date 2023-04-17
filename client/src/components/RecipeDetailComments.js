@@ -2,13 +2,11 @@ import React, { useState, useCallback, useRef } from "react";
 import styled from "styled-components";
 import { H2Style } from "./RecipeDetailIngr";
 import { colors } from "../css";
-import { bucketUrl } from "../api/fileUpload";
-import userImg from "../assets/logo_img/user.png";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../contexts/AuthContext";
 import { Error, Loading } from "./States";
-import { PROFILE_IMG_FIRST } from "./Profile";
+import { useChangeUrl } from "../api/changeUrl";
 
 const Container = styled.div`
   width: 80%;
@@ -185,6 +183,7 @@ function RecipeDetailComments({
   const textRef = useRef();
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
+  const changeUrl = useChangeUrl();
 
   const [Count, setCount] = useState(0);
   const [CommentList, setCommentList] = useState([]);
@@ -336,14 +335,7 @@ function RecipeDetailComments({
 
           return (
             <li key={item?.id}>
-              <img
-                src={
-                  profileImg?.startsWith(PROFILE_IMG_FIRST)
-                    ? `${bucketUrl}${profileImg}`
-                    : profileImg || userImg
-                }
-                alt="프로필 이미지"
-              />
+              <img src={changeUrl(profileImg)} alt="프로필 이미지" />
               <ContentBox>
                 <p className="head">
                   <span className="nickname">{item?.writer?.nickname}</span>

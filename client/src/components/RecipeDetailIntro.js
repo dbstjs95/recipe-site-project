@@ -12,7 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart, faComment } from "@fortawesome/free-regular-svg-icons";
 import { bucketUrl } from "../api/fileUpload";
-import userImg from "../assets/logo_img/user.png";
+import { useChangeUrl } from "../api/changeUrl";
 import { useMutation, useQueryClient } from "react-query";
 import axios from "axios";
 import { useSetAuth } from "../contexts/AuthContext";
@@ -225,6 +225,7 @@ function RecipeDetailIntro({ data, setHeader, user, ID, CmtCount }) {
   const queryClient = useQueryClient();
   const setAuth = useSetAuth();
   const navigate = useNavigate();
+  const changeUrl = useChangeUrl();
 
   const [IsLiked, setIsLiked] = useState(data?.isLiked || false);
   const [LikeNum, setLikeNum] = useState(data?.like);
@@ -300,13 +301,6 @@ function RecipeDetailIntro({ data, setHeader, user, ID, CmtCount }) {
   };
 
   const handleModify = () => navigate(`/modify/${data?.id}`);
-
-  const changeUrl = (url = "") => {
-    if (!url) return userImg;
-    if (url?.startsWith("upload/user/")) {
-      return bucketUrl + url;
-    } else return url;
-  };
 
   return (
     <Container>
